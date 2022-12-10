@@ -1,6 +1,4 @@
 #include "Lexer.hh"
-#include "src/compiler/LexicalException.hh"
-#include <vector>
 
 namespace sciscript {
 
@@ -59,6 +57,8 @@ void Lexer::lex(std::vector<Token>& tokens) {
       pushTrivialToken(Token::Kind::LBRACE, tokens);
     } else if(currChar == '}') {
       pushTrivialToken(Token::Kind::RBRACE, tokens);
+    } else if(currChar == '"') {
+      readStringLiteral(tokens);
     } else if(currChar == '=') {
       readEqOrDeq(tokens);
     } else if (currChar == ' ' || currChar == '\n' || currChar == '\t') {
@@ -115,6 +115,8 @@ void Lexer::readIdentifierOrKeyword(std::vector<Token>& tokens) {
     type = Token::Kind::ELSE;
   } else if(id == "fn") {
     type = Token::Kind::FN;
+  } else if(id == "let") {
+    type = Token::Kind::LET;
   } else {
     type = Token::Kind::IDENTIFIER;
   }
@@ -155,6 +157,34 @@ void Lexer::readEqOrDeq(std::vector<Token>& tokens) {
   } else {
     pushTrivialToken(Token::Kind::EQ, tokens);
   }
+}
+
+void Lexer::readStringLiteral(std::vector<Token>& tokens) {
+  get();
+  int startOffset = position;
+  std::stringstream ss;
+  std::string literal;
+  
+  while(true) {
+    if(empty()) {
+      throw new LexicalException();
+    }
+
+    if(!empty() && peek() == '"') {
+      get();
+      break;
+    }
+
+    ss << get();
+  }
+  ss >> literal;
+  tokens.push_back(Token{
+    .type = Token::Kind::STRING_LITERAL,
+    .text = substr(code, startOffset, position-1),
+    .startOffset = startOffset,
+    .endOffset = position - 1,
+    .lineNumber = lineNumber,
+  });
 }
 
 }

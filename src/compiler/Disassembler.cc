@@ -34,6 +34,12 @@ void Disassembler::disassemble(CompilerOutput &code, std::string &output) {
       case OP_NEG:
         offset = simpleInstruction("OP_NEG", offset, ss);
         break;
+      case OP_DEFINE_GLOBAL:
+        offset = defineGlobalInstruction("OP_DEFINE_GLOBAL", offset, code, ss);
+        break;
+      case OP_PRINT:
+        offset = simpleInstruction("OP_PRINT", offset, ss);
+        break;
       default:
         ss << "Unkown opcode " << instruction << "\n";
         offset += 1;
@@ -53,11 +59,42 @@ int Disassembler::constantInstruction(std::string instruction, int offset, Compi
   uint8_t constantSize = code.bytecode[offset + 1];
   int index = 0;
   for(int i=0;i<constantSize;i++) {
-    index = i | (code.bytecode[offset + 2 + i] << i * 8);
+    index = index | (code.bytecode[offset + 2 + i] << i * 8);
   }
   ss << instruction << " : Index=" << index << "\n";
-  std::cout << instruction << " : Index=" << index << ", Value=" << code.constants[index] << std::endl;
+  std::cout << instruction << " : Index=" << index << ", Value=" << printValue(code.constants[index]) << std::endl;
   return offset + 2 + static_cast<int>(constantSize);
+}
+
+int Disassembler::defineGlobalInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
+  uint8_t constantSize = code.bytecode[offset + 1];
+  int index = 0;
+  for(int i=0;i<constantSize;i++) {
+    index = index | (code.bytecode[offset + 2 + i] << i * 8);
+  }
+  ss << instruction << " : Index=" << index << "\n";
+  std::cout << instruction << " : Index=" << index << ", Name=" << code.globals[index] << std::endl;
+  return offset + 2 + static_cast<int>(constantSize);
+}
+
+std::string Disassembler::printValue(Value value) {
+  switch(value.type) {
+    case VAL_BOOL:
+      return AS_BOOL(value) ? "true" : "false";
+    case VAL_NIL:
+      return "nil";
+    case VAL_NUMBER:
+      return std::to_string(AS_NUMBER(value));
+    case VAL_OBJECT:
+      return printObject(AS_OBJECT(value));
+  }
+}
+
+std::string Disassembler::printObject(Object* object) {
+  switch(object->type) {
+    case ObjectType::STRING:
+      return static_cast<ObjectString*>(object)->value;
+  }
 }
 
 }

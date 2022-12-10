@@ -1,7 +1,9 @@
 #ifndef _SCISCRIPT_COMPILER_EXPRESSION_H_
 #define _SCISCRIPT_COMPILER_EXPRESSION_H_
 
-#include "src/vm/VirtualMachine.hh"
+#include "src/types/OpCode.hh"
+#include "src/types/Value.hh"
+#include "src/types/CompilerOutput.hh"
 #include <iostream>
 
 namespace sciscript {

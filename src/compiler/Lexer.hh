@@ -30,6 +30,8 @@ class Token {
     DEQ,
     EQ,
     FN,
+    STRING_LITERAL,
+    LET,
   };
 
   Kind type;
@@ -74,6 +76,7 @@ class Lexer {
   void readIdentifierOrKeyword(std::vector<Token>& tokens);
   void readDivOrComment(std::vector<Token>& tokens);
   void readEqOrDeq(std::vector<Token>& tokens);
+  void readStringLiteral(std::vector<Token>& tokens);
 };
 
 }

@@ -1,9 +1,11 @@
 #include "Compiler.hh"
-#include "src/compiler/Expression.hh"
-#include "src/compiler/Lexer.hh"
-#include "src/compiler/SyntaxException.hh"
-#include <iostream>
-#include <variant>
+// #include "src/compiler/Expression.hh"
+// #include "src/compiler/Lexer.hh"
+// #include "src/compiler/Statement.hh"
+// #include "src/compiler/SyntaxException.hh"
+// #include "src/vm/VirtualMachine.hh"
+// #include <iostream>
+// #include <variant>
 
 namespace sciscript {
 
@@ -13,7 +15,7 @@ CompilerOutput Compiler::compile() {
   position = 0;
   CompilerOutput output;
 
-  expression(output);
+  statement(output);
 
   return output;
 }
@@ -36,6 +38,13 @@ bool Compiler::empty() {
   return position == tokens.size();
 }
 
+void Compiler::statement(CompilerOutput& output) {
+  // Parse statement
+  Statement* parsedStatement = readStatement();
+  parsedStatement->emitBytecode(output);  
+  delete parsedStatement;
+}
+
 void Compiler::expression(CompilerOutput& output) {
   // Parse expression
   Expression* parsedExpression = readExpression();
@@ -44,6 +53,63 @@ void Compiler::expression(CompilerOutput& output) {
   parsedExpression->emitBytecode(output);
 
   delete parsedExpression;
+}
+
+Statement* Compiler::readStatement() {
+  Token* next = peek();
+
+  if(next->type == Token::Kind::LET) {
+    get();
+
+    // Read variable name
+    if(empty() || peek()->type != Token::Kind::IDENTIFIER) {
+      throw new SyntaxException("Expected variable name");
+    }
+    Token* variableName = get();
+
+    // Pop of equal sign
+    if(empty() || peek()->type != Token::Kind::EQ) {
+      throw new SyntaxException("Unexpected ending of statement");
+    }
+    get();
+
+    // Read expression
+    Expression* expression = readExpression();
+    Statement* stmt = new Statement(StatementType::DECLARE_GLOBAL);
+    stmt->declareGlobal = new Statement::DeclareGlobal;
+    stmt->declareGlobal->name = variableName->text;
+    stmt->declareGlobal->initializer = expression;
+
+    if(empty() || peek()->type != Token::Kind::SEMICOLON) {
+      throw new SyntaxException("Expected semicolon");
+    }
+
+    return stmt;
+  }
+
+  if(next->type == Token::Kind::IDENTIFIER && next->text == "print") {
+    get();
+    if(empty() || peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected opening parenthesis");
+    }
+    get();
+    Expression* expression = readExpression();
+    if(empty() || peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected closing parenthesis");
+    }
+    get();
+    Statement* stmt = new Statement(StatementType::PRINT);
+    stmt->print = new Statement::Print;
+    stmt->print->expression = expression;
+
+    if(empty() || peek()->type != Token::Kind::SEMICOLON) {
+      throw new SyntaxException("Expected semicolon");
+    }
+
+    return stmt;
+  }
+
+  throw new SyntaxException("Invalid token");
 }
 
 Expression* Compiler::readExpression(bool fromGroup) {
@@ -154,13 +220,20 @@ PrimaryExpression* Compiler::readPrimary() {
 
     if(decimal) {
       PrimaryExpression* node = new PrimaryExpression(PrimaryType::CONSTANT);
-      node->value = stof(intpart + "." + decimalpart);
+      node->value = NUMBER_VAL(stof(intpart + "." + decimalpart));
       return node;
     } else {
       PrimaryExpression* node = new PrimaryExpression(PrimaryType::CONSTANT);
-      node->value = stof(intpart);
+      node->value = NUMBER_VAL(stof(intpart));
       return node;
     }
+  }
+
+  if(token->type == Token::Kind::STRING_LITERAL) {
+    ObjectString* obj = new ObjectString(token->text); // TODO (GC)
+    PrimaryExpression* node = new PrimaryExpression(PrimaryType::CONSTANT);
+    node->value = OBJECT_VAL(obj);
+    return node;
   }
 
   if(token->type == Token::Kind::LPAREN) {

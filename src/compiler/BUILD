@@ -10,6 +10,7 @@ custom_cc_library(
     "Expression.cc",
     "Lexer.cc",
     "LexicalException.cc",
+    "Statement.cc",
     "SyntaxException.cc",
   ],
   hdrs = [
@@ -18,9 +19,11 @@ custom_cc_library(
     "Expression.hh",
     "Lexer.hh",
     "LexicalException.hh",
+    "Statement.hh",
     "SyntaxException.hh",
   ],
   deps = [
     "//src/vm:vm",
+    "//src/types:types",
   ],
 )

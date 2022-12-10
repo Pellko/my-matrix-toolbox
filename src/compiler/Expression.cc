@@ -1,5 +1,4 @@
 #include "Expression.hh"
-#include "Compiler.hh"
 
 namespace sciscript {
 

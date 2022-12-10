@@ -17,6 +17,9 @@ class Disassembler {
  private:
   int simpleInstruction(std::string instruction, int offset, std::stringstream& ss);
   int constantInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss);
+  int defineGlobalInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss);
+  std::string printValue(Value value);
+  std::string printObject(Object* object);
 };
 
 }
