@@ -1,5 +1,4 @@
 #include "Disassembler.hh"
-#include "src/vm/VirtualMachine.hh"
 
 namespace sciscript {
 
@@ -34,11 +33,23 @@ void Disassembler::disassemble(CompilerOutput &code, std::string &output) {
       case OP_NEG:
         offset = simpleInstruction("OP_NEG", offset, ss);
         break;
-      case OP_DEFINE_GLOBAL:
-        offset = defineGlobalInstruction("OP_DEFINE_GLOBAL", offset, code, ss);
+      case OP_SET_GLOBAL:
+        offset = globalInstruction("OP_SET_GLOBAL", offset, code, ss);
+        break;
+      case OP_READ_GLOBAL:
+        offset = globalInstruction("OP_READ_GLOBAL", offset, code, ss);
+        break;
+      case OP_SET_LOCAL:
+        offset = localInstruction("OP_SET_LOCAL", offset, code, ss);
+        break;
+      case OP_READ_LOCAL:
+        offset = localInstruction("OP_READ_LOCAL", offset, code, ss);
         break;
       case OP_PRINT:
         offset = simpleInstruction("OP_PRINT", offset, ss);
+        break;
+      case OP_POP:
+        offset = simpleInstruction("OP_POP", offset, ss);
         break;
       default:
         ss << "Unkown opcode " << instruction << "\n";
@@ -66,7 +77,7 @@ int Disassembler::constantInstruction(std::string instruction, int offset, Compi
   return offset + 2 + static_cast<int>(constantSize);
 }
 
-int Disassembler::defineGlobalInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
+int Disassembler::globalInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
   uint8_t constantSize = code.bytecode[offset + 1];
   int index = 0;
   for(int i=0;i<constantSize;i++) {
@@ -74,6 +85,17 @@ int Disassembler::defineGlobalInstruction(std::string instruction, int offset, C
   }
   ss << instruction << " : Index=" << index << "\n";
   std::cout << instruction << " : Index=" << index << ", Name=" << code.globals[index] << std::endl;
+  return offset + 2 + static_cast<int>(constantSize);
+}
+
+int Disassembler::localInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
+  uint8_t constantSize = code.bytecode[offset + 1];
+  int index = 0;
+  for(int i=0;i<constantSize;i++) {
+    index = index | (code.bytecode[offset + 2 + i] << i * 8);
+  }
+  ss << instruction << " : Index=" << index << "\n";
+  std::cout << instruction << " : Index=" << index << std::endl;
   return offset + 2 + static_cast<int>(constantSize);
 }
 

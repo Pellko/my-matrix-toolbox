@@ -6,6 +6,7 @@
 #include "src/types/Value.hh"
 #include "src/types/Object.hh"
 #include "src/types/CompilerOutput.hh"
+#include "src/types/ArithmeticType.hh"
 #include "RuntimeException.hh"
 
 namespace sciscript {
@@ -18,8 +19,10 @@ class VirtualMachine {
   void execute(CompilerOutput& code);
  
  private:
-  std::stack<Value> valueStack;
+  std::vector<Value> globals;
+  std::vector<Value> valueStack;
   std::pair<int, int> readDynamicBytes(std::vector<uint8_t>& bytecode, int position);
+  void binaryOp(std::vector<uint8_t>& bytecode, ArithmeticType type);
 };
 
 }

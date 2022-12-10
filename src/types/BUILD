@@ -6,7 +6,9 @@ custom_cc_library(
   name = "types",
   srcs = [],
   hdrs = [
+    "ArithmeticType.hh",
     "CompilerOutput.hh",
+    "Local.hh",
     "Object.hh",
     "OpCode.hh",
     "Value.hh",

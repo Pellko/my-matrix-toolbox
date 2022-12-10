@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "Value.hh"
 #include "OpCode.hh"
+#include "Local.hh"
 
 namespace sciscript {
 
@@ -22,8 +23,23 @@ struct CompilerOutput {
   void pushGlobal(std::string name) {
     globals.push_back(name);
     globalNames[name] = globals.size() - 1;
-    emitByte(OP_DEFINE_GLOBAL);
+    emitByte(OP_SET_GLOBAL);
     emitDynamicBytes(globals.size() - 1);
+  }
+
+  void setLocal(std::string name, int index) {
+    emitByte(OP_SET_LOCAL);
+    emitDynamicBytes(index);
+  }
+
+  void readGlobal(int index) {
+    emitByte(OP_READ_GLOBAL);
+    emitDynamicBytes(index);
+  }
+
+  void readLocal(int index) {
+    emitByte(OP_READ_LOCAL);
+    emitDynamicBytes(index);
   }
 
   void emitConstant(int index) {

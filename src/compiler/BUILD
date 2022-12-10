@@ -23,7 +23,6 @@ custom_cc_library(
     "SyntaxException.hh",
   ],
   deps = [
-    "//src/vm:vm",
     "//src/types:types",
   ],
 )

@@ -4,29 +4,25 @@
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
 #include "src/types/CompilerOutput.hh"
+#include "src/types/ArithmeticType.hh"
 #include <iostream>
 
 namespace sciscript {
 
-struct CompilerOutput;
 class PrimaryExpression;
 
 enum class ExpressionType {
   ARITHMETIC,
   NEGATION,
   PRIMARY,
-};
-
-enum class ArithmeticType {
-  PLUS,
-  MINUS,
-  MULT,
-  DIV,
-  MOD,
+  SET_LOCAL,
+  SET_GLOBAL,
 };
 
 enum class PrimaryType {
   CONSTANT,
+  GLOBAL_VARIABLE,
+  LOCAL_VARIABLE,
   GROUP,
 };
 
@@ -47,8 +43,21 @@ class Expression {
     PrimaryExpression* child;
   };
 
+  struct SetLocal {
+    std::string name;
+    Expression* value;
+    int index;
+  };
+
+  struct SetGlobal {
+    std::string name;
+    Expression* value;
+  };
+
   Arithmetic* arithmetic;
   Negation* negation;
+  SetLocal* setLocal;
+  SetGlobal* setGlobal;
   PrimaryExpression* primary;
 
   void emitBytecode(CompilerOutput& output);
@@ -61,6 +70,8 @@ class PrimaryExpression {
 
   Value value;
   Expression* group;
+  int globalVariableIndex;
+  int localVariableIndex;
 
   PrimaryType type;
 

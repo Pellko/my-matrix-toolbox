@@ -7,10 +7,19 @@ PrimaryExpression::~PrimaryExpression() {
 }
 
 void PrimaryExpression::emitBytecode(CompilerOutput& output) {
-  if(type == PrimaryType::CONSTANT) {
-    output.pushConstant(value);
-  } else if (type == PrimaryType::GROUP) {
-    group->emitBytecode(output);
+  switch(type) {
+    case PrimaryType::CONSTANT:
+      output.pushConstant(value);
+      break;
+    case PrimaryType::GROUP:
+      group->emitBytecode(output);
+      break;
+    case PrimaryType::GLOBAL_VARIABLE:
+      output.readGlobal(globalVariableIndex);
+      break;
+    case PrimaryType::LOCAL_VARIABLE:
+      output.readLocal(localVariableIndex);
+      break;
   }
 }
 
@@ -23,6 +32,14 @@ Expression::~Expression() {
   if(negation != nullptr) {
     delete negation->child;
     delete negation;
+  }
+  if(setLocal != nullptr) {
+    delete setLocal->value;
+    delete setLocal;
+  }
+  if(setGlobal != nullptr) {
+    delete setGlobal->value;
+    delete setGlobal;
   }
   delete primary;
 }
@@ -57,6 +74,16 @@ void Expression::emitBytecode(CompilerOutput& output) {
 
   if(type == ExpressionType::PRIMARY) {
     primary->emitBytecode(output);
+  }
+
+  if(type == ExpressionType::SET_LOCAL) {
+    setLocal->value->emitBytecode(output);
+    output.setLocal(setLocal->name, setLocal->index);
+  }
+
+  if(type == ExpressionType::SET_GLOBAL) {
+    setGlobal->value->emitBytecode(output);
+    output.pushGlobal(setGlobal->name);
   }
 }
 
