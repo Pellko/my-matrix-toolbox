@@ -1,6 +1,7 @@
 #include "VirtualMachine.hh"
 #include "src/types/ArithmeticType.hh"
 #include "src/types/OpCode.hh"
+#include "src/types/Value.hh"
 #include "src/vm/RuntimeException.hh"
 
 namespace sciscript {
@@ -11,7 +12,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
 
   for(int position = 0; position<output.bytecode.size();) {
     uint8_t instruction = output.bytecode[position];
-
+  
     switch (instruction) {
       case OP_RETURN: {
         break;
@@ -93,17 +94,61 @@ void VirtualMachine::execute(CompilerOutput& output) {
       case OP_PRINT: {
         position++;
         Value v = valueStack.back();
-        if(IS_NUMBER(v)) {
-          std::cout << AS_NUMBER(v) << std::endl;
-          valueStack.pop_back();
-        } else {
-          throw new RuntimeException("Unexpected types in print");
+
+        switch(v.type) {
+          case VAL_NUMBER:
+            std::cout << AS_NUMBER(v) << std::endl;
+            valueStack.pop_back();
+            break;
+          case VAL_BOOL:
+            std::cout << (AS_BOOL(v) ? "true" : "false") << std::endl;
+            valueStack.pop_back();
+            break;
+          case VAL_NIL:
+            std::cout << "nil" << std::endl;
+            valueStack.pop_back();
+            break;
+          default:
+            throw new RuntimeException("Unexpected types in print");
         }
         break;
       }
       case OP_POP: {
         position++;
         valueStack.pop_back();
+        break;
+      }
+      case OP_EQUALS: {
+        comparisonOp(output.bytecode, ComparisonType::EQUALS);
+        position++;
+        break;
+      }
+      case OP_JUMP_FALSE: {
+        position++;
+        auto [offset, size] = readDynamicBytes(output.bytecode, position);
+        Value comparison = valueStack.back();
+        valueStack.pop_back();
+
+        if(comparison.type != VAL_BOOL) {
+          throw new RuntimeException("Expected boolean value in if statement");
+        }
+
+        if(!AS_BOOL(comparison)) {
+          position += offset;
+        }
+
+        position += size + 1;
+        break;
+      }
+      case OP_JUMP: {
+        position++;
+        auto [offset, size] = readDynamicBytes(output.bytecode, position);
+        
+        if(offset >= 0) {
+          position += size + 1;
+        }
+
+        position += offset;
         break;
       }
       default: {
@@ -152,6 +197,51 @@ void VirtualMachine::binaryOp(std::vector<uint8_t>& bytecode, ArithmeticType typ
       valueStack.push_back(NUMBER_VAL(std::fmod(v1n, v2n)));
       break;
   }
-} 
+}
+
+void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, ComparisonType type) {
+  Value v1 = valueStack.back();
+  valueStack.pop_back();
+  Value v2 = valueStack.back();
+  valueStack.pop_back();
+
+  switch(type) {
+    case ComparisonType::EQUALS: {
+      // Type check
+      bool hasNil = v1.type == VAL_NIL || v2.type == VAL_NIL;
+
+      if(v1.type != v2.type && !hasNil) {
+        throw new RuntimeException("Cannot compare different types");
+      }
+
+      if(hasNil && v1.type == VAL_NIL && v2.type == VAL_NIL) {
+        valueStack.push_back(BOOL_VAL(true));
+        return;
+      } else {
+        if(hasNil) {
+          valueStack.push_back(BOOL_VAL(false));
+          return;
+        }
+      }
+
+      // Compare
+      switch(v1.type) {
+        case VAL_NUMBER:
+          valueStack.push_back(BOOL_VAL(AS_NUMBER(v1) == AS_NUMBER(v2)));
+          break;
+        case VAL_BOOL:
+          valueStack.push_back(BOOL_VAL(AS_BOOL(v1) == AS_BOOL(v2)));
+          break;
+        case VAL_NIL:
+          valueStack.push_back(BOOL_VAL(true));
+          break;
+        case VAL_OBJECT:
+          valueStack.push_back(BOOL_VAL(AS_OBJECT(v1) == AS_OBJECT(v2)));
+          break;
+      }
+      break;
+    }
+  }
+}
 
 }

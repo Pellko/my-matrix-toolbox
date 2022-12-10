@@ -57,7 +57,7 @@ bool Compiler::expressionNext() {
 void Compiler::statement(CompilerOutput& output) {
   // Parse statement
   Statement* parsedStatement = readStatement();
-  parsedStatement->emitBytecode(output);  
+  parsedStatement->emitBytecode(output);
   delete parsedStatement;
 }
 
@@ -109,6 +109,43 @@ Statement* Compiler::readStatement() {
     get();
 
     return stmt;
+  }
+
+  // If statement
+  if(next->type == Token::Kind::IF) {
+    get();
+
+    if(empty() || peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected (");
+    }
+    get();
+
+    Expression* condition = readExpression();
+
+    if(empty() || peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected )");
+    }
+    get();
+
+    if(empty()) {
+      throw new SyntaxException("Expected statement");
+    }
+
+    Statement* trueStatement = readStatement();
+    Statement* elseStatement = nullptr;
+
+    if(!empty() && peek()->type == Token::Kind::ELSE) {
+      get();
+      elseStatement = readStatement();
+    }
+
+    Statement* node = new Statement(StatementType::IF);
+    node->ifStatement = new Statement::If;
+    node->ifStatement->condition = condition;
+    node->ifStatement->trueStatement = trueStatement;
+    node->ifStatement->elseStatement = elseStatement;
+    
+    return node;
   }
 
   // Declare global or local variable
@@ -222,6 +259,7 @@ Expression* Compiler::readExpression(bool fromGroup) {
   }
 
   Token* next = peek();
+
   if(next->type == Token::Kind::PLUS || next->type == Token::Kind::MINUS) {
     get();
     Expression* result = new Expression(ExpressionType::ARITHMETIC);
@@ -239,6 +277,24 @@ Expression* Compiler::readExpression(bool fromGroup) {
     if(next->type == Token::Kind::PLUS) result->arithmetic->type = ArithmeticType::PLUS;
     if(next->type == Token::Kind::MINUS) result->arithmetic->type = ArithmeticType::MINUS;
     
+    return result;
+  }
+
+  if(next->type == Token::Kind::DEQ) {
+    get();
+    Expression* result = new Expression(ExpressionType::COMPARISON);
+    result->comparison = new Expression::Comparison;
+    result->comparison->left = term;
+    result->comparison->type = ComparisonType::EQUALS;
+
+    if(fromGroup) {
+      if(!empty() && (peek()->type == Token::Kind::IDENTIFIER || peek()->type == Token::Kind::NUMBER || peek()->type == Token::Kind::MINUS || peek()->type == Token::Kind::LPAREN)) {
+        result->comparison->right = readExpression(true);
+      }
+    } else {
+      result->comparison->right = readExpression(false);
+    }
+
     return result;
   }
 
@@ -330,6 +386,12 @@ PrimaryExpression* Compiler::readPrimary() {
       node->value = NUMBER_VAL(stof(intpart));
       return node;
     }
+  }
+
+  if(token->type == Token::Kind::TRUE || token->type == Token::Kind::FALSE) {
+    PrimaryExpression* node = new PrimaryExpression(PrimaryType::CONSTANT);
+    node->value = BOOL_VAL(token->type == Token::Kind::TRUE);
+    return node;
   }
 
   if(token->type == Token::Kind::IDENTIFIER) {

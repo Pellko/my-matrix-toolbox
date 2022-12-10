@@ -1,4 +1,5 @@
 #include "Disassembler.hh"
+#include "src/types/OpCode.hh"
 
 namespace sciscript {
 
@@ -51,6 +52,15 @@ void Disassembler::disassemble(CompilerOutput &code, std::string &output) {
       case OP_POP:
         offset = simpleInstruction("OP_POP", offset, ss);
         break;
+      case OP_EQUALS:
+        offset = simpleInstruction("OP_EQUALS", offset, ss);
+        break;
+      case OP_JUMP_FALSE:
+        offset = jumpInstruction("OP_JUMP_FALSE", offset, code, ss);
+        break;
+      case OP_JUMP:
+        offset = jumpInstruction("OP_JUMP", offset, code, ss);
+        break;
       default:
         ss << "Unkown opcode " << instruction << "\n";
         offset += 1;
@@ -96,6 +106,17 @@ int Disassembler::localInstruction(std::string instruction, int offset, Compiler
   }
   ss << instruction << " : Index=" << index << "\n";
   std::cout << instruction << " : Index=" << index << std::endl;
+  return offset + 2 + static_cast<int>(constantSize);
+}
+
+int Disassembler::jumpInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
+  uint8_t constantSize = code.bytecode[offset + 1];
+  int index = 0;
+  for(int i=0;i<constantSize;i++) {
+    index = index | (code.bytecode[offset + 2 + i] << i * 8);
+  }
+  ss << instruction << " : Skip=" << index << "\n";
+  std::cout << instruction << " : Skip=" << index << std::endl;
   return offset + 2 + static_cast<int>(constantSize);
 }
 

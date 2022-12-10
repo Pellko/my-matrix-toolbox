@@ -14,6 +14,7 @@ enum class StatementType {
   PRINT,
   BLOCK,
   EXPRESSION,
+  IF,
 };
 
 class Statement {
@@ -42,6 +43,12 @@ class Statement {
     Expression* expression;
   };
 
+  struct If {
+    Expression* condition;
+    Statement* trueStatement;
+    Statement* elseStatement;
+  };
+
   struct Block {
     std::vector<Statement*> statements;
     int depth;
@@ -62,6 +69,7 @@ class Statement {
   Print* print;
   Block* block;
   ExpressionStatement* expression;
+  If* ifStatement;
 
   void emitBytecode(CompilerOutput& output);
 };

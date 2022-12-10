@@ -48,6 +48,13 @@ struct CompilerOutput {
   }
 
   void emitDynamicBytes(int value) {
+    std::vector<uint8_t> result = generateDynamicBytes(value);
+    for(int i=0;i<result.size();i++) {
+      emitByte(result[i]);
+    }
+  }
+
+  std::vector<uint8_t> generateDynamicBytes(int value) {
     int i = value;
     unsigned char bytes = 1;
     unsigned char max = 128;
@@ -56,11 +63,14 @@ struct CompilerOutput {
       i >>= 8;
       bytes++;
     }
-
-    emitByte(bytes);
+    
+    std::vector<uint8_t> result;
+    result.push_back(bytes);
     for(int i=0;i<bytes;i++) {
-      emitByte((value >> i * 8) & 0xFF);
+      result.push_back((value >> i * 8) & 0xFF);
     }
+    
+    return result;
   }
 
   void emitByte(uint8_t b) {

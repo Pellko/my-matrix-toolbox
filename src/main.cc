@@ -11,7 +11,7 @@ using namespace sciscript;
 
 int main(int argc, char** argv) {
   // std::string code = "let test = 100; { let test=200; { let test=10; test=30 ;print(test+20); } }";
-  std::string code = "let test = 100; print(test=50);";
+  std::string code = "if(true) {print(123);print(231);} else print(321);";
 
   // Perform lexical analysis
   Lexer lexer(code);

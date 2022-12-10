@@ -18,6 +18,9 @@ enum OpCode {
   OP_READ_LOCAL,
   OP_PRINT,
   OP_POP,
+  OP_EQUALS,
+  OP_JUMP_FALSE,
+  OP_JUMP,
 };
 
 }

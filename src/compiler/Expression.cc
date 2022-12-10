@@ -1,4 +1,5 @@
 #include "Expression.hh"
+#include "src/types/ArithmeticType.hh"
 
 namespace sciscript {
 
@@ -33,6 +34,11 @@ Expression::~Expression() {
     delete negation->child;
     delete negation;
   }
+  if(comparison != nullptr) {
+    delete comparison->left;
+    delete comparison->right;
+    delete comparison;
+  }
   if(setLocal != nullptr) {
     delete setLocal->value;
     delete setLocal;
@@ -63,6 +69,16 @@ void Expression::emitBytecode(CompilerOutput& output) {
         break;
       case ArithmeticType::MOD:
         output.emitByte(OP_MOD);
+        break;
+    }
+  }
+
+  if(type == ExpressionType::COMPARISON) {
+    comparison->left->emitBytecode(output);
+    comparison->right->emitBytecode(output);
+    switch(comparison->type) {
+      case ComparisonType::EQUALS:
+        output.emitByte(OP_EQUALS);
         break;
     }
   }

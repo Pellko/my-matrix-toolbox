@@ -11,6 +11,10 @@ enum class ArithmeticType {
   MOD,
 };
 
+enum class ComparisonType {
+  EQUALS,
+};
+
 }
 
 #endif

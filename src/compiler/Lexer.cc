@@ -117,6 +117,10 @@ void Lexer::readIdentifierOrKeyword(std::vector<Token>& tokens) {
     type = Token::Kind::FN;
   } else if(id == "let") {
     type = Token::Kind::LET;
+  } else if(id == "true") {
+    type = Token::Kind::TRUE;
+  } else if(id == "false") {
+    type = Token::Kind::FALSE;
   } else {
     type = Token::Kind::IDENTIFIER;
   }

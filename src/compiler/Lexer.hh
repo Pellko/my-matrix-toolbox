@@ -32,6 +32,8 @@ class Token {
     FN,
     STRING_LITERAL,
     LET,
+    TRUE,
+    FALSE,
   };
 
   Kind type;

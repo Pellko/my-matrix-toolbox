@@ -1,5 +1,6 @@
 #include "Statement.hh"
 #include "src/compiler/Expression.hh"
+#include "src/types/OpCode.hh"
 
 namespace sciscript {
 
@@ -26,6 +27,12 @@ Statement::~Statement() {
       delete stmt;
     }
     delete block;
+  }
+  if(ifStatement != nullptr) {
+    delete ifStatement->condition;
+    delete ifStatement->trueStatement;
+    delete ifStatement->elseStatement;
+    delete ifStatement;
   }
 }
 
@@ -58,6 +65,36 @@ void Statement::emitBytecode(CompilerOutput& output) {
     case StatementType::EXPRESSION: {
       expression->expression->emitBytecode(output);
       output.emitByte(OP_POP);
+      break;
+    }
+    case StatementType::IF: {
+      // Emit condition and jump
+      ifStatement->condition->emitBytecode(output);
+      output.emitByte(OP_JUMP_FALSE);
+
+      // Emit true statement
+      int trueStatementStart = output.bytecode.size();
+      ifStatement->trueStatement->emitBytecode(output);
+      int trueStatementLength = output.bytecode.size() - trueStatementStart;
+
+      // Emit else statement if it exists
+      if(ifStatement->elseStatement != nullptr) {
+        int elseStatementStart = output.bytecode.size();
+        ifStatement->elseStatement->emitBytecode(output);
+        int elseStatementEnd = output.bytecode.size();
+        std::vector<uint8_t> bytes = output.generateDynamicBytes(elseStatementEnd - elseStatementStart);
+        trueStatementLength += bytes.size() + 1; // Add OP_JUMP + argument
+        output.bytecode.insert(output.bytecode.begin() + elseStatementStart, OP_JUMP);
+        for(int i=1;i<=bytes.size();i++) {
+          output.bytecode.insert(output.bytecode.begin() + elseStatementStart + i, bytes[i-1]);
+        }
+      }
+
+      // Set OP_JUMP_FALSE argument
+      std::vector<uint8_t> bytes = output.generateDynamicBytes(trueStatementLength);
+      for(int i=0;i<bytes.size();i++) {
+        output.bytecode.insert(output.bytecode.begin() + trueStatementStart + i, bytes[i]);
+      }
       break;
     }
   }

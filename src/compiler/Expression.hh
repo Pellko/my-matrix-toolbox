@@ -15,6 +15,7 @@ enum class ExpressionType {
   ARITHMETIC,
   NEGATION,
   PRIMARY,
+  COMPARISON,
   SET_LOCAL,
   SET_GLOBAL,
 };
@@ -43,6 +44,12 @@ class Expression {
     PrimaryExpression* child;
   };
 
+  struct Comparison {
+    ComparisonType type;
+    Expression* left;
+    Expression* right;    
+  };
+
   struct SetLocal {
     std::string name;
     Expression* value;
@@ -56,6 +63,7 @@ class Expression {
 
   Arithmetic* arithmetic;
   Negation* negation;
+  Comparison* comparison;
   SetLocal* setLocal;
   SetGlobal* setGlobal;
   PrimaryExpression* primary;

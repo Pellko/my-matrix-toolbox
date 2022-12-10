@@ -23,6 +23,7 @@ class VirtualMachine {
   std::vector<Value> valueStack;
   std::pair<int, int> readDynamicBytes(std::vector<uint8_t>& bytecode, int position);
   void binaryOp(std::vector<uint8_t>& bytecode, ArithmeticType type);
+  void comparisonOp(std::vector<uint8_t>& bytecode, ComparisonType type);
 };
 
 }
