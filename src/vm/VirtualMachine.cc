@@ -47,10 +47,14 @@ void VirtualMachine::execute(CompilerOutput& output) {
         Value v = valueStack.back();
         valueStack.pop_back();
 
-        if(v.type != VAL_NUMBER) {
-          throw new RuntimeException("Expected number");
+        if(v.type == VAL_NUMBER) {
+          valueStack.push_back(NUMBER_VAL(-AS_NUMBER(v)));
+        } else if(v.type == VAL_BOOL) {
+          valueStack.push_back(BOOL_VAL(!AS_BOOL(v)));
+        } else {
+          throw new RuntimeException("Unexpected type");
         }
-        valueStack.push_back(NUMBER_VAL(-AS_NUMBER(v)));
+        
         break;
       }
       case OP_CONSTANT: {
@@ -123,6 +127,16 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position++;
         break;
       }
+      case OP_LT: {
+        comparisonOp(output.bytecode, ComparisonType::LT);
+        position++;
+        break;
+      }
+      case OP_LEQ: {
+        comparisonOp(output.bytecode, ComparisonType::LEQ);
+        position++;
+        break;
+      }
       case OP_JUMP_FALSE: {
         position++;
         auto [offset, size] = readDynamicBytes(output.bytecode, position);
@@ -143,14 +157,18 @@ void VirtualMachine::execute(CompilerOutput& output) {
       case OP_JUMP: {
         position++;
         auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        
-        if(offset >= 0) {
-          position += size + 1;
-        }
-
+        position += size + 1;
         position += offset;
         break;
       }
+      case OP_LOOP: {
+        position++;
+        auto [offset, size] = readDynamicBytes(output.bytecode, position);
+        position -= size + 1;
+        position -= offset;
+        break;
+      }
+
       default: {
         position++;
       }
@@ -241,6 +259,42 @@ void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, ComparisonType
       }
       break;
     }
+    case ComparisonType::LT:
+    case ComparisonType::LEQ: {
+      if(v1.type != v2.type) {
+        throw new RuntimeException("Cannot compare different types");
+      }
+
+      switch(v1.type) {
+        case VAL_NUMBER:
+          valueStack.push_back(BOOL_VAL(
+            type == ComparisonType::LT ? AS_NUMBER(v2) < AS_NUMBER(v1) :
+                                         AS_NUMBER(v2) <= AS_NUMBER(v1)
+          ));
+          break;
+        case VAL_BOOL:
+          valueStack.push_back(BOOL_VAL(
+            type == ComparisonType::LT ? int(AS_BOOL(v2)) < int(AS_BOOL(v1)) :
+                                         int(AS_BOOL(v2)) <= int(AS_BOOL(v1))
+          ));
+          break;
+        case VAL_NIL:
+          if(type == ComparisonType::LT) {
+            valueStack.push_back(BOOL_VAL(false));
+          } else {
+            valueStack.push_back(BOOL_VAL(true));
+          }
+          break;
+        case VAL_OBJECT:
+          throw new RuntimeException("Cannot compare objects");
+          break;
+      }
+
+      break;
+    }
+    case ComparisonType::GT:
+    case ComparisonType::GEQ:
+      break;
   }
 }
 

@@ -34,6 +34,13 @@ Statement::~Statement() {
     delete ifStatement->elseStatement;
     delete ifStatement;
   }
+  if(forStatement != nullptr) {
+    delete forStatement->initializer;
+    delete forStatement->condition;
+    delete forStatement->incrementor;
+    delete forStatement->body;
+    delete forStatement;
+  }
 }
 
 void Statement::emitBytecode(CompilerOutput& output) {
@@ -94,6 +101,50 @@ void Statement::emitBytecode(CompilerOutput& output) {
       std::vector<uint8_t> bytes = output.generateDynamicBytes(trueStatementLength);
       for(int i=0;i<bytes.size();i++) {
         output.bytecode.insert(output.bytecode.begin() + trueStatementStart + i, bytes[i]);
+      }
+      break;
+    }
+    case StatementType::FOR: {
+      if(forStatement->initializer != nullptr) {
+        forStatement->initializer->emitBytecode(output);
+      }
+
+      int conditionStart = output.bytecode.size();
+      if(forStatement->condition != nullptr) {
+        forStatement->condition->emitBytecode(output);
+      }
+      int conditionLength = output.bytecode.size() - conditionStart;
+      output.emitByte(OP_JUMP_FALSE);
+
+      int bodyStart = output.bytecode.size();
+      forStatement->body->emitBytecode(output);
+      int bodyLength = output.bytecode.size() - bodyStart;
+
+      int incrementorStart = output.bytecode.size();
+      if(forStatement->incrementor != nullptr) {
+        forStatement->incrementor->emitBytecode(output);
+        output.emitByte(OP_POP);
+      }
+      int incrementLength = output.bytecode.size() - incrementorStart;
+      output.emitByte(OP_LOOP);
+
+      int jumpSize = conditionLength + bodyLength + incrementLength;
+      std::vector<uint8_t> bytes = output.generateDynamicBytes(jumpSize);
+      jumpSize += bytes.size();
+      if(output.generateDynamicBytes(jumpSize).size() != bytes.size()) {
+        int oldSize = bytes.size();
+        bytes = output.generateDynamicBytes(jumpSize);
+        jumpSize -= oldSize;
+        jumpSize += bytes.size();
+      }  else {
+        bytes = output.generateDynamicBytes(jumpSize);
+      }
+      output.emitDynamicBytes(jumpSize);
+      for(int i=0;i<bytes.size();i++) {
+        output.bytecode.insert(output.bytecode.begin() + conditionStart + conditionLength + 1 + i, bytes[i]);
+      }
+      if(forStatement->initializer != nullptr && forStatement->initializer->type == StatementType::DECLARE_LOCAL) {
+        output.emitByte(OP_POP);
       }
       break;
     }

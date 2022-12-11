@@ -1,0 +1,17 @@
+let a = 0;
+let b = 1;
+
+for(let i=0;i<10;i=i+1) {
+  if(i == 0) {
+    print(0);
+  } else {
+    if(i == 1) {
+      print(1);
+    } else {
+      let next = a+b;
+      a = b;
+      b = next;
+      print(next);
+    }
+  }
+}

@@ -34,6 +34,11 @@ class Token {
     LET,
     TRUE,
     FALSE,
+    FOR,
+    LT,
+    LEQ,
+    GT,
+    GEQ,
   };
 
   Kind type;
@@ -79,6 +84,8 @@ class Lexer {
   void readDivOrComment(std::vector<Token>& tokens);
   void readEqOrDeq(std::vector<Token>& tokens);
   void readStringLiteral(std::vector<Token>& tokens);
+  void readLtOrLeq(std::vector<Token>& tokens);
+  void readGtOrGeq(std::vector<Token>& tokens);
 };
 
 }

@@ -1,5 +1,6 @@
 #include <exception>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include "src/compiler/Compiler.hh"
 #include "src/compiler/Disassembler.hh"
@@ -9,9 +10,21 @@
 
 using namespace sciscript;
 
+std::string read_string_from_file(const std::string &file_path) {
+  const std::ifstream input_stream(file_path, std::ios_base::binary);
+
+  if (input_stream.fail()) {
+    throw std::runtime_error("Failed to open file");
+  }
+
+  std::stringstream buffer;
+  buffer << input_stream.rdbuf();
+
+  return buffer.str();
+}
+
 int main(int argc, char** argv) {
-  // std::string code = "let test = 100; { let test=200; { let test=10; test=30 ;print(test+20); } }";
-  std::string code = "if(true) {print(123);print(231);} else print(321);";
+  std::string code = read_string_from_file("./examples/fibbonaci.txt");
 
   // Perform lexical analysis
   Lexer lexer(code);

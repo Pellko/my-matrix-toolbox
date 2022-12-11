@@ -27,6 +27,12 @@ struct CompilerOutput {
     emitDynamicBytes(globals.size() - 1);
   }
 
+  void setGlobal(std::string name) {
+    int index = globalNames[name];
+    emitByte(OP_SET_GLOBAL);
+    emitDynamicBytes(index);
+  }
+
   void setLocal(std::string name, int index) {
     emitByte(OP_SET_LOCAL);
     emitDynamicBytes(index);

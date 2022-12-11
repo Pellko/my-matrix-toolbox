@@ -21,6 +21,9 @@ enum OpCode {
   OP_EQUALS,
   OP_JUMP_FALSE,
   OP_JUMP,
+  OP_LOOP,
+  OP_LT,
+  OP_LEQ,
 };
 
 }

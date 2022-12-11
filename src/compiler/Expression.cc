@@ -1,5 +1,6 @@
 #include "Expression.hh"
 #include "src/types/ArithmeticType.hh"
+#include "src/types/CompilerOutput.hh"
 
 namespace sciscript {
 
@@ -80,6 +81,20 @@ void Expression::emitBytecode(CompilerOutput& output) {
       case ComparisonType::EQUALS:
         output.emitByte(OP_EQUALS);
         break;
+      case ComparisonType::LT:
+        output.emitByte(OP_LT);
+        break;
+      case ComparisonType::GT:
+        output.emitByte(OP_LEQ);
+        output.emitByte(OP_NEG);
+        break;
+      case ComparisonType::LEQ:
+        output.emitByte(OP_LEQ);
+        break;
+      case ComparisonType::GEQ:
+        output.emitByte(OP_LT);
+        output.emitByte(OP_NEG);
+        break;
     }
   }
 
@@ -99,7 +114,7 @@ void Expression::emitBytecode(CompilerOutput& output) {
 
   if(type == ExpressionType::SET_GLOBAL) {
     setGlobal->value->emitBytecode(output);
-    output.pushGlobal(setGlobal->name);
+    output.setGlobal(setGlobal->name);
   }
 }
 

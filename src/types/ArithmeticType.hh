@@ -13,6 +13,10 @@ enum class ArithmeticType {
 
 enum class ComparisonType {
   EQUALS,
+  LT,
+  LEQ,
+  GT,
+  GEQ,
 };
 
 }

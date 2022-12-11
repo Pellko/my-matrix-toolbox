@@ -55,11 +55,20 @@ void Disassembler::disassemble(CompilerOutput &code, std::string &output) {
       case OP_EQUALS:
         offset = simpleInstruction("OP_EQUALS", offset, ss);
         break;
+      case OP_LT:
+        offset = simpleInstruction("OP_LT", offset, ss);
+        break;
+      case OP_LEQ:
+        offset = simpleInstruction("OP_LEQ", offset, ss);
+        break;
       case OP_JUMP_FALSE:
         offset = jumpInstruction("OP_JUMP_FALSE", offset, code, ss);
         break;
       case OP_JUMP:
         offset = jumpInstruction("OP_JUMP", offset, code, ss);
+        break;
+      case OP_LOOP:
+        offset = jumpInstruction("OP_LOOP", offset, code, ss);
         break;
       default:
         ss << "Unkown opcode " << instruction << "\n";

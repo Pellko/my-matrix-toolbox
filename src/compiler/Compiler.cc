@@ -54,6 +54,24 @@ bool Compiler::expressionNext() {
   return false;
 }
 
+void Compiler::beginScope() {
+  currScopeLevel++;
+}
+
+void Compiler::endScope() {
+  currScopeLevel--;
+  std::vector<int> removeIndexes;
+  for(int i=0;i<locals.size();i++) {
+    if(locals[i].depth > currScopeLevel) {
+      removeIndexes.push_back(i);
+    }
+  }
+
+  for(int i=removeIndexes.size()-1;i>=0;i--) {
+    locals.erase(locals.begin() + removeIndexes[i]);
+  }
+}
+
 void Compiler::statement(CompilerOutput& output) {
   // Parse statement
   Statement* parsedStatement = readStatement();
@@ -75,25 +93,13 @@ Statement* Compiler::readStatement() {
   Token* next = peek();
 
   if(next->type == Token::Kind::LBRACE) {
-    currScopeLevel++;
+    beginScope();
     std::vector<Statement*> statements = readBlock();
     Statement* stmt = new Statement(StatementType::BLOCK);
     stmt->block = new Statement::Block;
     stmt->block->statements = statements;
     stmt->block->depth = currScopeLevel;
-    currScopeLevel--;
-
-    std::vector<int> removeIndexes;
-    for(int i=0;i<locals.size();i++) {
-      if(locals[i].depth > currScopeLevel) {
-        removeIndexes.push_back(i);
-      }
-    }
-
-    for(int i=removeIndexes.size()-1;i>=0;i--) {
-      locals.erase(locals.begin() + removeIndexes[i]);
-    }
-
+    endScope();
     return stmt;
   }
 
@@ -145,6 +151,74 @@ Statement* Compiler::readStatement() {
     node->ifStatement->trueStatement = trueStatement;
     node->ifStatement->elseStatement = elseStatement;
     
+    return node;
+  }
+
+  // For loop
+  if(next->type == Token::Kind::FOR) {
+    get();
+
+    if(empty() || peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected (");
+    }
+    get();
+
+    beginScope();
+    // (1) Read initializer clause
+    Statement* initializerStatement = nullptr;
+    Expression* condition = nullptr;
+    Expression* incrementor = nullptr;
+
+    if(peek()->type == Token::Kind::SEMICOLON) {
+      get();
+    } else if(peek()->type == Token::Kind::LET) {
+      initializerStatement = readStatement();
+    } else {
+      initializerStatement = new Statement(StatementType::EXPRESSION);
+      initializerStatement->expression = new Statement::ExpressionStatement;
+      initializerStatement->expression->expression = readExpression();
+      if(empty() || peek()->type != Token::Kind::SEMICOLON) {
+        throw new SyntaxException("Expected semicolon");
+      }
+      get();
+    }
+
+    // (2) Read condition clause
+    if(peek()->type == Token::Kind::SEMICOLON) {
+      get();
+    } else {
+      condition = readExpression();
+      if(empty() || peek()->type != Token::Kind::SEMICOLON) {
+        throw new SyntaxException("Expected semicolon");
+      }
+      get();
+    }
+
+    // (3) Read incrementor
+    if(peek()->type == Token::Kind::SEMICOLON) {
+      get();
+    } else {
+      incrementor = readExpression();
+    }
+
+    if(empty() || peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected )");
+    }
+    get();
+
+    if(empty()) {
+      throw new SyntaxException("Expected body");
+    }
+
+    Statement* body = readStatement();
+    Statement* node = new Statement(StatementType::FOR);
+    node->forStatement = new Statement::For;
+    node->forStatement->initializer = initializerStatement;
+    node->forStatement->condition = condition;
+    node->forStatement->incrementor = incrementor;
+    node->forStatement->body = body;
+    endScope();
+
     return node;
   }
 
@@ -239,6 +313,7 @@ Expression* Compiler::readExpression(bool fromGroup) {
       node->setGlobal = new Expression::SetGlobal;
       node->setGlobal->name = name->text;
       node->setGlobal->value = value;
+      
       return node;
     } else {
       // Local variable
@@ -280,12 +355,11 @@ Expression* Compiler::readExpression(bool fromGroup) {
     return result;
   }
 
-  if(next->type == Token::Kind::DEQ) {
+  if(next->type == Token::Kind::DEQ || next->type == Token::Kind::LT || next->type == Token::Kind::LEQ || next->type == Token::Kind::GT || next->type == Token::Kind::GEQ) {
     get();
     Expression* result = new Expression(ExpressionType::COMPARISON);
     result->comparison = new Expression::Comparison;
     result->comparison->left = term;
-    result->comparison->type = ComparisonType::EQUALS;
 
     if(fromGroup) {
       if(!empty() && (peek()->type == Token::Kind::IDENTIFIER || peek()->type == Token::Kind::NUMBER || peek()->type == Token::Kind::MINUS || peek()->type == Token::Kind::LPAREN)) {
@@ -294,6 +368,12 @@ Expression* Compiler::readExpression(bool fromGroup) {
     } else {
       result->comparison->right = readExpression(false);
     }
+
+    if(next->type == Token::Kind::DEQ) result->comparison->type = ComparisonType::EQUALS;
+    if(next->type == Token::Kind::LT) result->comparison->type = ComparisonType::LT;
+    if(next->type == Token::Kind::LEQ) result->comparison->type = ComparisonType::LEQ;
+    if(next->type == Token::Kind::GT) result->comparison->type = ComparisonType::GT;
+    if(next->type == Token::Kind::GEQ) result->comparison->type = ComparisonType::GEQ;
 
     return result;
   }

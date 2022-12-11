@@ -43,6 +43,9 @@ class Compiler {
   PrimaryExpression* readPrimary();
   Statement* declareGlobal(Token* variableName);
   Statement* declareLocal(Token* variableName);
+
+  void beginScope();
+  void endScope();
 };
 
 }

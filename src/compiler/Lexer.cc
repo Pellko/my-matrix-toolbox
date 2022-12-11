@@ -57,6 +57,10 @@ void Lexer::lex(std::vector<Token>& tokens) {
       pushTrivialToken(Token::Kind::LBRACE, tokens);
     } else if(currChar == '}') {
       pushTrivialToken(Token::Kind::RBRACE, tokens);
+    } else if(currChar == '<') {
+      readLtOrLeq(tokens);
+    } else if(currChar == '>') {
+      readGtOrGeq(tokens);
     } else if(currChar == '"') {
       readStringLiteral(tokens);
     } else if(currChar == '=') {
@@ -121,6 +125,8 @@ void Lexer::readIdentifierOrKeyword(std::vector<Token>& tokens) {
     type = Token::Kind::TRUE;
   } else if(id == "false") {
     type = Token::Kind::FALSE;
+  } else if(id == "for") {
+    type = Token::Kind::FOR;
   } else {
     type = Token::Kind::IDENTIFIER;
   }
@@ -189,6 +195,40 @@ void Lexer::readStringLiteral(std::vector<Token>& tokens) {
     .endOffset = position - 1,
     .lineNumber = lineNumber,
   });
+}
+
+void Lexer::readLtOrLeq(std::vector<Token>& tokens) {
+  if(remaining() >= 2 && peek(1) == '=') {
+    int startOffset = position;
+    get();
+    get();
+    tokens.push_back(Token{
+      .type = Token::Kind::LEQ,
+      .text = substr(code, startOffset, position),
+      .startOffset = startOffset,
+      .endOffset = position,
+      .lineNumber = lineNumber
+    });
+  } else {
+    pushTrivialToken(Token::Kind::LT, tokens);
+  }
+}
+
+void Lexer::readGtOrGeq(std::vector<Token>& tokens) {
+  if(remaining() >= 2 && peek(1) == '=') {
+    int startOffset = position;
+    get();
+    get();
+    tokens.push_back(Token{
+      .type = Token::Kind::GEQ,
+      .text = substr(code, startOffset, position),
+      .startOffset = startOffset,
+      .endOffset = position,
+      .lineNumber = lineNumber
+    });
+  } else {
+    pushTrivialToken(Token::Kind::GT, tokens);
+  }
 }
 
 }
