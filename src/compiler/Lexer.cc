@@ -153,6 +153,15 @@ void Lexer::readDivOrComment(std::vector<Token>& tokens) {
     while(peek() != '\n') {
       get();
     }
+    get();
+  } else if(remaining() >= 2 && peek(1) == '*') {
+    get();
+    get();
+    while(remaining() >= 2 && !(peek() == '*' && peek(1) == '/')) {
+      get();
+    }
+    get();
+    get();
   } else {
     pushTrivialToken(Token::Kind::DIV, tokens);
   }

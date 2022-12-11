@@ -1,0 +1,8 @@
+/*
+while(true) {
+  print(1);
+}
+*/
+
+// Print the hello world command!!
+print(4);
