@@ -2,6 +2,7 @@
 #include "src/compiler/Expression.hh"
 #include "src/compiler/Statement.hh"
 #include "src/compiler/SyntaxException.hh"
+#include "src/types/ArithmeticType.hh"
 #include "src/types/CompilerOutput.hh"
 
 namespace sciscript {
@@ -222,6 +223,41 @@ Statement* Compiler::readStatement() {
     return node;
   }
 
+  // While loop
+  if(peek()->type == Token::Kind::WHILE) {
+    get();
+
+    if(empty() || peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected (");
+    }
+    get();
+
+    if(empty()) {
+      throw new SyntaxException("Expected condition");
+    }
+
+    beginScope();
+    Expression* condition = readExpression();
+
+    if(empty() || peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected )");
+    }
+    get();
+
+    if(empty()) {
+      throw new SyntaxException("Expected body");
+    }
+
+    Statement* body = readStatement();
+    Statement* node = new Statement(StatementType::WHILE);
+    node->whileStatement = new Statement::While;
+    node->whileStatement->condition = condition;
+    node->whileStatement->body = body;
+    endScope();
+
+    return node;
+  }
+
   // Declare global or local variable
   if(next->type == Token::Kind::LET) {
     get();
@@ -327,6 +363,55 @@ Expression* Compiler::readExpression(bool fromGroup) {
     }
   }
 
+  // Increment/Decrement expression
+  if(require(2) && peek()->type == Token::Kind::IDENTIFIER && (peek(1)->type == Token::Kind::PLUSPLUS || peek(1)->type == Token::Kind::MINUSMINUS)) {
+    Token* name = get();
+    Token* mode = get(); // Remove ++/--
+
+    int localIndex = -1;
+    for(int i=locals.size()-1;i>=0;i--) {
+      if(locals[i].name == name->text && locals[i].depth <= currScopeLevel) {
+        localIndex = i;
+        break;
+      }
+    } 
+
+    Expression* value = new Expression(ExpressionType::ARITHMETIC);
+    value->arithmetic = new Expression::Arithmetic;
+    value->arithmetic->type = mode->type == Token::Kind::PLUSPLUS ? ArithmeticType::PLUS : ArithmeticType::MINUS;
+    value->arithmetic->right = new Expression(ExpressionType::PRIMARY);
+    value->arithmetic->right->primary = new PrimaryExpression(PrimaryType::CONSTANT);
+    value->arithmetic->right->primary->value = NUMBER_VAL(1);
+
+    if(localIndex == -1) {
+      // Global variable
+      if(!output.globalNames.contains(name->text)) {
+        throw new SyntaxException("Use of undeclared variable");
+      }
+
+      value->arithmetic->left = new Expression(ExpressionType::PRIMARY);
+      value->arithmetic->left->primary = new PrimaryExpression(PrimaryType::GLOBAL_VARIABLE);
+      value->arithmetic->left->primary->globalVariableIndex = output.globalNames[name->text];
+
+      Expression* node = new Expression(ExpressionType::SET_GLOBAL);     
+      node->setGlobal = new Expression::SetGlobal;
+      node->setGlobal->name = name->text;
+      node->setGlobal->value = value;
+      return node;
+    } else {
+      value->arithmetic->left = new Expression(ExpressionType::PRIMARY);
+      value->arithmetic->left->primary = new PrimaryExpression(PrimaryType::LOCAL_VARIABLE);
+      value->arithmetic->left->primary->localVariableIndex = localIndex;
+
+      Expression* node = new Expression(ExpressionType::SET_LOCAL);
+      node->setLocal = new Expression::SetLocal;
+      node->setLocal->name = name->text;
+      node->setLocal->value = value;
+      node->setLocal->index = localIndex;
+      return node;
+    }
+  }
+
   // Arithmetic expression
   Expression* term = readTerm();
   if(empty()) {
@@ -334,6 +419,22 @@ Expression* Compiler::readExpression(bool fromGroup) {
   }
 
   Token* next = peek();
+
+  if(next->type == Token::Kind::QUESTION) {
+    get();
+    Expression* trueExpression = readExpression();
+    if(empty() || peek()->type != Token::Kind::COLON) {
+      throw new SyntaxException("Expected : in ternary operator");
+    }
+    get();
+    Expression* elseExpression = readExpression();
+    Expression* node = new Expression(ExpressionType::TERNARY);
+    node->ternary = new Expression::Ternary;
+    node->ternary->condition = term;
+    node->ternary->trueExpression = trueExpression;
+    node->ternary->elseExpression = elseExpression;
+    return node;
+  } 
 
   if(next->type == Token::Kind::PLUS || next->type == Token::Kind::MINUS) {
     get();

@@ -41,6 +41,11 @@ Statement::~Statement() {
     delete forStatement->body;
     delete forStatement;
   }
+  if(whileStatement != nullptr) {
+    delete whileStatement->condition;
+    delete whileStatement->body;
+    delete whileStatement;
+  }
 }
 
 void Statement::emitBytecode(CompilerOutput& output) {
@@ -146,6 +151,35 @@ void Statement::emitBytecode(CompilerOutput& output) {
       if(forStatement->initializer != nullptr && forStatement->initializer->type == StatementType::DECLARE_LOCAL) {
         output.emitByte(OP_POP);
       }
+      break;
+    }
+    case StatementType::WHILE: {
+      int conditionStart = output.bytecode.size();
+      whileStatement->condition->emitBytecode(output);
+      int conditionLength = output.bytecode.size() - conditionStart;
+      output.emitByte(OP_JUMP_FALSE);
+
+      int bodyStart = output.bytecode.size();
+      whileStatement->body->emitBytecode(output);
+      int bodyLength = output.bytecode.size() - bodyStart;
+      output.emitByte(OP_LOOP);
+
+      int jumpSize = conditionLength + bodyLength;
+      std::vector<uint8_t> bytes = output.generateDynamicBytes(jumpSize);
+      jumpSize += bytes.size();
+      if(output.generateDynamicBytes(jumpSize).size() != bytes.size()) {
+        int oldSize = bytes.size();
+        bytes = output.generateDynamicBytes(jumpSize);
+        jumpSize -= oldSize;
+        jumpSize += bytes.size();
+      }  else {
+        bytes = output.generateDynamicBytes(jumpSize);
+      }
+      output.emitDynamicBytes(jumpSize);
+      for(int i=0;i<bytes.size();i++) {
+        output.bytecode.insert(output.bytecode.begin() + conditionStart + conditionLength + 1 + i, bytes[i]);
+      }
+      
       break;
     }
   }

@@ -39,6 +39,11 @@ class Token {
     LEQ,
     GT,
     GEQ,
+    WHILE,
+    PLUSPLUS,
+    MINUSMINUS,
+    QUESTION,
+    COLON,
   };
 
   Kind type;
@@ -86,6 +91,8 @@ class Lexer {
   void readStringLiteral(std::vector<Token>& tokens);
   void readLtOrLeq(std::vector<Token>& tokens);
   void readGtOrGeq(std::vector<Token>& tokens);
+  void readPlusOrDoublePlus(std::vector<Token>& tokens);
+  void readMinusOrDoubleMinus(std::vector<Token>& tokens);
 };
 
 }

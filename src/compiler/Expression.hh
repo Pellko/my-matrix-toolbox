@@ -18,6 +18,7 @@ enum class ExpressionType {
   COMPARISON,
   SET_LOCAL,
   SET_GLOBAL,
+  TERNARY,
 };
 
 enum class PrimaryType {
@@ -61,11 +62,18 @@ class Expression {
     Expression* value;
   };
 
+  struct Ternary {
+    Expression* condition;
+    Expression* trueExpression;
+    Expression* elseExpression;
+  };
+
   Arithmetic* arithmetic;
   Negation* negation;
   Comparison* comparison;
   SetLocal* setLocal;
   SetGlobal* setGlobal;
+  Ternary* ternary;
   PrimaryExpression* primary;
 
   void emitBytecode(CompilerOutput& output);

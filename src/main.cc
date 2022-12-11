@@ -24,7 +24,7 @@ std::string read_string_from_file(const std::string &file_path) {
 }
 
 int main(int argc, char** argv) {
-  std::string code = read_string_from_file("./examples/fibbonaci.txt");
+  std::string code = read_string_from_file("./examples/while.txt");
 
   // Perform lexical analysis
   Lexer lexer(code);
