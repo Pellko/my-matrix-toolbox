@@ -133,6 +133,8 @@ void Lexer::readIdentifierOrKeyword(std::vector<Token>& tokens) {
     type = Token::Kind::FOR;
   } else if(id == "while") {
     type = Token::Kind::WHILE;
+  } else if(id == "return") {
+    type = Token::Kind::RETURN;
   } else {
     type = Token::Kind::IDENTIFIER;
   }

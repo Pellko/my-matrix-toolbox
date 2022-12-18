@@ -44,6 +44,7 @@ class Token {
     MINUSMINUS,
     QUESTION,
     COLON,
+    RETURN,
   };
 
   Kind type;

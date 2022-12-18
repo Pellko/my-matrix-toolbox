@@ -1,9 +1,11 @@
 #ifndef _SCISCRIPT_COMPILER_DISASSEMBLER_H_
 #define _SCISCRIPT_COMPILER_DISASSEMBLER_H_
 
+#include "src/types/Chunk.hh"
+#include "src/types/Literal.hh"
+#include "src/types/CompilerOutput.hh"
+
 #include <string>
-#include <sstream>
-#include "Compiler.hh"
 
 namespace sciscript {
 
@@ -12,16 +14,19 @@ class Disassembler {
   Disassembler() {}
   ~Disassembler() {}
 
-  void disassemble(CompilerOutput& code, std::string& output);
+  void disassemble(CompilerOutput& output);
 
  private:
-  int simpleInstruction(std::string instruction, int offset, std::stringstream& ss);
-  int constantInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss);
-  int globalInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss);
-  int localInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss);
-  int jumpInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss);
-  std::string printValue(Value value);
-  std::string printObject(Object* object);
+  void disassembleChunk(Chunk& chunk, CompilerOutput& output);
+  int simpleInstruction(std::string instruction, int offset);
+  int constantInstruction(std::string instruction, int offset, Chunk& chunk);
+  int readVariable(std::string instruction, int offset, Chunk& chunk);
+  int setVariable(std::string instruction, int offset, Chunk& chunk);
+  int callInstruction(std::string instruction, int offset, Chunk& chunk);
+  int closureInstruction(std::string instruction, int offset, Chunk& chunk, CompilerOutput& output);
+
+  std::pair<int, int> readDynamicBytes(int offset, Chunk& chunk);
+  std::string printLiteral(Literal literal);
 };
 
 }

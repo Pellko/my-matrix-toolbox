@@ -17,6 +17,7 @@ enum class StatementType {
   IF,
   FOR,
   WHILE,
+  RETURN,
 };
 
 class Statement {

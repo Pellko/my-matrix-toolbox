@@ -2,11 +2,14 @@
 #define _SCISCRIPT_TYPES_OBJECT_H_
 
 #include <string>
+#include "Chunk.hh"
 
 namespace sciscript {
 
 enum class ObjectType {
-  STRING,
+  FUNCTION,
+  CLOSURE,
+  UPVALUE,
 };
 
 class Object {
@@ -15,14 +18,6 @@ class Object {
   virtual ~Object() {}
 
   ObjectType type;
-};
-
-class ObjectString : public Object {
- public:
-  ObjectString(std::string value) : Object(ObjectType::STRING), value(value) {}
-  virtual ~ObjectString() {}
-
-  std::string value;
 };
 
 }

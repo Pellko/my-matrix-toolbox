@@ -1,152 +1,159 @@
 #include "Disassembler.hh"
+#include "src/types/Literal.hh"
 #include "src/types/OpCode.hh"
+#include <iostream>
 
 namespace sciscript {
 
-void Disassembler::disassemble(CompilerOutput &code, std::string &output) {
-  output.clear();
-  std::stringstream ss;
+void Disassembler::disassemble(CompilerOutput& output) {
+  std::cout << "Chunk <0>" << std::endl;
+  disassembleChunk(output.root, output);
+  std::cout << std::endl;
 
-  for(int offset=0;offset<code.bytecode.size();) {
-    uint8_t instruction = code.bytecode[offset];
+  for(int i=0;i<output.functions.size();i++) {
+    Chunk& chunk = output.functions[i];
+    std::cout << "Chunk <" << i+1 << ">:" << std::endl;
+    disassembleChunk(chunk, output);
+    std::cout << std::endl;
+  }
+}
+
+void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
+  for(int offset=0;offset<chunk.bytecode.size();) {
+    uint8_t instruction = chunk.bytecode[offset];
     switch(instruction) {
       case OP_RETURN:
-        offset = simpleInstruction("OP_RETURN", offset, ss);
+        offset = simpleInstruction("OP_RETURN", offset);
         break;
       case OP_CONSTANT:
-        offset = constantInstruction("OP_CONSTANT", offset, code, ss);
+        offset = constantInstruction("OP_CONSTANT", offset, chunk);
         break;
       case OP_ADD:
-        offset = simpleInstruction("OP_ADD", offset, ss);
+        offset = simpleInstruction("OP_ADD", offset);
         break;
       case OP_MINUS:
-        offset = simpleInstruction("OP_MINUS", offset, ss);
+        offset = simpleInstruction("OP_MINUS", offset);
         break;
       case OP_MULT:
-        offset = simpleInstruction("OP_MULT", offset, ss);
+        offset = simpleInstruction("OP_MULT", offset);
         break;
       case OP_DIV:
-        offset = simpleInstruction("OP_DIV", offset, ss);
+        offset = simpleInstruction("OP_DIV", offset);
         break;
       case OP_MOD:
-        offset = simpleInstruction("OP_MOD", offset, ss);
+        offset = simpleInstruction("OP_MOD", offset);
         break;
       case OP_NEG:
-        offset = simpleInstruction("OP_NEG", offset, ss);
-        break;
-      case OP_SET_GLOBAL:
-        offset = globalInstruction("OP_SET_GLOBAL", offset, code, ss);
-        break;
-      case OP_READ_GLOBAL:
-        offset = globalInstruction("OP_READ_GLOBAL", offset, code, ss);
-        break;
-      case OP_SET_LOCAL:
-        offset = localInstruction("OP_SET_LOCAL", offset, code, ss);
-        break;
-      case OP_READ_LOCAL:
-        offset = localInstruction("OP_READ_LOCAL", offset, code, ss);
+        offset = simpleInstruction("OP_NEG", offset);
         break;
       case OP_PRINT:
-        offset = simpleInstruction("OP_PRINT", offset, ss);
+        offset = simpleInstruction("OP_PRINT", offset);
         break;
       case OP_POP:
-        offset = simpleInstruction("OP_POP", offset, ss);
+        offset = simpleInstruction("OP_POP", offset);
+        break;
+      case OP_CLOSE_UPVALUE:
+        offset = simpleInstruction("OP_CLOSE_UPVALUE", offset);
         break;
       case OP_EQUALS:
-        offset = simpleInstruction("OP_EQUALS", offset, ss);
+        offset = simpleInstruction("OP_EQUALS", offset);
         break;
       case OP_LT:
-        offset = simpleInstruction("OP_LT", offset, ss);
+        offset = simpleInstruction("OP_LT", offset);
         break;
       case OP_LEQ:
-        offset = simpleInstruction("OP_LEQ", offset, ss);
+        offset = simpleInstruction("OP_LEQ", offset);
         break;
-      case OP_JUMP_FALSE:
-        offset = jumpInstruction("OP_JUMP_FALSE", offset, code, ss);
+      case OP_READ_GLOBAL:
+        offset = readVariable("OP_READ_GLOBAL", offset, chunk);
         break;
-      case OP_JUMP:
-        offset = jumpInstruction("OP_JUMP", offset, code, ss);
+      case OP_READ_LOCAL:
+        offset = readVariable("OP_READ_LOCAL", offset, chunk);
         break;
-      case OP_LOOP:
-        offset = jumpInstruction("OP_LOOP", offset, code, ss);
+      case OP_SET_GLOBAL:
+        offset = setVariable("OP_SET_GLOBAL", offset, chunk);
+        break;
+      case OP_SET_LOCAL:
+        offset = setVariable("OP_SET_LOCAL", offset, chunk);
+        break;
+      case OP_CALL:
+        offset = callInstruction("OP_CALL", offset, chunk);
+        break;
+      case OP_CLOSURE:
+        offset = closureInstruction("OP_CLOSURE", offset, chunk, output);
+        break;
+      case OP_READ_UPVALUE:
+        offset = readVariable("OP_READ_UPVALUE", offset, chunk);
+        break;
+      case OP_SET_UPVALUE:
+        offset = setVariable("OP_SET_UPVALUE", offset, chunk);
         break;
       default:
-        ss << "Unkown opcode " << instruction << "\n";
+        std::cout << "Unknown opcode " << instruction << "\n";
         offset += 1;
     }
   }
-
-  ss >> output;
 }
 
-int Disassembler::simpleInstruction(std::string instruction, int offset, std::stringstream& ss) {
-  ss << instruction << "\n";
+int Disassembler::simpleInstruction(std::string instruction, int offset) {
   std::cout << instruction << std::endl;
   return offset + 1;
 }
 
-int Disassembler::constantInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
-  uint8_t constantSize = code.bytecode[offset + 1];
-  int index = 0;
-  for(int i=0;i<constantSize;i++) {
-    index = index | (code.bytecode[offset + 2 + i] << i * 8);
-  }
-  ss << instruction << " : Index=" << index << "\n";
-  std::cout << instruction << " : Index=" << index << ", Value=" << printValue(code.constants[index]) << std::endl;
-  return offset + 2 + static_cast<int>(constantSize);
+int Disassembler::constantInstruction(std::string instruction, int offset, Chunk& chunk) {
+  auto [index, size] = readDynamicBytes(offset + 1, chunk);
+  std::cout << instruction << " : Index=" << index << ", Value=" << printLiteral(chunk.literals[index]) << std::endl;
+  return offset + 2 + size;
 }
 
-int Disassembler::globalInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
-  uint8_t constantSize = code.bytecode[offset + 1];
-  int index = 0;
-  for(int i=0;i<constantSize;i++) {
-    index = index | (code.bytecode[offset + 2 + i] << i * 8);
-  }
-  ss << instruction << " : Index=" << index << "\n";
-  std::cout << instruction << " : Index=" << index << ", Name=" << code.globals[index] << std::endl;
-  return offset + 2 + static_cast<int>(constantSize);
-}
-
-int Disassembler::localInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
-  uint8_t constantSize = code.bytecode[offset + 1];
-  int index = 0;
-  for(int i=0;i<constantSize;i++) {
-    index = index | (code.bytecode[offset + 2 + i] << i * 8);
-  }
-  ss << instruction << " : Index=" << index << "\n";
+int Disassembler::readVariable(std::string instruction, int offset, Chunk& chunk) {
+  auto [index, size] = readDynamicBytes(offset + 1, chunk);
   std::cout << instruction << " : Index=" << index << std::endl;
-  return offset + 2 + static_cast<int>(constantSize);
+  return offset + 2 + size;
 }
 
-int Disassembler::jumpInstruction(std::string instruction, int offset, CompilerOutput& code, std::stringstream& ss) {
-  uint8_t constantSize = code.bytecode[offset + 1];
+int Disassembler::setVariable(std::string instruction, int offset, Chunk& chunk) {
+  auto [index, size] = readDynamicBytes(offset + 1, chunk);
+  std::cout << instruction << " : Index=" << index << std::endl;
+  return offset + 2 + size;
+}
+
+int Disassembler::callInstruction(std::string instruction, int offset, Chunk& chunk) {
+  auto [index, size] = readDynamicBytes(offset + 1, chunk);
+  std::cout << instruction << " : Argcount=" << index << std::endl;
+  return offset + 2 + size;
+}
+
+int Disassembler::closureInstruction(std::string instruction, int offset, Chunk& chunk, CompilerOutput& output) {
+  int skip = 1;
+  auto [functionIndex, size] = readDynamicBytes(offset + skip, chunk);
+  skip += size + 1;
+  Chunk& functionChunk = output.functions[functionIndex];
+  for(int i=0;i<functionChunk.numUpvalues;i++) {
+    skip++;
+    auto [index, size] = readDynamicBytes(offset + skip, chunk);
+    skip += size + 1;
+  }
+  std::cout << instruction << std::endl;
+  return offset + skip;
+}
+
+std::string Disassembler::printLiteral(Literal literal) {
+  switch(literal.type) {
+    case LiteralType::NUMBER:
+      return std::to_string(literal.as.number);
+    default:
+      return "Unsupported LiteralType";
+  }
+}
+
+std::pair<int, int> Disassembler::readDynamicBytes(int offset, Chunk& chunk) {
+  uint8_t size = chunk.bytecode[offset];
   int index = 0;
-  for(int i=0;i<constantSize;i++) {
-    index = index | (code.bytecode[offset + 2 + i] << i * 8);
+  for(int i=0;i<size;i++) {
+    index = index | (chunk.bytecode[offset + 1 + i] << i * 8);
   }
-  ss << instruction << " : Skip=" << index << "\n";
-  std::cout << instruction << " : Skip=" << index << std::endl;
-  return offset + 2 + static_cast<int>(constantSize);
-}
-
-std::string Disassembler::printValue(Value value) {
-  switch(value.type) {
-    case VAL_BOOL:
-      return AS_BOOL(value) ? "true" : "false";
-    case VAL_NIL:
-      return "nil";
-    case VAL_NUMBER:
-      return std::to_string(AS_NUMBER(value));
-    case VAL_OBJECT:
-      return printObject(AS_OBJECT(value));
-  }
-}
-
-std::string Disassembler::printObject(Object* object) {
-  switch(object->type) {
-    case ObjectType::STRING:
-      return static_cast<ObjectString*>(object)->value;
-  }
+  return std::make_pair(index, size);
 }
 
 }

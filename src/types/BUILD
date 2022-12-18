@@ -4,13 +4,19 @@ load("//bazel:custom_library.bzl", "custom_cc_library")
 
 custom_cc_library(
   name = "types",
-  srcs = [],
+  srcs = [
+    "Chunk.cc",
+  ],
   hdrs = [
-    "ArithmeticType.hh",
+    "Chunk.hh",
     "CompilerOutput.hh",
+    "CompilerScope.hh",
+    "Literal.hh",
     "Local.hh",
     "Object.hh",
+    "ObjectClosure.hh",
     "OpCode.hh",
+    "Upvalue.hh",
     "Value.hh",
   ]
 )

@@ -2,50 +2,27 @@
 #define _SCISCRIPT_COMPILER_COMPILER_H_
 
 #include <vector>
-#include <ctype.h>
+#include "src/types/CompilerScope.hh"
 #include "src/types/CompilerOutput.hh"
-#include "src/types/Local.hh"
+#include "ast/Statement.hh"
+#include "ast/FunctionStatement.hh"
 #include "Lexer.hh"
-#include "Expression.hh"
-#include "Statement.hh"
-#include "SyntaxException.hh"
+#include "ParserTool.hh"
 
 namespace sciscript {
 
 class Compiler {
  public:
-  Compiler(std::vector<Token>& tokens);
+  Compiler(std::vector<Token>& tokens) : parserTool(tokens) {}
   ~Compiler() {}
 
-  CompilerOutput& compile();
-  
+  void compile(CompilerOutput& compilerOutput);
+
  private:
-  CompilerOutput output;
-  std::vector<Token>& tokens;
-  int position;
-  int currScopeLevel = 0;
-  std::vector<Local> locals;
+  ParserTool parserTool;
+  CompilerScope* rootScope;
 
-  Token* peek(int n=0);
-  Token* get();
-  bool empty();
-  bool require(int n);
-  bool expressionNext();
-
-  void statement(CompilerOutput& output);  
-  void expression(CompilerOutput& output);
-
-  Statement* readStatement();
-  std::vector<Statement*> readBlock();
-  Expression* readExpression(bool fromGroup = false);
-  Expression* readTerm();
-  std::variant<Expression*, PrimaryExpression*> readFactor();
-  PrimaryExpression* readPrimary();
-  Statement* declareGlobal(Token* variableName);
-  Statement* declareLocal(Token* variableName);
-
-  void beginScope();
-  void endScope();
+  void statement();
 };
 
 }

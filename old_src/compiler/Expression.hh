@@ -4,7 +4,6 @@
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
 #include "src/types/CompilerOutput.hh"
-#include "src/types/ArithmeticType.hh"
 #include <iostream>
 
 namespace sciscript {

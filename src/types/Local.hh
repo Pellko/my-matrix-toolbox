@@ -5,9 +5,16 @@
 
 namespace sciscript {
 
+enum class VarRefType {
+  LOCAL,
+  GLOBAL,
+  UPVALUE,
+};
+
 struct Local {
   std::string name;
   int depth;
+  bool hasClosureReference;
 };
 
 }

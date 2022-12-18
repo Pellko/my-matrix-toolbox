@@ -24,6 +24,11 @@ enum OpCode {
   OP_LOOP,
   OP_LT,
   OP_LEQ,
+  OP_CALL,
+  OP_CLOSURE,
+  OP_READ_UPVALUE,
+  OP_SET_UPVALUE,
+  OP_CLOSE_UPVALUE,
 };
 
 }

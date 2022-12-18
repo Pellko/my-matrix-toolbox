@@ -1,44 +1,76 @@
 #include "VirtualMachine.hh"
-#include "src/types/ArithmeticType.hh"
+#include "RuntimeException.hh"
+#include "src/compiler/ast/BinaryExpression.hh"
+#include "src/types/Object.hh"
+#include "src/types/ObjectClosure.hh"
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
-#include "src/vm/RuntimeException.hh"
 
 namespace sciscript {
 
 void VirtualMachine::execute(CompilerOutput& output) {
   globals.clear();
-  globals.resize(output.globals.size());
+  globals.resize(output.numGlobals);
+  openUpvalues = nullptr;
 
-  for(int position = 0; position<output.bytecode.size();) {
-    uint8_t instruction = output.bytecode[position];
-  
-    switch (instruction) {
+  // Initialize the first call frame
+  callFrames.push_back(CallFrame{
+    .chunk = &output.root,
+    .localsOffset = 0,
+    .returnAddress = 0
+  });
+
+  for(int position=0;position<callFrames.back().chunk->bytecode.size();) {
+    std::vector<uint8_t>& bytecode = callFrames.back().chunk->bytecode;
+    std::vector<Literal>& literals = callFrames.back().chunk->literals;
+    uint8_t instruction = bytecode[position];
+
+    switch(instruction) {
       case OP_RETURN: {
+        if(callFrames.size() == 1) {
+          valueStack.clear();
+          callFrames.pop_back();
+          return;
+        }
+
+        Value result = valueStack.back();
+        valueStack.pop_back();
+
+        // Get current call frame
+        CallFrame& callFrame = callFrames.back();
+        closeUpvalues(callFrame.localsOffset);
+
+        while(valueStack.size() > callFrame.localsOffset) {
+          valueStack.pop_back();
+        }
+
+        valueStack.push_back(result);
+        position = callFrame.returnAddress;
+        callFrames.pop_back();
         break;
       }
       case OP_ADD: {
-        binaryOp(output.bytecode, ArithmeticType::PLUS);
+        binaryOp(bytecode, BinaryOperation::ADDITION);
         position++;
         break;
       }
       case OP_MINUS: {
-        binaryOp(output.bytecode, ArithmeticType::MINUS);
+        binaryOp(bytecode, BinaryOperation::SUBTRACTION);
         position++;
         break;
       }
       case OP_MULT: {
-        binaryOp(output.bytecode, ArithmeticType::MULT);
+        binaryOp(bytecode, BinaryOperation::MULTIPLICATION);
         position++;
         break;
       }
       case OP_DIV: {
-        binaryOp(output.bytecode, ArithmeticType::DIV);
+        binaryOp(bytecode, BinaryOperation::DIVISION);
         position++;
         break;
       }
       case OP_MOD: {
-        binaryOp(output.bytecode, ArithmeticType::MOD);
+        binaryOp(bytecode, BinaryOperation::MODULUS);
         position++;
         break;
       }
@@ -47,26 +79,26 @@ void VirtualMachine::execute(CompilerOutput& output) {
         Value v = valueStack.back();
         valueStack.pop_back();
 
-        if(v.type == VAL_NUMBER) {
-          valueStack.push_back(NUMBER_VAL(-AS_NUMBER(v)));
-        } else if(v.type == VAL_BOOL) {
-          valueStack.push_back(BOOL_VAL(!AS_BOOL(v)));
+        if(v.type == ValueType::NUMBER) {
+          valueStack.push_back(Value::fromDouble(-v.as.number));
+        } else if(v.type == ValueType::BOOL) {
+          valueStack.push_back(Value::fromBool(-v.as.boolean));
         } else {
           throw new RuntimeException("Unexpected type");
         }
-        
+
         break;
       }
       case OP_CONSTANT: {
         position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        valueStack.push_back(output.constants[offset]);
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        valueStack.push_back(Value::fromLiteral(literals[offset]));
         position += size + 1;
         break;
       }
       case OP_SET_GLOBAL: {
         position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
+        auto [offset, size] = readDynamicBytes(bytecode, position);
         Value value = valueStack.back();
         globals[offset] = value;
         position += size + 1;
@@ -74,47 +106,77 @@ void VirtualMachine::execute(CompilerOutput& output) {
       }
       case OP_READ_GLOBAL: {
         position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
+        auto [offset, size] = readDynamicBytes(bytecode, position);
         valueStack.push_back(globals[offset]);
-        position += size + 1;
-        break;
-      }
-      case OP_SET_LOCAL: {
-        position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        Value value = valueStack.back();
-        valueStack[offset] = value;
         position += size + 1;
         break;
       }
       case OP_READ_LOCAL: {
         position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        Value value = valueStack[offset];
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        Value value = valueStack[callFrames.back().localsOffset + offset];
         valueStack.push_back(value);
         position += size + 1;
         break;
       }
-      case OP_PRINT: {
+      case OP_SET_LOCAL: {
         position++;
-        Value v = valueStack.back();
-
-        switch(v.type) {
-          case VAL_NUMBER:
-            std::cout << AS_NUMBER(v) << std::endl;
-            valueStack.pop_back();
-            break;
-          case VAL_BOOL:
-            std::cout << (AS_BOOL(v) ? "true" : "false") << std::endl;
-            valueStack.pop_back();
-            break;
-          case VAL_NIL:
-            std::cout << "nil" << std::endl;
-            valueStack.pop_back();
-            break;
-          default:
-            throw new RuntimeException("Unexpected types in print");
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        Value value = valueStack.back();
+        valueStack[callFrames.back().localsOffset + offset] = value;
+        position += size + 1;
+        break;
+      }
+      case OP_READ_UPVALUE: {
+        position++;
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+        ObjectUpvalue* upvalue = callFrames.back().closure->upvalues[offset];
+        if(upvalue->isClosed) {
+          valueStack.push_back(upvalue->closed);
+        } else {
+          valueStack.push_back(valueStack[upvalue->stackIndex]);
         }
+        break;
+      }
+      case OP_SET_UPVALUE: {
+        position++;
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+        ObjectUpvalue* upvalue = callFrames.back().closure->upvalues[offset];
+        if(upvalue->isClosed) {
+          upvalue->closed = valueStack.back();
+        } else {
+          valueStack[upvalue->stackIndex] = valueStack.back();
+        }
+        break;
+      }
+      case OP_CLOSURE: {
+        position++;
+        // Read function
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+        
+        ObjectClosure* closure = new ObjectClosure(); // TODO: Garbage collection
+        closure->functionIndex = offset;
+        closure->name = "temporary function name";
+
+        Chunk& functionChunk = output.functions[offset];
+        int numUpvalues = functionChunk.numUpvalues;
+
+        for(int i=0;i<numUpvalues;i++) {
+          uint8_t isLocal = bytecode[position];
+          position++;
+          auto [index, size] = readDynamicBytes(bytecode, position);
+          position += size + 1;
+
+          if(isLocal == 1) {
+            closure->upvalues.push_back(getUpvalue(valueStack.size() - 1));
+          } else {
+            closure->upvalues.push_back(callFrames.back().closure->upvalues[index]);
+          }
+        }
+        valueStack.push_back(Value::fromObject(closure));
         break;
       }
       case OP_POP: {
@@ -122,58 +184,45 @@ void VirtualMachine::execute(CompilerOutput& output) {
         valueStack.pop_back();
         break;
       }
-      case OP_EQUALS: {
-        comparisonOp(output.bytecode, ComparisonType::EQUALS);
+      case OP_CLOSE_UPVALUE: {
         position++;
+        closeUpvalues(valueStack.size() - 1);
+        valueStack.pop_back();
         break;
       }
-      case OP_LT: {
-        comparisonOp(output.bytecode, ComparisonType::LT);
+      case OP_PRINT: {
         position++;
+        Value v = valueStack.back();
+        valueStack.pop_back();
+        printValue(v);
         break;
       }
-      case OP_LEQ: {
-        comparisonOp(output.bytecode, ComparisonType::LEQ);
+      case OP_CALL: {
+        // TODO: Add a stack overflow exception
         position++;
-        break;
-      }
-      case OP_JUMP_FALSE: {
-        position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        Value comparison = valueStack.back();
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+        Value v = valueStack.back();
         valueStack.pop_back();
 
-        if(comparison.type != VAL_BOOL) {
-          throw new RuntimeException("Expected boolean value in if statement");
+        if(v.type != ValueType::OBJECT || v.as.object->type != ObjectType::CLOSURE) {
+          throw new RuntimeException("You can only call functions");
         }
-
-        if(!AS_BOOL(comparison)) {
-          position += offset;
-        }
-
-        position += size + 1;
+        ObjectClosure* closure = static_cast<ObjectClosure*>(v.as.object);
+        callFrames.push_back(CallFrame{
+          .localsOffset = static_cast<int>(valueStack.size()),
+          .returnAddress = position,
+          .chunk = &output.functions[closure->functionIndex],
+          .closure = closure,
+        });
+        position = 0;
         break;
       }
-      case OP_JUMP: {
-        position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        position += size + 1;
-        position += offset;
-        break;
-      }
-      case OP_LOOP: {
-        position++;
-        auto [offset, size] = readDynamicBytes(output.bytecode, position);
-        position -= size + 1;
-        position -= offset;
-        break;
-      }
-
       default: {
         position++;
       }
-    }
-  }
+    } 
+  }  
 }
 
 std::pair<int, int> VirtualMachine::readDynamicBytes(std::vector<uint8_t>& bytecode, int position) {
@@ -185,117 +234,91 @@ std::pair<int, int> VirtualMachine::readDynamicBytes(std::vector<uint8_t>& bytec
   return std::make_pair(result, size);
 }
 
-void VirtualMachine::binaryOp(std::vector<uint8_t>& bytecode, ArithmeticType type) {
+void VirtualMachine::binaryOp(std::vector<uint8_t>& bytecode, BinaryOperation op) {
   Value v1 = valueStack.back();
   valueStack.pop_back();
   Value v2 = valueStack.back();
   valueStack.pop_back();
 
-  if(!IS_NUMBER(v1) || !IS_NUMBER(v2)) {
+  if(v1.type != ValueType::NUMBER || v2.type != ValueType::NUMBER) {
     throw new RuntimeException("Unexpected types in binary op.");
   }
 
-  double v1n = AS_NUMBER(v1);
-  double v2n = AS_NUMBER(v2);
+  double v1n = v1.as.number;
+  double v2n = v2.as.number;
 
-  switch(type) {
-    case ArithmeticType::PLUS:
-      valueStack.push_back(NUMBER_VAL(v2n + v1n));
+  switch(op) {
+    case BinaryOperation::ADDITION:
+      valueStack.push_back(Value::fromDouble(v2n + v1n));
       break;
-    case ArithmeticType::MINUS:
-      valueStack.push_back(NUMBER_VAL(v2n - v1n));
+    case BinaryOperation::SUBTRACTION:
+      valueStack.push_back(Value::fromDouble(v2n - v1n));
       break;
-    case ArithmeticType::MULT:
-      valueStack.push_back(NUMBER_VAL(v2n * v1n));
+    case BinaryOperation::MULTIPLICATION:
+      valueStack.push_back(Value::fromDouble(v2n * v1n));
       break;
-    case ArithmeticType::DIV:
-      valueStack.push_back(NUMBER_VAL(v2n / v1n));
+    case BinaryOperation::DIVISION:
+      valueStack.push_back(Value::fromDouble(v2n / v1n));
       break;
-    case ArithmeticType::MOD:
-      valueStack.push_back(NUMBER_VAL(std::fmod(v1n, v2n)));
-      break;
-  }
-}
-
-void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, ComparisonType type) {
-  Value v1 = valueStack.back();
-  valueStack.pop_back();
-  Value v2 = valueStack.back();
-  valueStack.pop_back();
-
-  switch(type) {
-    case ComparisonType::EQUALS: {
-      // Type check
-      bool hasNil = v1.type == VAL_NIL || v2.type == VAL_NIL;
-
-      if(v1.type != v2.type && !hasNil) {
-        throw new RuntimeException("Cannot compare different types");
-      }
-
-      if(hasNil && v1.type == VAL_NIL && v2.type == VAL_NIL) {
-        valueStack.push_back(BOOL_VAL(true));
-        return;
-      } else {
-        if(hasNil) {
-          valueStack.push_back(BOOL_VAL(false));
-          return;
-        }
-      }
-
-      // Compare
-      switch(v1.type) {
-        case VAL_NUMBER:
-          valueStack.push_back(BOOL_VAL(AS_NUMBER(v1) == AS_NUMBER(v2)));
-          break;
-        case VAL_BOOL:
-          valueStack.push_back(BOOL_VAL(AS_BOOL(v1) == AS_BOOL(v2)));
-          break;
-        case VAL_NIL:
-          valueStack.push_back(BOOL_VAL(true));
-          break;
-        case VAL_OBJECT:
-          valueStack.push_back(BOOL_VAL(AS_OBJECT(v1) == AS_OBJECT(v2)));
-          break;
-      }
-      break;
-    }
-    case ComparisonType::LT:
-    case ComparisonType::LEQ: {
-      if(v1.type != v2.type) {
-        throw new RuntimeException("Cannot compare different types");
-      }
-
-      switch(v1.type) {
-        case VAL_NUMBER:
-          valueStack.push_back(BOOL_VAL(
-            type == ComparisonType::LT ? AS_NUMBER(v2) < AS_NUMBER(v1) :
-                                         AS_NUMBER(v2) <= AS_NUMBER(v1)
-          ));
-          break;
-        case VAL_BOOL:
-          valueStack.push_back(BOOL_VAL(
-            type == ComparisonType::LT ? int(AS_BOOL(v2)) < int(AS_BOOL(v1)) :
-                                         int(AS_BOOL(v2)) <= int(AS_BOOL(v1))
-          ));
-          break;
-        case VAL_NIL:
-          if(type == ComparisonType::LT) {
-            valueStack.push_back(BOOL_VAL(false));
-          } else {
-            valueStack.push_back(BOOL_VAL(true));
-          }
-          break;
-        case VAL_OBJECT:
-          throw new RuntimeException("Cannot compare objects");
-          break;
-      }
-
-      break;
-    }
-    case ComparisonType::GT:
-    case ComparisonType::GEQ:
+    case BinaryOperation::MODULUS:
+      valueStack.push_back(Value::fromDouble(std::fmod(v2n, v1n)));
       break;
   }
 }
 
+void VirtualMachine::printValue(Value v) {
+  switch(v.type) {
+    case ValueType::NUMBER:
+      std::cout << v.as.number << std::endl;
+      break;
+    case ValueType::BOOL:
+      std::cout << (v.as.boolean ? "true" : "false") << std::endl;
+      break;
+    case ValueType::NIL:
+      std::cout << "nil" << std::endl;
+      break;
+    case ValueType::OBJECT:
+      std::cout << "object" << std::endl;
+      break;
+    default:
+      throw new RuntimeException("Unexpected types in print");
+  }
+}
+
+ObjectUpvalue* VirtualMachine::getUpvalue(int stackIndex) {
+  ObjectUpvalue* prev = nullptr;
+  ObjectUpvalue* upvalue = openUpvalues;
+
+  while(upvalue != nullptr && upvalue->stackIndex > stackIndex) {
+    prev = upvalue;
+    upvalue = upvalue->next;
+  }
+
+  if(upvalue != nullptr && upvalue->stackIndex == stackIndex) {
+    return upvalue;
+  }
+
+  ObjectUpvalue* createdUpvalue = new ObjectUpvalue();
+  createdUpvalue->next = upvalue;
+  createdUpvalue->stackIndex = stackIndex;
+  createdUpvalue->isClosed = false;
+
+  if(prev == nullptr) {
+    openUpvalues = createdUpvalue;
+  } else {
+    prev->next = createdUpvalue;
+  }
+
+  return createdUpvalue;
+}
+
+void VirtualMachine::closeUpvalues(int lastIndex) {
+  while(openUpvalues != nullptr && openUpvalues->stackIndex >= lastIndex) {
+    ObjectUpvalue* upvalue = openUpvalues;
+    upvalue->closed = valueStack[upvalue->stackIndex];
+    upvalue->isClosed = true;
+    openUpvalues = upvalue->next;
+  }
+}
+  
 }

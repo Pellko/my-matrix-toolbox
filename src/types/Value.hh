@@ -2,39 +2,66 @@
 #define _SCISCRIPT_TYPES_VALUE_H_
 
 #include "Object.hh"
+#include "Literal.hh"
+#include <memory>
 
 namespace sciscript {
 
-typedef enum {
-  VAL_BOOL,
-  VAL_NIL,
-  VAL_NUMBER,
-  VAL_OBJECT,
-} ValueType;
+enum class ValueType {
+  BOOL,
+  NIL,
+  NUMBER,
+  OBJECT,
+};
 
-typedef struct {
+struct Value {
   ValueType type;
   union {
     bool boolean;
     double number;
     Object* object;
   } as;
-} Value;
+  
+  static Value fromDouble(double d) {
+    return Value{
+      .type = ValueType::NUMBER,
+      .as.number = d,
+    };
+  }
 
-#define BOOL_VAL(value)   ((Value){VAL_BOOL, {.boolean = value}})
-#define NIL_VAL           ((Value){VAL_NIL, {.number = 0}})
-#define NUMBER_VAL(value) ((Value){VAL_NUMBER, {.number = value}})
-#define OBJECT_VAL(value) ((Value){VAL_OBJECT, {.object = value}})
+  static Value fromBool(bool b) {
+    return Value{
+      .type = ValueType::BOOL,
+      .as.boolean = b,
+    };
+  }
 
-#define AS_BOOL(value)    ((value).as.boolean)
-#define AS_NUMBER(value)  ((value).as.number)
-#define AS_OBJECT(value)  ((value).as.object)
+  static Value nil() {
+    return Value{
+      .type = ValueType::NIL,
+    };
+  }
 
-#define IS_BOOL(value)    ((value).type == VAL_BOOL)
-#define IS_NIL(value)     ((value).type == VAL_NIL)
-#define IS_NUMBER(value)  ((value).type == VAL_NUMBER)
-#define IS_OBJECT(value)  ((value).type == VAL_OBJECT)
+  static Value fromObject(Object* object) {
+    return Value{
+      .type = ValueType::OBJECT,
+      .as.object = object,
+    };
+  }
 
+  static Value fromLiteral(Literal literal) {
+    switch(literal.type) {
+      case LiteralType::NUMBER:
+        return Value::fromDouble(literal.as.number);
+      case LiteralType::BOOL:
+        return Value::fromBool(literal.as.boolean);
+      case LiteralType::NIL:
+        return Value::nil();
+      case LiteralType::STRING:
+        return Value::nil();
+    }
+  }
+};
 
 }
 
