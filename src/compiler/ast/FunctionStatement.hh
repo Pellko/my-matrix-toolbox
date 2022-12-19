@@ -33,6 +33,10 @@ class FunctionStatement : public Statement {
     upvalues.push_back(value);
   }
 
+  void setArguments(std::vector<Argument> arguments) {
+    this->arguments = arguments;
+  }
+
   std::string getName() {
     return name;
   }
@@ -45,6 +49,7 @@ class FunctionStatement : public Statement {
   int functionIndex;
   int globalIndex;
   std::vector<Upvalue> upvalues;
+  std::vector<Argument> arguments;
   bool isGlobal;
 };
 

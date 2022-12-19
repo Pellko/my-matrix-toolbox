@@ -61,6 +61,8 @@ void Lexer::lex(std::vector<Token>& tokens) {
       pushTrivialToken(Token::Kind::QUESTION, tokens);
     } else if(currChar == ':') {
       pushTrivialToken(Token::Kind::COLON, tokens);
+    } else if(currChar == ',') {
+      pushTrivialToken(Token::Kind::COMMA, tokens);
     } else if(currChar == '<') {
       readLtOrLeq(tokens);
     } else if(currChar == '>') {

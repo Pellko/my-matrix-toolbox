@@ -11,7 +11,8 @@ namespace sciscript {
 struct Chunk {
   std::vector<uint8_t> bytecode;
   std::vector<Literal> literals;
-  int numUpvalues;
+  int numUpvalues = 0;
+  int numArguments = 0;
 
   void free() {
     for(auto& literal : literals) {

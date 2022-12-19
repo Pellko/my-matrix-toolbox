@@ -13,13 +13,14 @@ class Expression {
   Expression() {}
   virtual ~Expression() {}
 
-  static Expression* parse(ParserTool& parserTool, bool fromGroup = false);
+  static Expression* parse(ParserTool& parserToolfalse);
   virtual void emitBytecode(Chunk& chunk) = 0;
 
  private:
   static Expression* readPrimary(ParserTool& parserTool);
   static Expression* readFactor(ParserTool& parserTool);
   static Expression* readTerm(ParserTool& parserTool);
+  static Expression* readArithmeticExpression(ParserTool& parserTool);
 };
 
 }

@@ -1,4 +1,5 @@
 #include "Statement.hh"
+#include "src/compiler/Lexer.hh"
 #include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
 #include "src/compiler/ast/Expression.hh"
@@ -39,11 +40,13 @@ Statement* Statement::parse(ParserTool& parserTool) {
     parserTool.beginFunction(name->text);
     int functionIndex = parserTool.getFunctions().size() - 1;
 
-    // TODO: add arguments and stuff
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
       throw new SyntaxException("Expected (");
     }
     parserTool.get();
+
+    std::vector<Argument> argList = readArgumentList(parserTool);
+
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
       throw new SyntaxException("Expected )");
     }
@@ -51,6 +54,13 @@ Statement* Statement::parse(ParserTool& parserTool) {
     
     // Read function body
     parserTool.beginScope();
+
+    // Insert arguments as locals
+    for(Argument& arg : argList) {
+      parserTool.registerLocal(arg.name);
+      parserTool.currentScope()->chunk.numArguments++;
+    }
+    
     int globalIndex = parserTool.registerGlobal(name->text);
     std::vector<Statement*> statements = readBlock(parserTool);
     BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
@@ -80,6 +90,8 @@ Statement* Statement::parse(ParserTool& parserTool) {
     for(Upvalue u : parserTool.getFunctions()[functionIndex]->upvalues) {
       fn->addUpvalue(u);
     }
+    
+    fn->setArguments(argList);
     
     return fn;
   }
@@ -169,7 +181,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     }
     Expression* expression = Expression::parse(parserTool);
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::SEMICOLON) {
-      throw new SyntaxException("Expected ; to end statemnet");
+      throw new SyntaxException("Expected ; to end statement");
     }
     parserTool.get();
     ReturnStatement* node = new ReturnStatement();
@@ -237,6 +249,30 @@ std::vector<Statement*> Statement::readBlock(ParserTool& parserTool) {
   }
 
   return statements;
+}
+
+std::vector<Argument> Statement::readArgumentList(ParserTool& parserTool) {
+  std::vector<Argument> list;
+  
+  while(!parserTool.empty() && parserTool.peek()->type != Token::Kind::RPAREN) {
+    if(parserTool.peek()->type != Token::Kind::IDENTIFIER) {
+      throw new SyntaxException("Expected variable name");
+    }
+    Token* name = parserTool.get();
+    
+    if(parserTool.empty()) {
+      throw new SyntaxException("Unexpected ending of variable list");
+    }
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::COMMA) {
+      parserTool.get();
+    }
+
+    list.push_back(Argument{
+      .name = name->text
+    });
+  }
+
+  return list;
 }
 
 }

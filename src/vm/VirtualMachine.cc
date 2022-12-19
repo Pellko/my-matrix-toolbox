@@ -52,27 +52,27 @@ void VirtualMachine::execute(CompilerOutput& output) {
         break;
       }
       case OP_ADD: {
-        binaryOp(bytecode, BinaryOperation::ADDITION);
+        numericOp(bytecode, BinaryOperation::ADDITION);
         position++;
         break;
       }
       case OP_MINUS: {
-        binaryOp(bytecode, BinaryOperation::SUBTRACTION);
+        numericOp(bytecode, BinaryOperation::SUBTRACTION);
         position++;
         break;
       }
       case OP_MULT: {
-        binaryOp(bytecode, BinaryOperation::MULTIPLICATION);
+        numericOp(bytecode, BinaryOperation::MULTIPLICATION);
         position++;
         break;
       }
       case OP_DIV: {
-        binaryOp(bytecode, BinaryOperation::DIVISION);
+        numericOp(bytecode, BinaryOperation::DIVISION);
         position++;
         break;
       }
       case OP_MOD: {
-        binaryOp(bytecode, BinaryOperation::MODULUS);
+        numericOp(bytecode, BinaryOperation::MODULUS);
         position++;
         break;
       }
@@ -89,6 +89,11 @@ void VirtualMachine::execute(CompilerOutput& output) {
           throw new RuntimeException("Unexpected type");
         }
 
+        break;
+      }
+      case OP_EQUALS: {
+        comparisonOp(bytecode, BinaryOperation::EQUALITY);
+        position++;
         break;
       }
       case OP_CONSTANT: {
@@ -158,7 +163,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
         // Read function
         auto [offset, size] = readDynamicBytes(bytecode, position);
         position += size + 1;
-        
+
         ObjectClosure* closure = static_cast<ObjectClosure*>(allocateObject(ObjectType::CLOSURE)); // TODO: Garbage collection
         closure->functionIndex = offset;
         closure->name = "temporary function name";
@@ -202,17 +207,31 @@ void VirtualMachine::execute(CompilerOutput& output) {
       case OP_CALL: {
         // TODO: Add a stack overflow exception
         position++;
-        auto [offset, size] = readDynamicBytes(bytecode, position);
+        auto [numArgs, size] = readDynamicBytes(bytecode, position);
         position += size + 1;
+
+        // Read arguments
+        std::vector<Value> args;
+        for(int i=0;i<numArgs;i++) {
+          args.push_back(valueStack.back());
+          valueStack.pop_back();
+        }
+
+        // Read closure
         Value v = valueStack.back();
         valueStack.pop_back();
+
+        // Put arguments back on stack
+        for(int i=numArgs-1;i>=0;i--) {
+          valueStack.push_back(args[i]);
+        }
 
         if(v.type != ValueType::OBJECT || v.as.object->type != ObjectType::CLOSURE) {
           throw new RuntimeException("You can only call functions");
         }
         ObjectClosure* closure = static_cast<ObjectClosure*>(v.as.object);
         callFrames.push_back(CallFrame{
-          .localsOffset = static_cast<int>(valueStack.size()),
+          .localsOffset = static_cast<int>(valueStack.size() - numArgs),
           .returnAddress = position,
           .chunk = &output.functions[closure->functionIndex],
           .closure = closure,
@@ -258,7 +277,7 @@ std::pair<int, int> VirtualMachine::readDynamicBytes(std::vector<uint8_t>& bytec
   return std::make_pair(result, size);
 }
 
-void VirtualMachine::binaryOp(std::vector<uint8_t>& bytecode, BinaryOperation op) {
+void VirtualMachine::numericOp(std::vector<uint8_t>& bytecode, BinaryOperation op) {
   Value v1 = valueStack.back();
   valueStack.pop_back();
   Value v2 = valueStack.back();
@@ -286,6 +305,54 @@ void VirtualMachine::binaryOp(std::vector<uint8_t>& bytecode, BinaryOperation op
       break;
     case BinaryOperation::MODULUS:
       valueStack.push_back(Value::fromDouble(std::fmod(v2n, v1n)));
+      break;
+    default:
+      break;
+  }
+}
+
+void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, BinaryOperation op) {
+  Value v1 = valueStack.back();
+  valueStack.pop_back();
+  Value v2 = valueStack.back();
+  valueStack.pop_back();
+
+  switch(op) {
+    case BinaryOperation::EQUALITY: {
+      bool hasNil = v1.type == ValueType::NIL || v2.type == ValueType::NIL;
+
+      if(v1.type != v2.type && !hasNil) {
+        throw new RuntimeException("Cannot compare different types");
+      }
+
+      if(hasNil && v1.type == ValueType::NIL && v2.type == ValueType::NIL) {
+        valueStack.push_back(Value::fromBool(true));
+        return;
+      } else {
+        if(hasNil) {
+          valueStack.push_back(Value::fromBool(false));
+          return;
+        }
+      }
+
+      // Compare
+      switch(v1.type) {
+        case ValueType::NUMBER:
+          valueStack.push_back(Value::fromBool(v1.as.number == v2.as.number));
+          break;
+        case ValueType::BOOL:
+          valueStack.push_back(Value::fromBool(v1.as.boolean == v2.as.boolean));
+          break;
+        case ValueType::NIL:
+          valueStack.push_back(Value::fromBool(true));
+          break;
+        case ValueType::OBJECT:
+          valueStack.push_back(Value::fromBool(v1.as.object == v2.as.object));
+          break;
+      }
+      break;
+    }
+    default:
       break;
   }
 }

@@ -7,10 +7,13 @@ namespace sciscript {
 
 class CallExpression : public Expression {
  public:
-  CallExpression(Expression* target) : target(target) {}
+  CallExpression(Expression* target, std::vector<Expression*> arguments) : target(target), arguments(arguments) {}
   ~CallExpression() {
     if(target != nullptr) {
       delete target;
+    }
+    for(Expression* arg : arguments) {
+      delete arg;
     }
   }
 
@@ -18,6 +21,7 @@ class CallExpression : public Expression {
 
  private:
   Expression* target;
+  std::vector<Expression*> arguments;
 };
 
 }

@@ -23,6 +23,9 @@ void BinaryExpression::emitBytecode(Chunk& chunk) {
     case BinaryOperation::MODULUS:
       chunk.emitByte(OP_MOD);
       break;
+    case BinaryOperation::EQUALITY:
+      chunk.emitByte(OP_EQUALS);
+      break;
   }
 }
 

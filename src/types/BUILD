@@ -8,6 +8,7 @@ custom_cc_library(
     "Chunk.cc",
   ],
   hdrs = [
+    "Argument.hh",
     "Chunk.hh",
     "CompilerOutput.hh",
     "CompilerScope.hh",

@@ -2,6 +2,7 @@
 #define _SCISCRIPT_COMPILER_AST_STATEMENT_H_
 
 #include "src/types/Chunk.hh"
+#include "src/types/Argument.hh"
 #include "src/compiler/ParserTool.hh"
 #include "src/compiler/SyntaxException.hh"
 #include "Expression.hh"
@@ -33,6 +34,7 @@ class Statement {
  private:
   StatementType type;
   static std::vector<Statement*> readBlock(ParserTool& parserTool);
+  static std::vector<Argument> readArgumentList(ParserTool& parserTool);
 };
 
 }

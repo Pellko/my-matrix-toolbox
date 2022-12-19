@@ -5,9 +5,11 @@ namespace sciscript {
 
 void CallExpression::emitBytecode(Chunk& chunk) {
   target->emitBytecode(chunk);
+  for(Expression* arg : arguments) {
+    arg->emitBytecode(chunk);
+  }
   chunk.emitByte(OP_CALL);
-  chunk.emitDynamicBytes(0); // numbers of arguments to function
-
+  chunk.emitDynamicBytes(arguments.size());
 }
 
 }

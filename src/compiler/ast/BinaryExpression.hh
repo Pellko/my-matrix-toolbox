@@ -10,7 +10,8 @@ enum class BinaryOperation {
   SUBTRACTION,
   MULTIPLICATION,
   DIVISION,
-  MODULUS
+  MODULUS,
+  EQUALITY,
 };
 
 class BinaryExpression : public Expression {

@@ -45,6 +45,7 @@ class Token {
     QUESTION,
     COLON,
     RETURN,
+    COMMA,
   };
 
   Kind type;

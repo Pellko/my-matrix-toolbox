@@ -11,7 +11,7 @@
 
 namespace sciscript {
 
-Expression* Expression::parse(ParserTool& parserTool, bool fromGroup) {
+Expression* Expression::parse(ParserTool& parserTool) {
   // Assignment
   if(parserTool.require(2) && parserTool.peek()->type == Token::Kind::IDENTIFIER && parserTool.peek(1)->type == Token::Kind::EQ) {
     Token* name = parserTool.get();
@@ -38,24 +38,33 @@ Expression* Expression::parse(ParserTool& parserTool, bool fromGroup) {
     }
   }
 
+  Expression* expression = readArithmeticExpression(parserTool);
+
+  // Equality comparsion
+  if(parserTool.require(1) && parserTool.peek()->type == Token::Kind::DEQ) {
+    parserTool.get();
+    Expression* rhs = parse(parserTool);
+    BinaryExpression* node = new BinaryExpression(BinaryOperation::EQUALITY, expression, rhs);
+    return node;
+  }
+
+  return expression;
+}
+
+Expression* Expression::readArithmeticExpression(ParserTool& parserTool) {
+  if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::RPAREN) {
+    return nullptr;
+  }
+
   Expression* term = readTerm(parserTool);
   if(parserTool.empty()) {
     return term;
   }
 
   Token* next = parserTool.peek();
-
   if(next->type == Token::Kind::PLUS || next->type == Token::Kind::MINUS) {
     parserTool.get();
-    Expression* rhs;
-    if(fromGroup) {
-      if(!parserTool.empty() && (parserTool.peek()->type == Token::Kind::IDENTIFIER || parserTool.peek()->type == Token::Kind::NUMBER || parserTool.peek()->type == Token::Kind::MINUS || parserTool.peek()->type == Token::Kind::LPAREN)) {
-        rhs = parse(parserTool, true);
-      }
-    } else {
-      rhs = parse(parserTool, false);
-    }
-
+    Expression* rhs = parse(parserTool);
     BinaryOperation op;
     switch(next->type) {
       case Token::Kind::PLUS:
@@ -71,18 +80,6 @@ Expression* Expression::parse(ParserTool& parserTool, bool fromGroup) {
     BinaryExpression* node = new BinaryExpression(op, term, rhs);
     return node;
   }
-
-  // Calling value
-  if(next->type == Token::Kind::LPAREN) {
-    parserTool.get();
-    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
-      throw new SyntaxException("Expected ) when calling function");
-    }
-    parserTool.get();
-    CallExpression* node = new CallExpression(term);
-    return node;
-  }
-
   return term;
 }
 
@@ -127,7 +124,35 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
     UnaryExpression* node = new UnaryExpression(UnaryOperation::NEGATION, expression);
     return node;
   } else {
-    return readPrimary(parserTool);
+    Expression* expression = readPrimary(parserTool);
+
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::LPAREN) {
+      parserTool.get();
+
+      // Read argument
+      std::vector<Expression*> arguments;
+
+      while(!parserTool.empty() && parserTool.peek()->type != Token::Kind::RPAREN) {
+        arguments.push_back(parse(parserTool));
+
+        if(parserTool.empty()) {
+          throw new SyntaxException("Unexpected end of arugment list in call");
+        }
+
+        if(parserTool.peek()->type == Token::Kind::COMMA) {
+          parserTool.get();
+        }
+      }
+
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+        throw new SyntaxException("Expected ) when calling function");
+      }
+      parserTool.get();
+      CallExpression* node = new CallExpression(expression, arguments);
+      return node;
+    }
+
+    return expression;
   }
 }
 
@@ -203,7 +228,7 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
   }
 
   if(token->type == Token::Kind::LPAREN) {
-    Expression* expression = Expression::parse(parserTool, true);
+    Expression* expression = Expression::parse(parserTool);
     GroupExpression* node = new GroupExpression(expression);
     Token* next = parserTool.get();
     if(next->type != Token::Kind::RPAREN) {

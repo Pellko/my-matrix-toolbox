@@ -24,7 +24,8 @@ class VirtualMachine {
   ObjectUpvalue* openUpvalues;
 
   std::pair<int, int> readDynamicBytes(std::vector<uint8_t>& bytecode, int position);
-  void binaryOp(std::vector<uint8_t>& bytecode, BinaryOperation op);
+  void numericOp(std::vector<uint8_t>& bytecode, BinaryOperation op);
+  void comparisonOp(std::vector<uint8_t>& bytecode, BinaryOperation op);
   void printValue(Value value);
   
   ObjectUpvalue* getUpvalue(int stackIndex);
