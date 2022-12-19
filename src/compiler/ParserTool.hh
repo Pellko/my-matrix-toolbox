@@ -33,6 +33,7 @@ class ParserTool {
   ~ParserTool() {
     if(compilerScopeTree != nullptr) {
       compilerScopeTree->free();
+      delete compilerScopeTree;
     }
   }
 

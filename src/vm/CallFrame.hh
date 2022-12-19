@@ -11,11 +11,6 @@ struct CallFrame {
   int returnAddress;
   Chunk* chunk;
   ObjectClosure* closure;
-
-  void free() {
-    chunk->free();
-    delete chunk;
-  }
 };
 
 }

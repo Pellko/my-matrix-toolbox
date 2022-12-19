@@ -20,6 +20,7 @@ class VirtualMachine {
   std::vector<Value> globals;
   std::vector<Value> valueStack;
   std::vector<CallFrame> callFrames;
+  std::vector<Object*> objects;
   ObjectUpvalue* openUpvalues;
 
   std::pair<int, int> readDynamicBytes(std::vector<uint8_t>& bytecode, int position);
@@ -28,6 +29,20 @@ class VirtualMachine {
   
   ObjectUpvalue* getUpvalue(int stackIndex);
   void closeUpvalues(int lastIndex);
+
+  Object* allocateObject(ObjectType type);
+
+  std::vector<Object*> gcWorkingStack;
+  void collectGarbage();
+  void markRoots();
+  void traceReferences();
+  void sweep();
+
+  void traverseObjectReferences(Object* object);
+  void markValue(Value value);
+  void markObject(Object* object);
+
+  bool debugGarbageCollector = false;
 };
 
 }

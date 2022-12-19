@@ -12,7 +12,6 @@ class ObjectUpvalue : public Object {
   ~ObjectUpvalue() {}
 
   int stackIndex;
-  // Value* value;
   Value closed;
   bool isClosed;
   ObjectUpvalue* next;
@@ -21,11 +20,7 @@ class ObjectUpvalue : public Object {
 class ObjectClosure : public Object {
  public:
   ObjectClosure() : Object(ObjectType::CLOSURE) {}
-  ~ObjectClosure() {
-    for(ObjectUpvalue* upvalue : upvalues) {
-      delete upvalue;
-    }
-  }
+  ~ObjectClosure() {}
 
   std::string name;
   int functionIndex;

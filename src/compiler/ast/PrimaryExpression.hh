@@ -9,9 +9,7 @@ namespace sciscript {
 class ConstantExpression : public Expression {
  public:
   ConstantExpression(Literal literal) : literal(literal) {}
-  ~ConstantExpression() {
-    literal.free();
-  }
+  ~ConstantExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
   

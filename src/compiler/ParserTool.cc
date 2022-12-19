@@ -100,6 +100,7 @@ void ParserTool::endFunction() {
   if(compilerScopeTree->parent != nullptr) {
     CompilerScopeTree* oldTreeNode = compilerScopeTree;
     compilerScopeTree = oldTreeNode->parent;
+    delete oldTreeNode;
   } else {
     compilerScopeTree = nullptr;
   }
@@ -113,7 +114,7 @@ std::pair<VarRefType, int> ParserTool::findIdentifier(std::string name) {
     currentFunctionScope = compilerScopeTree->depth;
     localsOffset = compilerScopeTree->localsOffset;
   }
-  
+
   int localIndex = -1;
   for(int i=locals.size()-1;i>=0;i--) {
     if(locals[i].name == name && locals[i].depth <= scopeLevel && locals[i].depth > currentFunctionScope) {

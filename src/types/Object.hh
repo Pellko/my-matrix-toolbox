@@ -7,7 +7,6 @@
 namespace sciscript {
 
 enum class ObjectType {
-  FUNCTION,
   CLOSURE,
   UPVALUE,
 };
@@ -18,6 +17,7 @@ class Object {
   virtual ~Object() {}
 
   ObjectType type;
+  bool isMarked = false;
 };
 
 }

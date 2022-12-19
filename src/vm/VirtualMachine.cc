@@ -25,6 +25,8 @@ void VirtualMachine::execute(CompilerOutput& output) {
     std::vector<Literal>& literals = callFrames.back().chunk->literals;
     uint8_t instruction = bytecode[position];
 
+    collectGarbage(); // TODO: move this from here.
+
     switch(instruction) {
       case OP_RETURN: {
         if(callFrames.size() == 1) {
@@ -157,7 +159,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
         auto [offset, size] = readDynamicBytes(bytecode, position);
         position += size + 1;
         
-        ObjectClosure* closure = new ObjectClosure(); // TODO: Garbage collection
+        ObjectClosure* closure = static_cast<ObjectClosure*>(allocateObject(ObjectType::CLOSURE)); // TODO: Garbage collection
         closure->functionIndex = offset;
         closure->name = "temporary function name";
 
@@ -171,7 +173,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
           position += size + 1;
 
           if(isLocal == 1) {
-            closure->upvalues.push_back(getUpvalue(valueStack.size() - 1));
+            closure->upvalues.push_back(getUpvalue(index));
           } else {
             closure->upvalues.push_back(callFrames.back().closure->upvalues[index]);
           }
@@ -222,7 +224,13 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position++;
       }
     } 
-  }  
+  }
+  
+  for(Object* object : objects) {
+    delete object;
+  }
+  objects.clear();
+  output.free();
 }
 
 std::pair<int, int> VirtualMachine::readDynamicBytes(std::vector<uint8_t>& bytecode, int position) {
@@ -294,11 +302,11 @@ ObjectUpvalue* VirtualMachine::getUpvalue(int stackIndex) {
     upvalue = upvalue->next;
   }
 
-  if(upvalue != nullptr && upvalue->stackIndex == stackIndex) {
+  if(upvalue != nullptr && upvalue->stackIndex == stackIndex) { 
     return upvalue;
   }
 
-  ObjectUpvalue* createdUpvalue = new ObjectUpvalue();
+  ObjectUpvalue* createdUpvalue = static_cast<ObjectUpvalue*>(allocateObject(ObjectType::UPVALUE));
   createdUpvalue->next = upvalue;
   createdUpvalue->stackIndex = stackIndex;
   createdUpvalue->isClosed = false;
@@ -320,5 +328,116 @@ void VirtualMachine::closeUpvalues(int lastIndex) {
     openUpvalues = upvalue->next;
   }
 }
-  
+
+Object* VirtualMachine::allocateObject(ObjectType type) {
+  switch(type) {
+    case ObjectType::CLOSURE: {
+      Object* obj = new ObjectClosure();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::UPVALUE: {
+      Object* obj = new ObjectUpvalue();
+      objects.push_back(obj);
+      return obj;
+    }
+  }
+}
+
+void VirtualMachine::collectGarbage() {
+  if(debugGarbageCollector) {
+    std::cout << "-- Initialize garbage collection --" << std::endl;
+  }
+  markRoots();
+  traceReferences();
+  sweep();
+}
+
+void VirtualMachine::markRoots() {
+  // (1) Mark all values on stack
+  for(Value value : valueStack) {
+    markValue(value);
+  }
+
+  // (2) Mark all globals
+  for(Value value : globals) {
+    markValue(value);
+  }
+
+  // (3) Mark all call frame closure objects
+  for(CallFrame& frame : callFrames) {
+    markObject(static_cast<Object*>(frame.closure));
+  }
+
+  // (4) Mark all open upvalues
+  for(ObjectUpvalue* upvalue = openUpvalues;upvalue != nullptr;upvalue=upvalue->next) {
+    markObject(static_cast<Object*>(upvalue));
+  }
+}
+
+void VirtualMachine::traceReferences() {
+  while(!gcWorkingStack.empty()) {
+    Object* obj = gcWorkingStack.back();
+    gcWorkingStack.pop_back();
+    traverseObjectReferences(obj);
+  }
+}
+
+void VirtualMachine::sweep() {
+  for(int i=objects.size()-1;i>=0;i--) {
+    Object* object = objects[i];
+
+    if(object->isMarked) {
+      object->isMarked = false;
+    } else {
+      if(debugGarbageCollector) {
+        std::cout << "Deleted object with value ";
+        printValue(Value::fromObject(object));
+      }
+      Object* unreached = object;
+      objects.erase(objects.begin() + i);
+      delete unreached;
+    }
+  }
+}
+
+void VirtualMachine::traverseObjectReferences(Object* object) {
+  if(debugGarbageCollector) {
+    std::cout << "traverse object references of " << object << " with value ";
+    printValue(Value::fromObject(object));
+  }
+
+  switch(object->type) {
+    case ObjectType::CLOSURE: {
+      ObjectClosure* closure = static_cast<ObjectClosure*>(object);
+      for(ObjectUpvalue* upvalue : closure->upvalues) {
+        markObject(static_cast<Object*>(upvalue));
+      }
+      break;
+    }
+    case ObjectType::UPVALUE: {
+      ObjectUpvalue* upvalue = static_cast<ObjectUpvalue*>(object);
+      markValue(upvalue->closed);
+    }
+  }
+}
+
+void VirtualMachine::markValue(Value value) {
+  if(value.type == ValueType::OBJECT) {
+    markObject(value.as.object);
+  }
+}
+
+void VirtualMachine::markObject(Object* object) {
+  if(object != nullptr) {
+    if(object->isMarked) return;
+    if(debugGarbageCollector) {
+      std::cout << "mark object " << object << " with value ";
+      printValue(Value::fromObject(object));
+    }
+    object->isMarked = true;
+    gcWorkingStack.push_back(object);
+  }
+}
+
 }

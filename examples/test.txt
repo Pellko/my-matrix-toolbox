@@ -1,10 +1,30 @@
-fn outer() {
-  let x = 10;
-  fn inner() {
-    print(x);
+fn fib() {
+  let a = 0;
+  let b = 1;
+  let result = 0;
+
+  fn gen() {
+    result = a+b;
+    print(result);
+    a = b;
+    b = result;
     return 0;
-  }
-  inner();
-  return 0;
+  }  
+
+  return gen;
 }
-outer();
+
+let fib1 = fib();
+fib1();
+fib1();
+fib1();
+fib1();
+fib1();
+
+let fib2 = fib();
+fib2();
+fib2();
+fib2();
+fib2();
+fib2();
+fib2();

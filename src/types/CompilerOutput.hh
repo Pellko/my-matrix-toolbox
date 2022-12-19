@@ -10,6 +10,13 @@ struct CompilerOutput {
   Chunk root;
   std::vector<Chunk> functions;
   int numGlobals;
+
+  void free() {
+    root.free();
+    for(Chunk& chunk : functions) {
+      chunk.free();
+    }
+  }
 };
 
 }

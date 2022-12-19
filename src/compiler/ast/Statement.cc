@@ -50,6 +50,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     
     // Read function body
     parserTool.beginScope();
+    int globalIndex = parserTool.registerGlobal(name->text);
     std::vector<Statement*> statements = readBlock(parserTool);
     BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
     for(Statement* stmt : statements) {
@@ -63,7 +64,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     parserTool.endFunction();
   
     if(isGlobal) {
-      fn->setGlobalIndex(parserTool.registerGlobal(name->text));
+      fn->setGlobalIndex(globalIndex);
     } else {
       fn->setGlobalIndex(-1);
     }
