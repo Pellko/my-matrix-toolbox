@@ -15,6 +15,7 @@ enum class StatementType {
   PRINT,
   DECLARE_VARIABLE,
   RETURN,
+  IF
 };
 
 class Statement {

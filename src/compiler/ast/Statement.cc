@@ -5,6 +5,7 @@
 #include "src/compiler/ast/FunctionStatement.hh"
 #include "src/compiler/ast/BlockStatement.hh"
 #include "src/compiler/ast/PrintStatement.hh"
+#include "src/compiler/ast/IfStatement.hh"
 #include "ExpressionStatement.hh"
 #include "PrimaryExpression.hh"
 #include "src/compiler/ast/ReturnStatement.hh"
@@ -83,6 +84,23 @@ Statement* Statement::parse(ParserTool& parserTool) {
     return fn;
   }
 
+  if(next->type == Token::Kind::IF) {
+    parserTool.get();
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected ( after if statement");
+    }
+    parserTool.get();
+    Expression* condition = Expression::parse(parserTool);
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected ) after if statement");
+    }
+    parserTool.get();
+    Statement* trueStatement = Statement::parse(parserTool);
+    IfStatement* node = new IfStatement(condition, trueStatement);
+    return node;
+  }
+
+  // Variable declaration
   if(next->type == Token::Kind::LET) {
     parserTool.get();
     
@@ -137,6 +155,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     }
   }
 
+  // Return statement
   if(next->type == Token::Kind::RETURN) {
     parserTool.get();
     if(parserTool.empty()) {
@@ -158,6 +177,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     return node;
   }
 
+  // Print statement
   if(next->type == Token::Kind::IDENTIFIER && next->text == "print") {
     parserTool.get();
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {

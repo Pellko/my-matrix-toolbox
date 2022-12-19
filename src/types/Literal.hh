@@ -38,6 +38,13 @@ struct Literal {
       .type = LiteralType::NIL,
     };
   }
+
+  static Literal fromBool(bool b) {
+    Literal l;
+    l.type = LiteralType::BOOL;
+    l.as.boolean = b;
+    return l;
+  }
 };
 
 }

@@ -88,6 +88,9 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_SET_UPVALUE:
         offset = setVariable("OP_SET_UPVALUE", offset, chunk);
         break;
+      case OP_JUMP_FALSE:
+        offset = jumpInstruction("OP_JUMP_FALSE", offset, chunk);
+        break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";
         offset += 1;
@@ -136,6 +139,12 @@ int Disassembler::closureInstruction(std::string instruction, int offset, Chunk&
   }
   std::cout << instruction << std::endl;
   return offset + skip;
+}
+
+int Disassembler::jumpInstruction(std::string instruction, int offset, Chunk& chunk) {
+  auto [index, size] = readDynamicBytes(offset + 1, chunk);
+  std::cout << instruction << " : Skip=" << index << std::endl;
+  return offset + 2 + size;
 }
 
 std::string Disassembler::printLiteral(Literal literal) {

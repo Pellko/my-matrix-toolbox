@@ -220,6 +220,22 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position = 0;
         break;
       }
+      case OP_JUMP_FALSE: {
+        position++;
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        Value comparison = valueStack.back();
+        valueStack.pop_back();
+
+        if(comparison.type != ValueType::BOOL) {
+          throw new RuntimeException("Expected boolean value in jump");
+        }
+
+        if(!comparison.as.boolean) {
+          position += offset;
+        }
+        position += size + 1;
+        break;
+      }
       default: {
         position++;
       }

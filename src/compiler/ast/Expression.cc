@@ -171,6 +171,12 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
     }
   }
 
+  if(token->type == Token::Kind::TRUE || token->type == Token::Kind::FALSE) {
+    Literal literal = Literal::fromBool(token->type == Token::Kind::TRUE);
+    ConstantExpression* node = new ConstantExpression(literal);
+    return node;
+  }
+
   if(token->type == Token::Kind::IDENTIFIER) {
     auto [type, index] = parserTool.findIdentifier(token->text);
 
