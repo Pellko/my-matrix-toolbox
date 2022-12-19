@@ -194,7 +194,6 @@ int ParserTool::resolveUpvalue(CompilerScopeTree* scope, std::string name) {
     return addUpvalue(scope, localIndex, true);
   }
 
-  std::cout << "recursive" << std::endl;
   int upvalue = resolveUpvalue(scope->parent, name);
   if(upvalue != -1) {
     return addUpvalue(scope, upvalue, false);

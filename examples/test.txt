@@ -4,8 +4,8 @@ fn fib() {
   let result = 0;
 
   fn gen() {
-    result = a+b;
     print(result);
+    result = a+b;
     a = b;
     b = result;
     return 0;

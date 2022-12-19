@@ -31,8 +31,8 @@ Expression* Expression::parse(ParserTool& parserTool, bool fromGroup) {
         return node;
       }
       case VarRefType::UPVALUE: {
-        parserTool.registerUpvalue(name->text);
-        AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, index, true, value);
+        int upvalueIndex = parserTool.registerUpvalue(name->text);
+        AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, upvalueIndex, true, value);
         return node;
       }
     }
