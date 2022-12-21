@@ -48,6 +48,27 @@ Expression* Expression::parse(ParserTool& parserTool) {
     return node;
   }
 
+  // Inequality comparsion
+  if(
+    parserTool.require(1) && (
+      parserTool.peek()->type == Token::Kind::LT ||
+      parserTool.peek()->type == Token::Kind::LEQ ||
+      parserTool.peek()->type == Token::Kind::GT ||
+      parserTool.peek()->type == Token::Kind::GEQ
+    )
+  ) {
+    Token* op = parserTool.get();
+    Expression* rhs = parse(parserTool);
+    BinaryOperation type;
+    if(op->type == Token::Kind::LT) type = BinaryOperation::LESS_THAN;
+    if(op->type == Token::Kind::LEQ) type = BinaryOperation::LESS_THAN_EQUALS;
+    if(op->type == Token::Kind::GT) type = BinaryOperation::GREATER_THAN;
+    if(op->type == Token::Kind::GEQ) type = BinaryOperation::GREATER_THAN_EQUALS;
+
+    BinaryExpression* node = new BinaryExpression(type, expression, rhs);
+    return node;
+  }
+
   return expression;
 }
 
@@ -198,6 +219,12 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
 
   if(token->type == Token::Kind::TRUE || token->type == Token::Kind::FALSE) {
     Literal literal = Literal::fromBool(token->type == Token::Kind::TRUE);
+    ConstantExpression* node = new ConstantExpression(literal);
+    return node;
+  }
+
+  if(token->type == Token::Kind::STRING_LITERAL) {
+    Literal literal = Literal::fromString(token->text);
     ConstantExpression* node = new ConstantExpression(literal);
     return node;
   }

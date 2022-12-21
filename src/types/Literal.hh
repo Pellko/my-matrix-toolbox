@@ -45,6 +45,13 @@ struct Literal {
     l.as.boolean = b;
     return l;
   }
+
+  static Literal fromString(std::string string) {
+    Literal l;
+    l.type = LiteralType::STRING;
+    l.as.str = new std::string(string);
+    return l;
+  }
 };
 
 }

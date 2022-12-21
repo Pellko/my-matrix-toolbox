@@ -4,6 +4,7 @@
 #include "src/compiler/ast/BinaryExpression.hh"
 #include "src/types/CompilerOutput.hh"
 #include "src/types/ObjectClosure.hh"
+#include "src/types/ObjectString.hh"
 #include "src/types/Value.hh"
 #include "CallFrame.hh"
 
@@ -27,7 +28,8 @@ class VirtualMachine {
   void numericOp(std::vector<uint8_t>& bytecode, BinaryOperation op);
   void comparisonOp(std::vector<uint8_t>& bytecode, BinaryOperation op);
   void printValue(Value value);
-  
+  void printObject(Object* object);
+
   ObjectUpvalue* getUpvalue(int stackIndex);
   void closeUpvalues(int lastIndex);
 

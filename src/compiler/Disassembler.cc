@@ -91,6 +91,12 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_JUMP_FALSE:
         offset = jumpInstruction("OP_JUMP_FALSE", offset, chunk);
         break;
+      case OP_JUMP:
+        offset = jumpInstruction("OP_JUMP", offset, chunk);
+        break;
+      case OP_LOOP:
+        offset = jumpInstruction("OP_LOOP", offset, chunk);
+        break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";
         offset += 1;
@@ -151,6 +157,8 @@ std::string Disassembler::printLiteral(Literal literal) {
   switch(literal.type) {
     case LiteralType::NUMBER:
       return std::to_string(literal.as.number);
+    case LiteralType::STRING:
+      return "\"" + *literal.as.str + "\"";
     default:
       return "Unsupported LiteralType";
   }

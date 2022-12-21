@@ -9,6 +9,7 @@ namespace sciscript {
 enum class ObjectType {
   CLOSURE,
   UPVALUE,
+  STRING,
 };
 
 class Object {

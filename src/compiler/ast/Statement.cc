@@ -3,6 +3,7 @@
 #include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
 #include "src/compiler/ast/Expression.hh"
+#include "src/compiler/ast/ForStatement.hh"
 #include "src/compiler/ast/FunctionStatement.hh"
 #include "src/compiler/ast/BlockStatement.hh"
 #include "src/compiler/ast/PrintStatement.hh"
@@ -96,6 +97,72 @@ Statement* Statement::parse(ParserTool& parserTool) {
     return fn;
   }
 
+  // For loop
+  if(next->type == Token::Kind::FOR) {
+    parserTool.get();
+
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected ( in for loop");
+    }
+    parserTool.get();
+
+    parserTool.beginScope();
+    Statement* initializer = nullptr;
+    Expression* condition = nullptr;
+    Expression* incrementor = nullptr;
+
+    // (1) Read initializer clause
+    if(parserTool.peek()->type == Token::Kind::SEMICOLON) {
+      parserTool.get();
+    } else if(parserTool.peek()->type == Token::Kind::LET) {
+      initializer = parse(parserTool);
+    } else {
+      initializer = new ExpressionStatement(Expression::parse(parserTool));
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::SEMICOLON) {
+        throw new SyntaxException("Expected semicolon");
+      }
+      parserTool.get();
+    }
+
+    // (2) Read condition clause
+    if(parserTool.peek()->type == Token::Kind::SEMICOLON) {
+      parserTool.get();
+    } else {
+      condition = Expression::parse(parserTool);
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::SEMICOLON) {
+        throw new SyntaxException("Expected semicolon");
+      }
+      parserTool.get();
+    }
+
+    // (3) Read incrementor
+    if(parserTool.peek()->type == Token::Kind::SEMICOLON) {
+      parserTool.get();
+    } else {
+      incrementor = Expression::parse(parserTool);
+    }
+
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected )");
+    }
+    parserTool.get();
+
+    if(parserTool.empty()) {
+      throw new SyntaxException("Expected body");
+    }
+
+    Statement* body = Statement::parse(parserTool);
+    ForStatement* node = new ForStatement();
+    node->setInitializer(initializer);
+    node->setCondition(condition);
+    node->setIncrementor(incrementor);
+    node->setBody(body);
+    parserTool.endScope();
+
+    return node;
+  }
+
+  // If statement
   if(next->type == Token::Kind::IF) {
     parserTool.get();
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {

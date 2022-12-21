@@ -12,6 +12,10 @@ enum class BinaryOperation {
   DIVISION,
   MODULUS,
   EQUALITY,
+  LESS_THAN,
+  LESS_THAN_EQUALS,
+  GREATER_THAN,
+  GREATER_THAN_EQUALS,
 };
 
 class BinaryExpression : public Expression {

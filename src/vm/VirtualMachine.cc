@@ -84,7 +84,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
         if(v.type == ValueType::NUMBER) {
           valueStack.push_back(Value::fromDouble(-v.as.number));
         } else if(v.type == ValueType::BOOL) {
-          valueStack.push_back(Value::fromBool(-v.as.boolean));
+          valueStack.push_back(Value::fromBool(!v.as.boolean));
         } else {
           throw new RuntimeException("Unexpected type");
         }
@@ -96,10 +96,21 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position++;
         break;
       }
+      case OP_LT: {
+        comparisonOp(bytecode, BinaryOperation::LESS_THAN);
+        position++;
+        break;
+      }
+      case OP_LEQ: {
+        comparisonOp(bytecode, BinaryOperation::LESS_THAN_EQUALS);
+        position++;
+        break;
+      }
       case OP_CONSTANT: {
         position++;
         auto [offset, size] = readDynamicBytes(bytecode, position);
-        valueStack.push_back(Value::fromLiteral(literals[offset]));
+        auto allocatePointer = std::bind(&VirtualMachine::allocateObject, this, std::placeholders::_1);
+        valueStack.push_back(Value::fromLiteral(literals[offset], allocatePointer));
         position += size + 1;
         break;
       }
@@ -255,6 +266,20 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position += size + 1;
         break;
       }
+      case OP_JUMP: {
+        position++;
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+        position += offset;
+        break;
+      }
+      case OP_LOOP: {
+        position++;
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position -= size + 1;
+        position -= offset;
+        break;
+      }
       default: {
         position++;
       }
@@ -352,6 +377,49 @@ void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, BinaryOperatio
       }
       break;
     }
+    case BinaryOperation::LESS_THAN_EQUALS:
+    case BinaryOperation::LESS_THAN: {
+      bool hasNil = v1.type == ValueType::NIL || v2.type == ValueType::NIL;
+
+      if(v1.type != v2.type && !hasNil) {
+        throw new RuntimeException("Cannot compare different types");
+      }
+
+      if(hasNil && v1.type == ValueType::NIL && v2.type == ValueType::NIL) {
+        valueStack.push_back(Value::fromBool(op == BinaryOperation::LESS_THAN_EQUALS));
+        return;
+      } else {
+        if(hasNil) {
+          valueStack.push_back(Value::fromBool(false));
+          return;
+        }
+      }
+
+      switch(v1.type) {
+        case ValueType::NUMBER:
+          if(op == BinaryOperation::LESS_THAN) { 
+            valueStack.push_back(Value::fromBool(v2.as.number < v1.as.number));
+          } else {
+            valueStack.push_back(Value::fromBool(v2.as.number <= v1.as.number));
+          }
+          break;
+        case ValueType::BOOL:
+          if(op == BinaryOperation::LESS_THAN) {
+            valueStack.push_back(Value::fromBool(static_cast<int>(v2.as.boolean) < static_cast<int>(v1.as.boolean)));
+          } else {
+            valueStack.push_back(Value::fromBool(static_cast<int>(v2.as.boolean) <= static_cast<int>(v1.as.boolean)));
+          }
+          break;
+        case ValueType::NIL: {
+          valueStack.push_back(Value::fromBool(true));
+          break;
+        case ValueType::OBJECT:
+          valueStack.push_back(Value::fromBool(false));
+          break;
+        }
+      }
+      break;
+    }
     default:
       break;
   }
@@ -369,10 +437,24 @@ void VirtualMachine::printValue(Value v) {
       std::cout << "nil" << std::endl;
       break;
     case ValueType::OBJECT:
-      std::cout << "object" << std::endl;
+      printObject(v.as.object);
       break;
     default:
       throw new RuntimeException("Unexpected types in print");
+  }
+}
+
+void VirtualMachine::printObject(Object* object) {
+  switch(object->type) {
+    case ObjectType::STRING:
+      std::cout << static_cast<ObjectString*>(object)->getString() << std::endl;
+      break;
+    case ObjectType::CLOSURE:
+      std::cout << "Closure" << std::endl;
+      break;
+    case ObjectType::UPVALUE:
+      std::cout << "Upvalue" << std::endl;
+      break;
   }
 }
 
@@ -421,6 +503,11 @@ Object* VirtualMachine::allocateObject(ObjectType type) {
     }
     case ObjectType::UPVALUE: {
       Object* obj = new ObjectUpvalue();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::STRING: {
+      Object* obj = new ObjectString();
       objects.push_back(obj);
       return obj;
     }
@@ -491,6 +578,8 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
   }
 
   switch(object->type) {
+    case ObjectType::STRING:
+      break;
     case ObjectType::CLOSURE: {
       ObjectClosure* closure = static_cast<ObjectClosure*>(object);
       for(ObjectUpvalue* upvalue : closure->upvalues) {
@@ -501,6 +590,7 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
     case ObjectType::UPVALUE: {
       ObjectUpvalue* upvalue = static_cast<ObjectUpvalue*>(object);
       markValue(upvalue->closed);
+      break;
     }
   }
 }

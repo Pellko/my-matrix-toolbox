@@ -2,6 +2,7 @@
 #define _SCISCRIPT_TYPES_VALUE_H_
 
 #include "Object.hh"
+#include "ObjectString.hh"
 #include "Literal.hh"
 #include <memory>
 
@@ -49,7 +50,7 @@ struct Value {
     };
   }
 
-  static Value fromLiteral(Literal literal) {
+  static Value fromLiteral(Literal literal, std::function<Object* (ObjectType)> allocateObject) {
     switch(literal.type) {
       case LiteralType::NUMBER:
         return Value::fromDouble(literal.as.number);
@@ -58,7 +59,9 @@ struct Value {
       case LiteralType::NIL:
         return Value::nil();
       case LiteralType::STRING:
-        return Value::nil();
+        ObjectString* obj = static_cast<ObjectString*>(allocateObject(ObjectType::STRING));
+        obj->setString(*literal.as.str);
+        return Value::fromObject(obj);
     }
   }
 };
