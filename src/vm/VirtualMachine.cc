@@ -1,14 +1,16 @@
 #include "VirtualMachine.hh"
 #include "RuntimeException.hh"
+#include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/BinaryExpression.hh"
 #include "src/types/Object.hh"
 #include "src/types/ObjectClosure.hh"
+#include "src/types/ObjectNative.hh"
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
 
 namespace sciscript {
 
-void VirtualMachine::execute(CompilerOutput& output) {
+void VirtualMachine::initialize(CompilerOutput& output) {
   globals.clear();
   globals.resize(output.numGlobals);
   openUpvalues = nullptr;
@@ -19,7 +21,9 @@ void VirtualMachine::execute(CompilerOutput& output) {
     .localsOffset = 0,
     .returnAddress = 0
   });
+}
 
+void VirtualMachine::execute(CompilerOutput& output) {
   for(int position=0;position<callFrames.back().chunk->bytecode.size();) {
     std::vector<uint8_t>& bytecode = callFrames.back().chunk->bytecode;
     std::vector<Literal>& literals = callFrames.back().chunk->literals;
@@ -228,7 +232,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
           valueStack.pop_back();
         }
 
-        // Read closure
+        // Read object to call
         Value v = valueStack.back();
         valueStack.pop_back();
 
@@ -237,17 +241,36 @@ void VirtualMachine::execute(CompilerOutput& output) {
           valueStack.push_back(args[i]);
         }
 
-        if(v.type != ValueType::OBJECT || v.as.object->type != ObjectType::CLOSURE) {
+        if(v.type != ValueType::OBJECT) {
           throw new RuntimeException("You can only call functions");
         }
-        ObjectClosure* closure = static_cast<ObjectClosure*>(v.as.object);
-        callFrames.push_back(CallFrame{
-          .localsOffset = static_cast<int>(valueStack.size() - numArgs),
-          .returnAddress = position,
-          .chunk = &output.functions[closure->functionIndex],
-          .closure = closure,
-        });
-        position = 0;
+
+        switch(v.as.object->type) {
+          case ObjectType::CLOSURE: {
+            ObjectClosure* closure = static_cast<ObjectClosure*>(v.as.object);
+            callFrames.push_back(CallFrame{
+              .localsOffset = static_cast<int>(valueStack.size() - numArgs),
+              .returnAddress = position,
+              .chunk = &output.functions[closure->functionIndex],
+              .closure = closure,
+            });
+            position = 0;
+            break;
+          }
+          case ObjectType::NATIVE: {
+            ObjectNative* native = static_cast<ObjectNative*>(v.as.object);
+            NativeFunction fn = native->function;
+            std::reverse(std::begin(args), std::end(args));
+            Value result = fn(args);
+            for(int i=0;i<numArgs;i++) {
+              valueStack.pop_back();
+            }
+            valueStack.push_back(result);
+            break;
+          }
+          default:
+            throw new SyntaxException("You can only call functions");
+        }
         break;
       }
       case OP_JUMP_FALSE: {
@@ -455,6 +478,8 @@ void VirtualMachine::printObject(Object* object) {
     case ObjectType::UPVALUE:
       std::cout << "Upvalue" << std::endl;
       break;
+    case ObjectType::NATIVE:
+      std::cout << "<native function>>" << std::endl;
   }
 }
 
@@ -508,6 +533,11 @@ Object* VirtualMachine::allocateObject(ObjectType type) {
     }
     case ObjectType::STRING: {
       Object* obj = new ObjectString();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::NATIVE: {
+      Object* obj = new ObjectNative();
       objects.push_back(obj);
       return obj;
     }
@@ -580,6 +610,8 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
   switch(object->type) {
     case ObjectType::STRING:
       break;
+    case ObjectType::NATIVE:
+      break;
     case ObjectType::CLOSURE: {
       ObjectClosure* closure = static_cast<ObjectClosure*>(object);
       for(ObjectUpvalue* upvalue : closure->upvalues) {
@@ -611,6 +643,12 @@ void VirtualMachine::markObject(Object* object) {
     object->isMarked = true;
     gcWorkingStack.push_back(object);
   }
+}
+
+void VirtualMachine::registerNativeFunction(int index, NativeFunction function) {
+  ObjectNative* obj = static_cast<ObjectNative*>(allocateObject(ObjectType::NATIVE));
+  obj->function = function;  
+  globals[index] = Value::fromObject(obj);
 }
 
 }

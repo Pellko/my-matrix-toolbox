@@ -33,4 +33,8 @@ void Compiler::statement() {
   delete statement;
 }
 
+int Compiler::declareNativeFunction(std::string name) {
+  return parserTool.registerGlobal(name);
+}
+
 }

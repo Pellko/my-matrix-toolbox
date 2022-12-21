@@ -24,6 +24,10 @@ std::string read_string_from_file(const std::string &file_path) {
   return buffer.str();
 }
 
+static Value clo(std::vector<Value> args) {
+  return Value::fromDouble((double) clock() / CLOCKS_PER_SEC);
+}
+
 int main(int argc, char** argv) {
   std::string code = read_string_from_file("./examples/test.txt");
   std::vector<Token> tokens;
@@ -34,6 +38,9 @@ int main(int argc, char** argv) {
     lexer.lex(tokens);
 
     Compiler compiler(tokens);
+
+    int CLOCK_ID = compiler.declareNativeFunction("clock");
+
     compiler.compile(output);
 
     Disassembler disassembler;
@@ -41,6 +48,8 @@ int main(int argc, char** argv) {
 
     std::cout << "=========== EXECUTING ===========" << std::endl;
     VirtualMachine machine;
+    machine.initialize(output);
+    machine.registerNativeFunction(CLOCK_ID, &clo);
     machine.execute(output);
     std::cout << "=========== FINISHED EXECUTING ===========" << std::endl;
   } catch(SyntaxException* ex) {

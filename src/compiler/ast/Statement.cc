@@ -60,22 +60,26 @@ Statement* Statement::parse(ParserTool& parserTool) {
     for(Argument& arg : argList) {
       parserTool.registerLocal(arg.name);
       parserTool.currentScope()->chunk.numArguments++;
-    }
+    }    
     
+    bool isGlobal = parserTool.getScopeLevel() == 1;
+    int globalIndex = -1;
+    if(isGlobal) {
+      globalIndex = parserTool.registerGlobal(name->text);
+    }
+
     std::vector<Statement*> statements = readBlock(parserTool);
     BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
     for(Statement* stmt : statements) {
       block->addStatement(stmt);
     }
 
-    bool isGlobal = parserTool.getScopeLevel() == 1;
     FunctionStatement* fn = new FunctionStatement(name->text, isGlobal, block, parserTool.currentScope());
     parserTool.storeLocalsInBlockStatement(block);
     parserTool.endScope();
     parserTool.endFunction();
   
     if(isGlobal) {
-      int globalIndex = parserTool.registerGlobal(name->text);
       fn->setGlobalIndex(globalIndex);
     } else {
       fn->setGlobalIndex(-1);

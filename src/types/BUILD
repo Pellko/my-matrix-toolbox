@@ -16,6 +16,7 @@ custom_cc_library(
     "Local.hh",
     "Object.hh",
     "ObjectClosure.hh",
+    "ObjectNative.hh",
     "ObjectString.hh",
     "OpCode.hh",
     "Upvalue.hh",

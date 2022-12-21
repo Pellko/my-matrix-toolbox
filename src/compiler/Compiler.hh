@@ -17,6 +17,7 @@ class Compiler {
   ~Compiler() {}
 
   void compile(CompilerOutput& compilerOutput);
+  int declareNativeFunction(std::string name);
 
  private:
   ParserTool parserTool;

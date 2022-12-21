@@ -10,6 +10,7 @@ enum class ObjectType {
   CLOSURE,
   UPVALUE,
   STRING,
+  NATIVE,
 };
 
 class Object {

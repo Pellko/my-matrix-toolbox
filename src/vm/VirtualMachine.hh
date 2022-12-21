@@ -5,6 +5,7 @@
 #include "src/types/CompilerOutput.hh"
 #include "src/types/ObjectClosure.hh"
 #include "src/types/ObjectString.hh"
+#include "src/types/ObjectNative.hh"
 #include "src/types/Value.hh"
 #include "CallFrame.hh"
 
@@ -15,7 +16,9 @@ class VirtualMachine {
   VirtualMachine() {}
   ~VirtualMachine() {}
 
+  void initialize(CompilerOutput& output);
   void execute(CompilerOutput& output);
+  void registerNativeFunction(int index, NativeFunction function);
 
  private:
   std::vector<Value> globals;

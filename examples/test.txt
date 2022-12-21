@@ -1,18 +1,15 @@
-fn myfun(b) {
-  let yoass = @(a) => {
-    print(a);
-    print(b);
+fn fib(n) {
+  if(n == 0) {
     return 0;
-  };
+  }
 
-  let bitch = yoass;
-  bitch("whatsup");
+  if(n == 1) {
+    return 1;
+  }
 
-  return yoass;
+  return fib(n-1) + fib(n-2);
 }
 
-let f = myfun("coolman");
-let g = myfun("ugly fucker");
-
-f("hello my ass");
-g("what are ya doing?");
+let start = clock();
+print(fib(30));
+print(clock() - start);
