@@ -46,6 +46,8 @@ class Token {
     COLON,
     RETURN,
     COMMA,
+    AT,
+    DOUBLE_ARROW
   };
 
   Kind type;
@@ -89,7 +91,7 @@ class Lexer {
   void readNumber(std::vector<Token>& tokens);
   void readIdentifierOrKeyword(std::vector<Token>& tokens);
   void readDivOrComment(std::vector<Token>& tokens);
-  void readEqOrDeq(std::vector<Token>& tokens);
+  void readEqOrDeqOrDoubleArrow(std::vector<Token>& tokens);
   void readStringLiteral(std::vector<Token>& tokens);
   void readLtOrLeq(std::vector<Token>& tokens);
   void readGtOrGeq(std::vector<Token>& tokens);

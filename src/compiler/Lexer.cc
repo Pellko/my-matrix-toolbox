@@ -63,6 +63,8 @@ void Lexer::lex(std::vector<Token>& tokens) {
       pushTrivialToken(Token::Kind::COLON, tokens);
     } else if(currChar == ',') {
       pushTrivialToken(Token::Kind::COMMA, tokens);
+    } else if(currChar == '@') {
+      pushTrivialToken(Token::Kind::AT, tokens);
     } else if(currChar == '<') {
       readLtOrLeq(tokens);
     } else if(currChar == '>') {
@@ -70,7 +72,7 @@ void Lexer::lex(std::vector<Token>& tokens) {
     } else if(currChar == '"') {
       readStringLiteral(tokens);
     } else if(currChar == '=') {
-      readEqOrDeq(tokens);
+      readEqOrDeqOrDoubleArrow(tokens);
     } else if (currChar == ' ' || currChar == '\n' || currChar == '\t') {
       get();
     } else {
@@ -171,7 +173,7 @@ void Lexer::readDivOrComment(std::vector<Token>& tokens) {
   }
 }
 
-void Lexer::readEqOrDeq(std::vector<Token>& tokens) {
+void Lexer::readEqOrDeqOrDoubleArrow(std::vector<Token>& tokens) {
   if(remaining() >= 2 && peek(1) == '=') {
     int startOffset = position;
     get();
@@ -183,7 +185,18 @@ void Lexer::readEqOrDeq(std::vector<Token>& tokens) {
       .endOffset = position,
       .lineNumber = lineNumber
     });
-  } else {
+  } else if(remaining() >= 2 && peek(1) == '>') {
+    int startOffset = position;
+    get();
+    get();
+    tokens.push_back(Token{
+      .type = Token::Kind::DOUBLE_ARROW,
+      .text = substr(code, startOffset, position),
+      .startOffset = startOffset,
+      .endOffset = position,
+      .lineNumber = lineNumber,
+    });
+  }else {
     pushTrivialToken(Token::Kind::EQ, tokens);
   }
 }

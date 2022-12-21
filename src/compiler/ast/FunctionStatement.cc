@@ -31,4 +31,28 @@ void FunctionStatement::emitBytecode(Chunk& chunk) {
   }
 }
 
+std::vector<Argument> FunctionStatement::readArgumentList(ParserTool& parserTool) {
+  std::vector<Argument> list;
+  
+  while(!parserTool.empty() && parserTool.peek()->type != Token::Kind::RPAREN) {
+    if(parserTool.peek()->type != Token::Kind::IDENTIFIER) {
+      throw new SyntaxException("Expected variable name");
+    }
+    Token* name = parserTool.get();
+    
+    if(parserTool.empty()) {
+      throw new SyntaxException("Unexpected ending of variable list");
+    }
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::COMMA) {
+      parserTool.get();
+    }
+
+    list.push_back(Argument{
+      .name = name->text
+    });
+  }
+
+  return list;
+}
+
 }

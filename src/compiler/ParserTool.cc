@@ -95,6 +95,30 @@ void ParserTool::beginFunction(std::string name) {
   }
 }
 
+void ParserTool::beginLambda() {
+  // Setup function scope tree
+  CompilerScope* compilerScope = new CompilerScope;
+  compilerScope->name = "lambda";
+  compilerScope->chunk.numUpvalues = 0;
+
+  if(compilerScopeTree == nullptr) {
+    compilerScopeTree = new CompilerScopeTree;
+    compilerScopeTree->current = compilerScope;
+    compilerScopeTree->depth = scopeLevel;
+    compilerScopeTree->localsOffset = locals.size();
+  } else {
+    CompilerScopeTree* oldTreeNode = compilerScopeTree;
+    compilerScopeTree = new CompilerScopeTree;
+    compilerScopeTree->parent = oldTreeNode;
+    compilerScopeTree->current = compilerScope;
+    compilerScopeTree->depth = scopeLevel;
+    compilerScopeTree->localsOffset = locals.size();
+  }
+
+  // Store function compiler scope
+  functionCompilerScopes.push_back(compilerScopeTree->current);
+}
+
 void ParserTool::endFunction() {
   // Pop tree
   if(compilerScopeTree->parent != nullptr) {

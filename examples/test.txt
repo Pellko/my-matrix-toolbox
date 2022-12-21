@@ -1,3 +1,18 @@
-for(let i=10;i>=0;i=i-1) {
-  print(i);
+fn myfun(b) {
+  let yoass = @(a) => {
+    print(a);
+    print(b);
+    return 0;
+  };
+
+  let bitch = yoass;
+  bitch("whatsup");
+
+  return yoass;
 }
+
+let f = myfun("coolman");
+let g = myfun("ugly fucker");
+
+f("hello my ass");
+g("what are ya doing?");

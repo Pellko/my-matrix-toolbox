@@ -41,6 +41,8 @@ class FunctionStatement : public Statement {
     return name;
   }
 
+  static std::vector<Argument> readArgumentList(ParserTool& parserTool);
+
  private:
   std::string name;
   Statement* block;

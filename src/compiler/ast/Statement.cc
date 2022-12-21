@@ -46,7 +46,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     }
     parserTool.get();
 
-    std::vector<Argument> argList = readArgumentList(parserTool);
+    std::vector<Argument> argList = FunctionStatement::readArgumentList(parserTool);
 
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
       throw new SyntaxException("Expected )");
@@ -62,7 +62,6 @@ Statement* Statement::parse(ParserTool& parserTool) {
       parserTool.currentScope()->chunk.numArguments++;
     }
     
-    int globalIndex = parserTool.registerGlobal(name->text);
     std::vector<Statement*> statements = readBlock(parserTool);
     BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
     for(Statement* stmt : statements) {
@@ -76,6 +75,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     parserTool.endFunction();
   
     if(isGlobal) {
+      int globalIndex = parserTool.registerGlobal(name->text);
       fn->setGlobalIndex(globalIndex);
     } else {
       fn->setGlobalIndex(-1);
@@ -316,30 +316,6 @@ std::vector<Statement*> Statement::readBlock(ParserTool& parserTool) {
   }
 
   return statements;
-}
-
-std::vector<Argument> Statement::readArgumentList(ParserTool& parserTool) {
-  std::vector<Argument> list;
-  
-  while(!parserTool.empty() && parserTool.peek()->type != Token::Kind::RPAREN) {
-    if(parserTool.peek()->type != Token::Kind::IDENTIFIER) {
-      throw new SyntaxException("Expected variable name");
-    }
-    Token* name = parserTool.get();
-    
-    if(parserTool.empty()) {
-      throw new SyntaxException("Unexpected ending of variable list");
-    }
-    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::COMMA) {
-      parserTool.get();
-    }
-
-    list.push_back(Argument{
-      .name = name->text
-    });
-  }
-
-  return list;
 }
 
 }

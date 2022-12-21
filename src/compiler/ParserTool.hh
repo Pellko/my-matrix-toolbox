@@ -49,6 +49,7 @@ class ParserTool {
     return scopeLevel;
   }
 
+  void beginLambda();
   void beginFunction(std::string name);
   void endFunction();
   CompilerScope* currentScope() {

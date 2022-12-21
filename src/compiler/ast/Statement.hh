@@ -36,7 +36,6 @@ class Statement {
  private:
   StatementType type;
   static std::vector<Statement*> readBlock(ParserTool& parserTool);
-  static std::vector<Argument> readArgumentList(ParserTool& parserTool);
 };
 
 }

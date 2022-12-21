@@ -4,9 +4,12 @@
 #include "src/compiler/ast/AssignVariableExpression.hh"
 #include "src/compiler/ast/BinaryExpression.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
+#include "src/compiler/ast/LambdaExpression.hh"
 #include "src/compiler/ast/PrimaryExpression.hh"
 #include "src/compiler/ast/UnaryExpression.hh"
 #include "src/compiler/ast/CallExpression.hh"
+#include "src/compiler/ast/FunctionStatement.hh"
+#include "src/compiler/ast/BlockStatement.hh"
 #include "src/types/Local.hh"
 
 namespace sciscript {
@@ -36,6 +39,66 @@ Expression* Expression::parse(ParserTool& parserTool) {
         return node;
       }
     }
+  }
+
+  // Lambda function
+  if(parserTool.require(1) && parserTool.peek()->type == Token::Kind::AT) {
+    parserTool.get();
+
+    parserTool.beginLambda();
+    int functionIndex = parserTool.getFunctions().size() - 1;
+
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected (");
+    }
+    parserTool.get();
+    std::vector<Argument> argList = FunctionStatement::readArgumentList(parserTool);
+
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected )");
+    }
+    parserTool.get();
+
+    // Read arrow
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::DOUBLE_ARROW) {
+      throw new SyntaxException("Expected =>");
+    }
+    parserTool.get();
+
+    // Read function body
+    parserTool.beginScope();
+
+    // Insert arguments as locals
+    for(Argument& arg : argList) {
+      parserTool.registerLocal(arg.name);
+      parserTool.currentScope()->chunk.numArguments++;
+    }
+
+    // Read function body
+    std::cout << parserTool.peek()->text << std::endl;
+    Statement* body = Statement::parse(parserTool);
+    std::cout << parserTool.peek()->text << std::endl;
+    BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
+    block->addStatement(body);
+    LambdaExpression* node = new LambdaExpression(body, parserTool.currentScope());
+    parserTool.storeLocalsInBlockStatement(block);
+    parserTool.endScope();
+    parserTool.endFunction();
+    node->setFunctionIndex(functionIndex);
+
+    if(parserTool.currentScope() == nullptr) {
+      node->setParentScope(nullptr);
+    } else {
+      node->setParentScope(parserTool.currentScope());
+    }
+
+    for(Upvalue u : parserTool.getFunctions()[functionIndex]->upvalues) {
+      node->addUpvalue(u);
+    }
+
+    node->setArguments(argList);
+
+    return node;
   }
 
   Expression* expression = readArithmeticExpression(parserTool);
