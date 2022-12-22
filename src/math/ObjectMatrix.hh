@@ -14,10 +14,13 @@ class ObjectMatrix : public Object {
 
   void setSize(int width, int height);
   void set(int x, int y, Value value);
+  void copy(ObjectMatrix& source);
   Value get(int x, int y);
 
   int getWidth();
   int getHeight();
+
+  void rowEchelon(ObjectMatrix& b);
 
   bool isNumeric();
   void print();

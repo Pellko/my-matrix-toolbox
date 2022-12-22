@@ -1,1 +1,15 @@
-print("hello world");
+fn generator(abc) {
+  let hello = @(t) => {
+    print(abc);
+    print(t);
+    return 0;
+  };
+
+  return hello;
+}
+
+let f = generator("hello");
+let g = generator("whats up");
+
+f("world");
+g("world");

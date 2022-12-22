@@ -161,7 +161,7 @@ int Disassembler::jumpInstruction(std::string instruction, int offset, Chunk& ch
 
 int Disassembler::matrixInstruction(std::string instruction, int offset, Chunk& chunk) {
   auto [width, size] = readDynamicBytes(offset + 1, chunk);
-  auto [height, size2] = readDynamicBytes(offset + 1 + size, chunk);
+  auto [height, size2] = readDynamicBytes(offset + 2 + size, chunk);
   std::cout << instruction << " : Width=" << width << ", Height=" << height << std::endl;
   return offset + 3 + size + size2;
 }

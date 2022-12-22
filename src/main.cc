@@ -5,6 +5,7 @@
 #include "src/compiler/Compiler.hh"
 #include "src/types/Chunk.hh"
 #include "src/types/CompilerOutput.hh"
+#include "src/math/ObjectMatrix.hh"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -28,6 +29,13 @@ static Value clo(std::vector<Value> args) {
   return Value::fromDouble((double) clock() / CLOCKS_PER_SEC);
 }
 
+static Value solve(std::vector<Value> args) {
+  ObjectMatrix* a = static_cast<ObjectMatrix*>(args[0].as.object);
+  ObjectMatrix* b = static_cast<ObjectMatrix*>(args[1].as.object);
+  a->rowEchelon(*b);
+  return Value::nil();
+}
+
 int main(int argc, char** argv) {
   std::string code = read_string_from_file("./examples/test.txt");
   std::vector<Token> tokens;
@@ -40,6 +48,7 @@ int main(int argc, char** argv) {
     Compiler compiler(tokens);
 
     int CLOCK_ID = compiler.declareNativeFunction("clock");
+    int SOLVE_ID = compiler.declareNativeFunction("solve");
 
     compiler.compile(output);
 
@@ -50,6 +59,7 @@ int main(int argc, char** argv) {
     VirtualMachine machine;
     machine.initialize(output);
     machine.registerNativeFunction(CLOCK_ID, &clo);
+    machine.registerNativeFunction(SOLVE_ID, &solve);
     machine.execute(output);
     std::cout << "=========== FINISHED EXECUTING ===========" << std::endl;
   } catch(SyntaxException* ex) {

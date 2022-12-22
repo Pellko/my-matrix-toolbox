@@ -8,6 +8,7 @@ custom_cc_binary(
   deps = [
     "//src/compiler:compiler",
     "//src/vm:vm",
+    "//src/math:math",
   ],
   data = [
     "//examples:examples",
