@@ -1,10 +1,10 @@
-#ifndef _SCISCRIPT_TYPES_OBJECT_UPVALUE_H_
-#define _SCISCRIPT_TYPES_OBJECT_UPVALUE_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_OBJECT_UPVALUE_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_OBJECT_UPVALUE_H_
 
 #include "Object.hh"
 #include "Value.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class ObjectUpvalue : public Object {
  public:

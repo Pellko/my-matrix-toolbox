@@ -1,7 +1,7 @@
 #include "UnaryExpression.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void UnaryExpression::emitBytecode(Chunk& chunk) {
   expression->emitBytecode(chunk);

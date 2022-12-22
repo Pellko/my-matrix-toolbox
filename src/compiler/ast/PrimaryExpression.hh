@@ -1,10 +1,10 @@
-#ifndef _SCISCRIPT_COMPILER_AST_PRIMARY_EXPRESSION_H_
-#define _SCISCRIPT_COMPILER_AST_PRIMARY_EXPRESSION_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_PRIMARY_EXPRESSION_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_PRIMARY_EXPRESSION_H_
 
 #include "src/types/Literal.hh"
 #include "Expression.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class ConstantExpression : public Expression {
  public:

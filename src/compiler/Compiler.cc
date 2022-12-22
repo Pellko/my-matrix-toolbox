@@ -3,7 +3,7 @@
 #include "src/types/Object.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void Compiler::compile(CompilerOutput& compilerOutput) {
   rootScope = new CompilerScope;

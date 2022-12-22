@@ -1,7 +1,7 @@
 #include "BinaryExpression.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void BinaryExpression::emitBytecode(Chunk& chunk) {
   left->emitBytecode(chunk);

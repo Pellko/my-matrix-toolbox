@@ -1,10 +1,10 @@
-#ifndef _SCISCRIPT_COMPILER_AST_FUNCTION_STATEMENT_H_
-#define _SCISCRIPT_COMPILER_AST_FUNCTION_STATEMENT_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_FUNCTION_STATEMENT_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_FUNCTION_STATEMENT_H_
 
 #include "src/types/CompilerScope.hh"
 #include "Statement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class FunctionStatement : public Statement {
  public:

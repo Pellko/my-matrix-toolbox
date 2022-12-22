@@ -1,9 +1,9 @@
-#ifndef _SCISCRIPT_COMPILER_AST_CALL_EXPRESSION_H_
-#define _SCISCRIPT_COMPILER_AST_CALL_EXPRESSION_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_CALL_EXPRESSION_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_CALL_EXPRESSION_H_
 
 #include "Expression.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class CallExpression : public Expression {
  public:
@@ -22,6 +22,23 @@ class CallExpression : public Expression {
  private:
   Expression* target;
   std::vector<Expression*> arguments;
+};
+
+class MatrixAccessExpression : public Expression {
+ public:
+  MatrixAccessExpression(Expression* target, Expression* row, Expression* col) : target(target), row(row), col(col) {}
+  ~MatrixAccessExpression() {
+    if(target != nullptr) delete target;
+    if(row != nullptr) delete row;
+    if(col != nullptr) delete col;
+  }
+
+  void emitBytecode(Chunk& chunk) override;
+
+ private:
+  Expression* target;
+  Expression* row;
+  Expression* col;
 };
 
 }

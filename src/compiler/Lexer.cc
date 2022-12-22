@@ -1,6 +1,6 @@
 #include "Lexer.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 Lexer::Lexer(std::string& code) : code(code) {}
 

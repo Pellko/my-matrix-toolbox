@@ -1,5 +1,5 @@
-#ifndef _SCISCRIPT_COMPILER_AST_STATEMENT_H_
-#define _SCISCRIPT_COMPILER_AST_STATEMENT_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_STATEMENT_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_STATEMENT_H_
 
 #include "src/types/Chunk.hh"
 #include "src/types/Argument.hh"
@@ -7,7 +7,7 @@
 #include "src/compiler/SyntaxException.hh"
 #include "Expression.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 enum class StatementType {
   BLOCK,

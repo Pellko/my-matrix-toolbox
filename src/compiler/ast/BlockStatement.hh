@@ -1,10 +1,10 @@
-#ifndef _SCISCRIPT_COMPILER_AST_BLOCK_STATEMENT_H_
-#define _SCISCRIPT_COMPILER_AST_BLOCK_STATEMENT_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_BLOCK_STATEMENT_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_BLOCK_STATEMENT_H_
 
 #include "Statement.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class BlockStatement : public Statement {
  public:

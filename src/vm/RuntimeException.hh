@@ -1,11 +1,11 @@
-#ifndef _SCISCRIPT_VM_RUNTIME_EXCEPTION_H_
-#define _SCISCRIPT_VM_RUNTIME_EXCEPTION_H_
+#ifndef _MY_MATRIX_TOOLBOX_VM_RUNTIME_EXCEPTION_H_
+#define _MY_MATRIX_TOOLBOX_VM_RUNTIME_EXCEPTION_H_
 
 #include <exception>
 #include <iostream>
 #include <stdexcept>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class RuntimeException : public std::exception {
  public:

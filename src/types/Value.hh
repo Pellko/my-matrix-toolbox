@@ -1,12 +1,12 @@
-#ifndef _SCISCRIPT_TYPES_VALUE_H_
-#define _SCISCRIPT_TYPES_VALUE_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_VALUE_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_VALUE_H_
 
 #include "Object.hh"
 #include "ObjectString.hh"
 #include "Literal.hh"
 #include <memory>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 enum class ValueType {
   BOOL,

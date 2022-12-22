@@ -1,7 +1,7 @@
-#ifndef _SCISCRIPT_TYPES_UPVALUE_H_
-#define _SCISCRIPT_TYPES_UPVALUE_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_UPVALUE_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_UPVALUE_H_
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 struct Upvalue {
   bool isLocal;

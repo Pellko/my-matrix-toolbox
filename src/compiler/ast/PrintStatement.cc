@@ -1,7 +1,7 @@
 #include "PrintStatement.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void PrintStatement::emitBytecode(Chunk& chunk) {
   expression->emitBytecode(chunk);

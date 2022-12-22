@@ -4,7 +4,7 @@
 #include "src/types/Upvalue.hh"
 #include "src/compiler/ast/BlockStatement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 Token* ParserTool::peek(int n) {
   if(position == tokens.size()) {

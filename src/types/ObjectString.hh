@@ -1,9 +1,9 @@
-#ifndef _SCISCRIPT_TYPES_OBJECT_STRING_H_
-#define _SCISCRIPT_TYPES_OBJECT_STRING_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_OBJECT_STRING_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_OBJECT_STRING_H_
 
 #include "Object.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class ObjectString : public Object {
  public:

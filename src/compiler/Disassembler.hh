@@ -1,5 +1,5 @@
-#ifndef _SCISCRIPT_COMPILER_DISASSEMBLER_H_
-#define _SCISCRIPT_COMPILER_DISASSEMBLER_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_DISASSEMBLER_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_DISASSEMBLER_H_
 
 #include "src/types/Chunk.hh"
 #include "src/types/Literal.hh"
@@ -7,7 +7,7 @@
 
 #include <string>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class Disassembler {
  public:

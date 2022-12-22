@@ -1,5 +1,5 @@
-#ifndef _SCISCRIPT_COMPILER_LEXER_H_
-#define _SCISCRIPT_COMPILER_LEXER_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_LEXER_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_LEXER_H_
 
 #include <string>
 #include <ctype.h>
@@ -7,7 +7,7 @@
 #include <sstream>
 #include "LexicalException.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class Token {
  public:

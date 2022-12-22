@@ -12,7 +12,7 @@
 #include "PrimaryExpression.hh"
 #include "src/compiler/ast/ReturnStatement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 Statement* Statement::parse(ParserTool& parserTool) {
   Token* next = parserTool.peek();

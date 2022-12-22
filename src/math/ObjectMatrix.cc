@@ -1,6 +1,6 @@
 #include "ObjectMatrix.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 ObjectMatrix::ObjectMatrix(int width, int height) : Object(ObjectType::MATRIX), width(width), height(height) {
   data = (Value*) malloc(width * height * sizeof(Value));
@@ -45,6 +45,17 @@ void ObjectMatrix::set(int x, int y, Value value) {
 
 Value ObjectMatrix::get(int x, int y) {
   return data[x + y * width];
+}
+
+bool ObjectMatrix::isNumeric() {
+  bool isNumeric = true;
+  for(int i=0;i<width*height;i++) {
+    if(data[i].type != ValueType::NUMBER) {
+      isNumeric = false;
+      break;
+    }
+  }
+  return isNumeric;
 }
 
 void ObjectMatrix::print() {

@@ -3,7 +3,7 @@
 #include "src/types/OpCode.hh"
 #include <iostream>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void Disassembler::disassemble(CompilerOutput& output) {
   std::cout << "Chunk <0>" << std::endl;
@@ -99,6 +99,9 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
         break;
       case OP_MATRIX:
         offset = matrixInstruction("OP_MATRIX", offset, chunk);
+        break;
+      case OP_MATRIX_ACCESS:
+        offset = simpleInstruction("OP_MATRIX_ACCESS", offset);
         break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";

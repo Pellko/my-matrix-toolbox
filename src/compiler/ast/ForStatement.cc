@@ -2,7 +2,7 @@
 #include "src/types/Chunk.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void ForStatement::emitBytecode(Chunk& chunk) {
   if(initializer != nullptr) {

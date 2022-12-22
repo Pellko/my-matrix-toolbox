@@ -1,7 +1,7 @@
 #include "Chunk.hh"
 #include <vector>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void Chunk::emitByte(uint8_t v) {
   bytecode.push_back(v);

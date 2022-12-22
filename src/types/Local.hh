@@ -1,9 +1,9 @@
-#ifndef _SCISCRIPT_TYPES_LOCAL_H_
-#define _SCISCRIPT_TYPES_LOCAL_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_LOCAL_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_LOCAL_H_
 
 #include <string>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 enum class VarRefType {
   LOCAL,

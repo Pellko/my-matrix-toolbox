@@ -1,7 +1,7 @@
 #include "AssignVariableExpression.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void AssignVariableExpression::emitBytecode(Chunk& chunk) {
   if(type == DeclareVariableType::GLOBAL) {

@@ -1,5 +1,5 @@
-#ifndef _SCISCRIPT_VM_VIRTUAL_MACHINE_H_
-#define _SCISCRIPT_VM_VIRTUAL_MACHINE_H_
+#ifndef _MY_MATRIX_TOOLBOX_VM_VIRTUAL_MACHINE_H_
+#define _MY_MATRIX_TOOLBOX_VM_VIRTUAL_MACHINE_H_
 
 #include "src/compiler/ast/BinaryExpression.hh"
 #include "src/types/CompilerOutput.hh"
@@ -9,7 +9,7 @@
 #include "src/types/Value.hh"
 #include "CallFrame.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class VirtualMachine {
  public:

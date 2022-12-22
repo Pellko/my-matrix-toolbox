@@ -12,7 +12,7 @@
 #include "src/compiler/ast/BlockStatement.hh"
 #include "src/types/Local.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 Expression* Expression::parse(ParserTool& parserTool) {
   // Assignment
@@ -210,6 +210,7 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
   } else {
     Expression* expression = readPrimary(parserTool);
 
+    // Function call
     if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::LPAREN) {
       parserTool.get();
 
@@ -220,7 +221,7 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
         arguments.push_back(parse(parserTool));
 
         if(parserTool.empty()) {
-          throw new SyntaxException("Unexpected end of arugment list in call");
+          throw new SyntaxException("Unexpected end of argument list in call");
         }
 
         if(parserTool.peek()->type == Token::Kind::COMMA) {
@@ -234,6 +235,34 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
       parserTool.get();
       CallExpression* node = new CallExpression(expression, arguments);
       return node;
+    }
+
+    // Array index
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::LBRACKET) {
+      parserTool.get();
+
+      Expression* row = Expression::parse(parserTool);
+      Expression* col;
+
+      if(parserTool.empty()) {
+        throw new SyntaxException("Unexpected ending of file");
+      }
+
+      if(parserTool.peek()->type == Token::Kind::RBRACKET) {
+        col = new ConstantExpression(Literal::fromDouble(0));
+        parserTool.get();
+      } else {
+        if(parserTool.peek()->type != Token::Kind::COMMA) {
+          throw new SyntaxException("Expected ,");
+        }
+        parserTool.get();
+        col = Expression::parse(parserTool);
+        if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RBRACKET) {
+          throw new SyntaxException("Expected ]");
+        }
+        parserTool.get();
+      }
+      return new MatrixAccessExpression(expression, row, col);
     }
 
     return expression;

@@ -9,7 +9,7 @@
 #include <fstream>
 #include <sstream>
 
-using namespace sciscript;
+using namespace mymatrixtoolbox;
 
 std::string read_string_from_file(const std::string &file_path) {
   const std::ifstream input_stream(file_path, std::ios_base::binary);

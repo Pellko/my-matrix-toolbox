@@ -1,5 +1,5 @@
-#ifndef _SCISCRIPT_COMPILER_COMPILER_H_
-#define _SCISCRIPT_COMPILER_COMPILER_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_COMPILER_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_COMPILER_H_
 
 #include <vector>
 #include "src/types/CompilerScope.hh"
@@ -9,7 +9,7 @@
 #include "Lexer.hh"
 #include "ParserTool.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class Compiler {
  public:

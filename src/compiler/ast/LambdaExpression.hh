@@ -1,10 +1,10 @@
-#ifndef _SCISCRIPT_COMPILER_AST_IF_STATEMENT_H_
-#define _SCISCRIPT_COMPILER_AST_IF_STATEMENT_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_IF_STATEMENT_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_IF_STATEMENT_H_
 
 #include "Expression.hh"
 #include "Statement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class LambdaExpression : public Expression {
  public:

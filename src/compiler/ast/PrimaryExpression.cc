@@ -2,7 +2,7 @@
 #include "src/types/Chunk.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void ConstantExpression::emitBytecode(Chunk& chunk) {
   chunk.literals.push_back(literal);

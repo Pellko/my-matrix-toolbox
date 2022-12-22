@@ -1,7 +1,7 @@
 #include "LambdaExpression.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void LambdaExpression::emitBytecode(Chunk& chunk) {
   block->emitBytecode(compilerScope->chunk);

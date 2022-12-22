@@ -2,7 +2,7 @@
 #include "src/compiler/SyntaxException.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void FunctionStatement::emitBytecode(Chunk& chunk) {
   // Emit function body in functions own scope

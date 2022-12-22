@@ -9,7 +9,7 @@
 #include "src/types/Value.hh"
 #include "src/math/ObjectMatrix.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void VirtualMachine::initialize(CompilerOutput& output) {
   globals.clear();
@@ -220,6 +220,26 @@ void VirtualMachine::execute(CompilerOutput& output) {
         }
 
         valueStack.push_back(Value::fromObject(matrix));
+        break;
+      }
+      case OP_MATRIX_ACCESS: {
+        position++;
+        Value col = valueStack.back();
+        valueStack.pop_back();
+        Value row = valueStack.back();
+        valueStack.pop_back();
+        Value target = valueStack.back();
+        valueStack.pop_back();
+
+        if(col.type != ValueType::NUMBER || row.type != ValueType::NUMBER) throw new RuntimeException("Matrix index has to be a number");
+        if(target.type != ValueType::OBJECT) {
+          throw new SyntaxException("You can only index matrices");
+        }
+        if(target.as.object->type != ObjectType::MATRIX) {
+          throw new SyntaxException("You can only index matrices");
+        }
+        ObjectMatrix* mat = static_cast<ObjectMatrix*>(target.as.object);
+        valueStack.push_back(mat->get(col.as.number, row.as.number));
         break;
       }
       case OP_POP: {

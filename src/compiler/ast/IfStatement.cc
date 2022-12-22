@@ -2,7 +2,7 @@
 #include "src/types/Chunk.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void IfStatement::emitBytecode(Chunk& chunk) {
   condition->emitBytecode(chunk);

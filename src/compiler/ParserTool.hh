@@ -1,5 +1,5 @@
-#ifndef _SCISCRIPT_COMPILER_PARSER_TOOL_H_
-#define _SCISCRIPT_COMPILER_PARSER_TOOL_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_PARSER_TOOL_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_PARSER_TOOL_H_
 
 #include "src/types/CompilerScope.hh"
 #include "src/types/Local.hh"
@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <memory>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class BlockStatement;
 

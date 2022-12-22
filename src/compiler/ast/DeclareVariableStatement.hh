@@ -1,9 +1,9 @@
-#ifndef _SCISCRIPT_COMPILER_AST_DECLARE_VARIABLE_STATEMENT_H_
-#define _SCISCRIPT_COMPILER_AST_DECLARE_VARIABLE_STATEMENT_H_
+#ifndef _MY_MATRIX_TOOLBOX_COMPILER_AST_DECLARE_VARIABLE_STATEMENT_H_
+#define _MY_MATRIX_TOOLBOX_COMPILER_AST_DECLARE_VARIABLE_STATEMENT_H_
 
 #include "Statement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 enum class DeclareVariableType {
   LOCAL,

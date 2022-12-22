@@ -3,7 +3,7 @@
 #include "src/types/OpCode.hh"
 #include "ReturnStatement.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void BlockStatement::emitBytecode(Chunk& chunk) {
   ReturnStatement* returnStatement = nullptr;

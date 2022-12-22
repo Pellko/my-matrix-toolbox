@@ -1,7 +1,7 @@
 #include "ExpressionStatement.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void ExpressionStatement::emitBytecode(Chunk& chunk) {
   expression->emitBytecode(chunk);

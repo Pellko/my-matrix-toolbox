@@ -1,7 +1,7 @@
-#ifndef _SCISCRIPT_TYPES_OP_CODE_H_
-#define _SCISCRIPT_TYPES_OP_CODE_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_OP_CODE_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_OP_CODE_H_
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 enum OpCode {
   OP_RETURN,
@@ -30,6 +30,7 @@ enum OpCode {
   OP_SET_UPVALUE,
   OP_CLOSE_UPVALUE,
   OP_MATRIX,
+  OP_MATRIX_ACCESS,
 };
 
 }

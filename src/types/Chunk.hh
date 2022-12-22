@@ -1,12 +1,12 @@
-#ifndef _SCISCRIPT_TYPES_CHUNK_H_
-#define _SCISCRIPT_TYPES_CHUNK_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_CHUNK_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_CHUNK_H_
 
 #include <vector>
 #include <unordered_map>
 #include "Literal.hh"
 #include "Upvalue.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 struct Chunk {
   std::vector<uint8_t> bytecode;

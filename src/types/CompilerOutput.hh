@@ -1,10 +1,10 @@
-#ifndef _SCISCRIPT_TYPES_COMPILER_OUTPUT_H_
-#define _SCISCRIPT_TYPES_COMPILER_OUTPUT_H_
+#ifndef _MY_MATRIX_TOOLBOX_TYPES_COMPILER_OUTPUT_H_
+#define _MY_MATRIX_TOOLBOX_TYPES_COMPILER_OUTPUT_H_
 
 #include "CompilerScope.hh"
 #include <vector>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 struct CompilerOutput {
   Chunk root;

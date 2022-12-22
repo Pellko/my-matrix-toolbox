@@ -1,7 +1,7 @@
 #include "ReturnStatement.hh"
 #include "src/types/OpCode.hh"
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 void ReturnStatement::emitBytecode(Chunk& chunk) {
   if(expression != nullptr) {

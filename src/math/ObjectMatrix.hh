@@ -1,11 +1,11 @@
-#ifndef _SCISCRIPT_MATH_MATRIX_H_
-#define _SCISCRIPT_MATH_MATRIX_H_
+#ifndef _MY_MATRIX_TOOLBOX_MATH_MATRIX_H_
+#define _MY_MATRIX_TOOLBOX_MATH_MATRIX_H_
 
 #include "src/types/Value.hh"
 #include "src/types/Object.hh"
 #include <iostream>
 
-namespace sciscript {
+namespace mymatrixtoolbox {
 
 class ObjectMatrix : public Object {
  public:
@@ -13,15 +13,14 @@ class ObjectMatrix : public Object {
   ~ObjectMatrix();
 
   void setSize(int width, int height);
-
   void set(int x, int y, Value value);
   Value get(int x, int y);
 
   int getWidth();
   int getHeight();
 
+  bool isNumeric();
   void print();
-
  private:
   int width;
   int height;
