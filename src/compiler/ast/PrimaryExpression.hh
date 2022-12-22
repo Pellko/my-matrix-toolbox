@@ -17,6 +17,28 @@ class ConstantExpression : public Expression {
   Literal literal;
 };
 
+class MatrixExpression : public Expression {
+ public:
+  MatrixExpression(int width, int height) : width(width), height(height) {
+    expressions.resize(width * height);
+  }
+  ~MatrixExpression() {
+    for(Expression* expression : expressions) {
+      delete expression;
+    }
+  }
+
+  void emitBytecode(Chunk& chunk) override;
+  void addExpression(int x, int y, Expression* expression) {
+    expressions[x+y*width] = expression;
+  }
+
+ private:
+  int width;
+  int height;
+  std::vector<Expression*> expressions;
+};
+
 class GroupExpression : public Expression {
  public:
   GroupExpression(Expression* expression) : expression(expression) {}

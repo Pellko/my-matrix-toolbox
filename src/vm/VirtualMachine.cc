@@ -7,6 +7,7 @@
 #include "src/types/ObjectNative.hh"
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
+#include "src/math/ObjectMatrix.hh"
 
 namespace sciscript {
 
@@ -199,6 +200,26 @@ void VirtualMachine::execute(CompilerOutput& output) {
           }
         }
         valueStack.push_back(Value::fromObject(closure));
+        break;
+      }
+      case OP_MATRIX: {
+        position++;
+        auto [width, widthSize] = readDynamicBytes(bytecode, position);
+        position += widthSize + 1;
+        auto [height, heightSize] = readDynamicBytes(bytecode, position);
+        position += heightSize + 1;
+
+        ObjectMatrix* matrix = static_cast<ObjectMatrix*>(allocateObject(ObjectType::MATRIX));
+        matrix->setSize(width, height);
+        
+        for(int y=height-1;y>=0;y--) {
+          for(int x=width-1;x>=0;x--) {
+            matrix->set(x, y, valueStack.back());
+            valueStack.pop_back();
+          }
+        }
+
+        valueStack.push_back(Value::fromObject(matrix));
         break;
       }
       case OP_POP: {
@@ -480,6 +501,10 @@ void VirtualMachine::printObject(Object* object) {
       break;
     case ObjectType::NATIVE:
       std::cout << "<native function>>" << std::endl;
+      break;
+    case ObjectType::MATRIX:
+      static_cast<ObjectMatrix*>(object)->print();
+      break;
   }
 }
 
@@ -538,6 +563,11 @@ Object* VirtualMachine::allocateObject(ObjectType type) {
     }
     case ObjectType::NATIVE: {
       Object* obj = new ObjectNative();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::MATRIX: {
+      Object* obj = new ObjectMatrix(0, 0);
       objects.push_back(obj);
       return obj;
     }
@@ -622,6 +652,15 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
     case ObjectType::UPVALUE: {
       ObjectUpvalue* upvalue = static_cast<ObjectUpvalue*>(object);
       markValue(upvalue->closed);
+      break;
+    }
+    case ObjectType::MATRIX: {
+      ObjectMatrix* matrix = static_cast<ObjectMatrix*>(object);
+      for(int y=0;y<matrix->getHeight();y++) {
+        for(int x=0;x<matrix->getWidth();x++) {
+          markValue(matrix->get(x, y));
+        }
+      }
       break;
     }
   }

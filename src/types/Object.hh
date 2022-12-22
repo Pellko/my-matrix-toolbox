@@ -11,6 +11,7 @@ enum class ObjectType {
   UPVALUE,
   STRING,
   NATIVE,
+  MATRIX,
 };
 
 class Object {

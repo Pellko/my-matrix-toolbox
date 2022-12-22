@@ -10,6 +10,15 @@ void ConstantExpression::emitBytecode(Chunk& chunk) {
   chunk.emitDynamicBytes(chunk.literals.size() - 1);
 }
 
+void MatrixExpression::emitBytecode(Chunk& chunk) {
+  for(Expression* expression : expressions) {
+    expression->emitBytecode(chunk);
+  }
+  chunk.emitByte(OP_MATRIX);
+  chunk.emitDynamicBytes(width);
+  chunk.emitDynamicBytes(height);
+}
+
 void GroupExpression::emitBytecode(Chunk& chunk) {
   expression->emitBytecode(chunk);
 }

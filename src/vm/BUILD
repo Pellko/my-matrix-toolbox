@@ -17,5 +17,6 @@ custom_cc_library(
   deps = [
     "//src/types:types",
     "//src/compiler:compiler",
+    "//src/math:math",
   ],
 )

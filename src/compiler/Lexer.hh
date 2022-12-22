@@ -47,7 +47,11 @@ class Token {
     RETURN,
     COMMA,
     AT,
-    DOUBLE_ARROW
+    DOUBLE_ARROW,
+    LBRACKET,
+    RBRACKET,
+    BACKSLASH,
+    DBACKSLASH,
   };
 
   Kind type;
@@ -97,6 +101,7 @@ class Lexer {
   void readGtOrGeq(std::vector<Token>& tokens);
   void readPlusOrDoublePlus(std::vector<Token>& tokens);
   void readMinusOrDoubleMinus(std::vector<Token>& tokens);
+  void readBackslashOrDoubleBackslash(std::vector<Token>& tokens);
 };
 
 }

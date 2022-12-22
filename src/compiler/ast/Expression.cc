@@ -292,6 +292,66 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
     return node;
   }
 
+  if(token->type == Token::Kind::LBRACKET) {
+    // Read all expressions
+    int currX = 0;
+    int currY = 0;
+    std::vector<std::vector<Expression*>> values;
+
+    while(true) {
+      if(parserTool.empty()) {
+        throw new SyntaxException("Unexpected ending of file");
+      }
+
+      if(parserTool.peek()->type == Token::Kind::RBRACKET) {
+        parserTool.get();
+        break;
+      }
+
+      if(values.size() <= currX) {
+        values.resize(values.size()+1);
+      }
+
+      if(values[currX].size() <= currY) {
+        values[currX].resize(values[currX].size() + 1);
+      }
+
+      values[currX][currY] = Expression::parse(parserTool);
+      
+      if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::DBACKSLASH) {
+        currX = 0;
+        currY++;
+        parserTool.get();
+      } else if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::COMMA) {
+        currX++;
+        parserTool.get();
+      }
+    }
+
+    // Find the actual matrix width and height
+    int width = values.size();
+    int height = 0;
+    for(std::vector<Expression*>& col : values) {
+      if(col.size() > height) {
+        height = col.size();
+      }
+    }
+
+    MatrixExpression* node = new MatrixExpression(width, height);
+    for(int x=0;x<width;x++) {
+      for(int y=0;y<height;y++) {
+        std::vector<Expression*>& col = values[x];
+        if(col.size() <= y) {
+          node->addExpression(x, y, new ConstantExpression(Literal::fromDouble(0)));
+        } else {
+          node->addExpression(x, y, col[y]);
+        }
+      }
+    }
+
+    return node;
+  }
+
   if(token->type == Token::Kind::IDENTIFIER) {
     auto [type, index] = parserTool.findIdentifier(token->text);
 
@@ -327,6 +387,7 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
     return node;
   }
 
+  std::cout << token->text << std::endl;
   throw new SyntaxException("Invalid token");
 }
 

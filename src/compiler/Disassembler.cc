@@ -97,6 +97,9 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_LOOP:
         offset = jumpInstruction("OP_LOOP", offset, chunk);
         break;
+      case OP_MATRIX:
+        offset = matrixInstruction("OP_MATRIX", offset, chunk);
+        break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";
         offset += 1;
@@ -151,6 +154,13 @@ int Disassembler::jumpInstruction(std::string instruction, int offset, Chunk& ch
   auto [index, size] = readDynamicBytes(offset + 1, chunk);
   std::cout << instruction << " : Skip=" << index << std::endl;
   return offset + 2 + size;
+}
+
+int Disassembler::matrixInstruction(std::string instruction, int offset, Chunk& chunk) {
+  auto [width, size] = readDynamicBytes(offset + 1, chunk);
+  auto [height, size2] = readDynamicBytes(offset + 1 + size, chunk);
+  std::cout << instruction << " : Width=" << width << ", Height=" << height << std::endl;
+  return offset + 3 + size + size2;
 }
 
 std::string Disassembler::printLiteral(Literal literal) {

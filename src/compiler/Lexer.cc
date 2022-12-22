@@ -65,6 +65,12 @@ void Lexer::lex(std::vector<Token>& tokens) {
       pushTrivialToken(Token::Kind::COMMA, tokens);
     } else if(currChar == '@') {
       pushTrivialToken(Token::Kind::AT, tokens);
+    } else if(currChar == '[') {
+      pushTrivialToken(Token::Kind::LBRACKET, tokens);
+    } else if(currChar == ']') {
+      pushTrivialToken(Token::Kind::RBRACKET, tokens);
+    } else if(currChar == '\\') {
+      readBackslashOrDoubleBackslash(tokens);
     } else if(currChar == '<') {
       readLtOrLeq(tokens);
     } else if(currChar == '>') {
@@ -294,6 +300,23 @@ void Lexer::readMinusOrDoubleMinus(std::vector<Token>& tokens) {
     });
   } else {
     pushTrivialToken(Token::Kind::MINUS, tokens);
+  }
+}
+
+void Lexer::readBackslashOrDoubleBackslash(std::vector<Token>& tokens) {
+  if(remaining() >= 2 && peek(1) == '\\') {
+    int startOffset = position;
+    get();
+    get();
+    tokens.push_back(Token{
+      .type = Token::Kind::DBACKSLASH,
+      .text = substr(code, startOffset, position),
+      .startOffset = startOffset,
+      .endOffset = position,
+      .lineNumber = lineNumber
+    });
+  } else {
+    pushTrivialToken(Token::Kind::BACKSLASH, tokens);
   }
 }
 

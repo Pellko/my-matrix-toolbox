@@ -1,15 +1,6 @@
-fn fib(n) {
-  if(n == 0) {
-    return 0;
-  }
+let mat = [
+  1, 2, 3 \\
+  2, 4, 6
+];
 
-  if(n == 1) {
-    return 1;
-  }
-
-  return fib(n-1) + fib(n-2);
-}
-
-let start = clock();
-print(fib(30));
-print(clock() - start);
+print(mat);

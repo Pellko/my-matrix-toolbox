@@ -25,6 +25,7 @@ class Disassembler {
   int callInstruction(std::string instruction, int offset, Chunk& chunk);
   int closureInstruction(std::string instruction, int offset, Chunk& chunk, CompilerOutput& output);
   int jumpInstruction(std::string instruction, int offset, Chunk& chunk);
+  int matrixInstruction(std::string instruction, int offset, Chunk& chunk);
 
   std::pair<int, int> readDynamicBytes(int offset, Chunk& chunk);
   std::string printLiteral(Literal literal);

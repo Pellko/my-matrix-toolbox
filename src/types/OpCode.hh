@@ -29,6 +29,7 @@ enum OpCode {
   OP_READ_UPVALUE,
   OP_SET_UPVALUE,
   OP_CLOSE_UPVALUE,
+  OP_MATRIX,
 };
 
 }
