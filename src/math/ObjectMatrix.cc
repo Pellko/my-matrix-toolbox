@@ -47,6 +47,13 @@ Value ObjectMatrix::get(int x, int y) {
   return data[x + y * width];
 }
 
+void ObjectMatrix::getColumn(int k, ObjectMatrix& result) {
+  result.setSize(1, height);
+  for(int y=0;y<height;y++) {
+    result.set(0, y, get(k, y));
+  }
+}
+
 void ObjectMatrix::copy(ObjectMatrix& source) {
   if(source.getWidth() != width || source.getHeight() != height) {
     return;
@@ -54,6 +61,68 @@ void ObjectMatrix::copy(ObjectMatrix& source) {
   for(int x=0;x<width;x++) {
     for(int y=0;y<height;y++) {
       set(x,y, source.get(x, y));
+    }
+  }
+}
+
+void ObjectMatrix::add(ObjectMatrix& a) {
+  if(a.getWidth() != width || a.getHeight() != height) {
+    // TODO: throw exception
+    return;
+  }
+
+  for(int x=0;x<width;x++) {
+    for(int y=0;y<height;y++) {
+      set(x, y, Value::fromDouble(get(x, y).as.number + a.get(x, y).as.number));
+    }
+  }
+}
+
+void ObjectMatrix::subtract(ObjectMatrix& a) {
+  if(a.getWidth() != width || a.getHeight() != height) {
+    // TODO: throw exception
+    return;
+  }
+
+  for(int x=0;x<width;x++) {
+    for(int y=0;y<height;y++) {
+      set(x, y, Value::fromDouble(get(x, y).as.number - a.get(x, y).as.number));
+    }
+  }
+}
+
+void ObjectMatrix::multiply(double k) {
+  for(int x=0;x<width;x++) {
+    for(int y=0;y<height;y++) {
+      set(x,y, Value::fromDouble(get(x,y).as.number * k));
+    }
+  }
+}
+
+void ObjectMatrix::multiply(ObjectMatrix& a, ObjectMatrix& result) {
+  if(width != a.getHeight()) {
+    // TODO: throw exception
+    return;
+  }
+  result.setSize(a.getWidth(), height);
+
+  for(int x=0;x<a.getWidth();x++) {
+    for(int y=0;y<height;y++) {
+      double value = 0;
+      for(int k=0;k<width;k++) {
+        value += get(k, y).as.number * a.get(x, k).as.number;
+      }
+      result.set(x,y,Value::fromDouble(value));
+    }
+  }
+}
+
+void ObjectMatrix::transpose() {
+  for(int y=0;y<height;y++) {
+    for(int x=0;x<y;x++) {
+      Value t = get(y,x);
+      set(y, x, get(x, y));
+      set(x, y, t);
     }
   }
 }
@@ -143,6 +212,128 @@ void ObjectMatrix::rowEchelon(ObjectMatrix& b) {
       }
     }
   }
+}
+
+void ObjectMatrix::eigenvalues(ObjectMatrix& eigenvalues, ObjectMatrix& eigenvectors) {
+  if(width != height) {
+    // TODO: make sure matrix is square
+    return;
+  }
+
+  // Initialize
+  int iterations = 10;
+  ObjectMatrix B(width, height);
+  B.copy(*this);
+  ObjectMatrix U(width, height);
+  for(int x=0;x<width;x++) {
+    U.set(x,x, Value::fromDouble(1));
+  }
+
+  // Iterate
+  for(int i=0;i<iterations;i++) {
+    ObjectMatrix Q(width, height);
+    ObjectMatrix R(width, height);
+    B.qrDecomposition(Q, R);
+    R.multiply(Q, B);
+    ObjectMatrix temp(width, height);
+    temp.copy(U);
+    temp.multiply(Q, U);
+  }
+
+  eigenvalues.setSize(width, height);
+  for(int i=0;i<width;i++) {
+    eigenvalues.set(i,i,B.get(i,i));
+  }
+  eigenvectors.setSize(width, height);
+  eigenvectors.copy(U);
+}
+
+void ObjectMatrix::qrDecomposition(ObjectMatrix& Q, ObjectMatrix& R) {
+  // Initialize result matrices
+  Q.setSize(width, height);
+  R.setSize(width, height);
+
+  ObjectMatrix workingMatrix(width, height);
+  workingMatrix.copy(*this);
+
+  // Perform Gram-Schmidt orthonormalization on the columns of our matrix
+  for(int x=1;x<width;x++) {
+    // Get last column
+    ObjectMatrix prevCol(1, height);
+    workingMatrix.getColumn(x - 1, prevCol);
+
+    // Get current column
+    ObjectMatrix currCol(1, height);
+    workingMatrix.getColumn(x, currCol);
+
+    double projFactor = dotP(currCol, prevCol) / dotP(prevCol, prevCol);
+    prevCol.multiply(projFactor);
+    currCol.subtract(prevCol);
+
+    // Insert column
+    for(int y=0;y<height;y++) {
+      workingMatrix.set(x, y, currCol.get(0, y));
+    }
+  }
+
+  // Normalize columns
+  for(int x=0;x<width;x++) {
+    double length = 0;
+    for(int y=0;y<height;y++) {
+      length += workingMatrix.get(x, y).as.number * workingMatrix.get(x, y).as.number;
+    }
+    length = sqrt(length);
+
+    for(int y=0;y<height;y++) {
+      workingMatrix.set(x, y, Value::fromDouble(workingMatrix.get(x,y).as.number / length));
+    }
+  }
+
+  // The working matrix is Q
+  Q.copy(workingMatrix);
+
+  // Calculate R
+  ObjectMatrix transposedQ(width, height);
+  transposedQ.copy(Q);
+  transposedQ.transpose();
+  transposedQ.multiply(*this, R);
+}
+
+double ObjectMatrix::dotP(ObjectMatrix& a, ObjectMatrix& b) {
+  // TODO: check that everything is numeric
+  if(!a.isVector() || !b.isVector()) {
+    // TODO: throw exception
+    return -1;
+  }
+
+  int aSize = a.isColumnVector() ? a.height : a.width;
+  int bSize = b.isColumnVector() ? b.height : b.width;
+  if(aSize != bSize) {
+    // TODO: throw exception
+    return -1;
+  }
+
+  double result = 0;
+  for(int k=0;k<aSize;k++) {
+    double f = 1;
+    f *= a.isColumnVector() ? a.get(0, k).as.number : a.get(k, 0).as.number;
+    f *= b.isColumnVector() ? b.get(0, k).as.number : b.get(k, 0).as.number;
+    result += f;
+  }
+
+  return result;
+}
+
+bool ObjectMatrix::isVector() {
+  return isColumnVector() || isRowVector();
+}
+
+bool ObjectMatrix::isColumnVector() {
+  return width == 1;
+}
+
+bool ObjectMatrix::isRowVector() {
+  return height == 1;
 }
 
 bool ObjectMatrix::isNumeric() {

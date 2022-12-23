@@ -16,12 +16,26 @@ class ObjectMatrix : public Object {
   void set(int x, int y, Value value);
   void copy(ObjectMatrix& source);
   Value get(int x, int y);
+  void getColumn(int k, ObjectMatrix& result);
 
   int getWidth();
   int getHeight();
 
-  void rowEchelon(ObjectMatrix& b);
+  void add(ObjectMatrix& a);
+  void subtract(ObjectMatrix& a);
+  void multiply(double k);
+  void multiply(ObjectMatrix& a, ObjectMatrix& result);
+  void transpose();
 
+  void rowEchelon(ObjectMatrix& b);
+  void eigenvalues(ObjectMatrix& eigenvalues, ObjectMatrix& eigenvectors);
+  void qrDecomposition(ObjectMatrix& Q, ObjectMatrix& R);
+  
+  static double dotP(ObjectMatrix& a, ObjectMatrix& b);
+
+  bool isVector();
+  bool isColumnVector();
+  bool isRowVector();
   bool isNumeric();
   void print();
  private:

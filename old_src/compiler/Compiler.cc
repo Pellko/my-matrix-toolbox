@@ -603,7 +603,7 @@ PrimaryExpression* Compiler::readPrimary() {
   }
 
   if(token->type == Token::Kind::STRING_LITERAL) {
-    ObjectString* obj = new ObjectString(token->text); // TODO (GC)
+    ObjectString* obj = new ObjectString(token->text);
     PrimaryExpression* node = new PrimaryExpression(PrimaryType::CONSTANT);
     node->value = OBJECT_VAL(obj);
     return node;

@@ -183,7 +183,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
         auto [offset, size] = readDynamicBytes(bytecode, position);
         position += size + 1;
 
-        ObjectClosure* closure = static_cast<ObjectClosure*>(allocateObject(ObjectType::CLOSURE)); // TODO: Garbage collection
+        ObjectClosure* closure = static_cast<ObjectClosure*>(allocateObject(ObjectType::CLOSURE));
         closure->functionIndex = offset;
         closure->name = "temporary function name";
 
