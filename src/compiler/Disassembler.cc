@@ -103,6 +103,18 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_MATRIX_ACCESS:
         offset = simpleInstruction("OP_MATRIX_ACCESS", offset);
         break;
+      case OP_CLASS:
+        offset = simpleInstruction("OP_CLASS", offset);
+        break;
+      case OP_METHOD:
+        offset = readVariable("OP_METHOD", offset, chunk);
+        break;
+      case OP_SET_PROPERTY:
+        offset = setVariable("OP_SET_PROPERTY", offset, chunk);
+        break;
+      case OP_READ_PROPERTY:
+        offset = readVariable("OP_READ_PROPERTY", offset, chunk);
+        break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";
         offset += 1;

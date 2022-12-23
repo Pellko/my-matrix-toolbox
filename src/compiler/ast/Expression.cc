@@ -1,4 +1,5 @@
 #include "Expression.hh"
+#include "AssignPropertyExpression.hh"
 #include "src/compiler/Lexer.hh"
 #include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/AssignVariableExpression.hh"
@@ -132,6 +133,9 @@ Expression* Expression::parse(ParserTool& parserTool) {
     return node;
   }
 
+  // Dot operator
+
+
   return expression;
 }
 
@@ -212,29 +216,7 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
 
     // Function call
     if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::LPAREN) {
-      parserTool.get();
-
-      // Read argument
-      std::vector<Expression*> arguments;
-
-      while(!parserTool.empty() && parserTool.peek()->type != Token::Kind::RPAREN) {
-        arguments.push_back(parse(parserTool));
-
-        if(parserTool.empty()) {
-          throw new SyntaxException("Unexpected end of argument list in call");
-        }
-
-        if(parserTool.peek()->type == Token::Kind::COMMA) {
-          parserTool.get();
-        }
-      }
-
-      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
-        throw new SyntaxException("Expected ) when calling function");
-      }
-      parserTool.get();
-      CallExpression* node = new CallExpression(expression, arguments);
-      return node;
+      return readCall(parserTool, expression);
     }
 
     // Array index
@@ -263,6 +245,33 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
         parserTool.get();
       }
       return new MatrixAccessExpression(expression, row, col);
+    }
+
+    // Access property
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::DOT) {
+      parserTool.get();
+
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::IDENTIFIER) {
+        throw new SyntaxException("Expected property name");
+      }
+      Token* propertyName = parserTool.get();
+
+      // Check if we are assigning or not
+      if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::EQ) {
+        parserTool.get();
+        Expression* value = Expression::parse(parserTool);
+        AssignPropertyExpression* node = new AssignPropertyExpression(propertyName->text, expression, value);
+        return node;
+      } else {
+        ReadPropertyExpression* node = new ReadPropertyExpression(propertyName->text, expression);
+
+        // Check if we are calling
+        if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::LPAREN) {
+          return readCall(parserTool, node);
+        } else {
+          return node;
+        }
+      }
     }
 
     return expression;
@@ -418,6 +427,35 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
 
   std::cout << token->text << std::endl;
   throw new SyntaxException("Invalid token");
+}
+
+Expression* Expression::readCall(ParserTool& parserTool, Expression* target) {
+  if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+    throw new SyntaxException("Expected ( when performing a call");
+  }
+  parserTool.get();
+
+  // Read argument
+  std::vector<Expression*> arguments;
+
+  while(!parserTool.empty() && parserTool.peek()->type != Token::Kind::RPAREN) {
+    arguments.push_back(parse(parserTool));
+
+    if(parserTool.empty()) {
+      throw new SyntaxException("Unexpected end of argument list in call");
+    }
+
+    if(parserTool.peek()->type == Token::Kind::COMMA) {
+      parserTool.get();
+    }
+  }
+
+  if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+    throw new SyntaxException("Expected ) when calling function");
+  }
+  parserTool.get();
+  CallExpression* node = new CallExpression(target, arguments);
+  return node;
 }
 
 }

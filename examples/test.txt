@@ -1,15 +1,13 @@
-fn generator(abc) {
-  let hello = @(t) => {
-    print(abc);
-    print(t);
-    return 0;
-  };
-
-  return hello;
+class Cat {
+  hello() {
+    return this.name;
+  }
 }
 
-let f = generator("hello");
-let g = generator("whats up");
+let lugge = Cat();
+lugge.name = 200;
 
-f("world");
-g("world");
+let mario = Cat();
+mario.name = 100;
+
+print(lugge.hello() + mario.hello());

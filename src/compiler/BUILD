@@ -3,10 +3,12 @@ package(default_visibility = ["//visibility:public"])
 load("//bazel:custom_library.bzl", "custom_cc_library")
 
 AST_SRCS = [
+  "AssignPropertyExpression.cc",
   "AssignVariableExpression.cc",
   "BinaryExpression.cc",
   "BlockStatement.cc",
   "CallExpression.cc",
+  "DeclareClassStatement.cc",
   "DeclareVariableStatement.cc",
   "Expression.cc",
   "ExpressionStatement.cc",
@@ -21,10 +23,12 @@ AST_SRCS = [
   "UnaryExpression.cc",
 ]
 AST_HDRS = [
+  "AssignPropertyExpression.hh",
   "AssignVariableExpression.hh",
   "BinaryExpression.hh",
   "BlockStatement.hh",
   "CallExpression.hh",
+  "DeclareClassStatement.hh",
   "DeclareVariableStatement.hh",
   "Expression.hh",
   "ExpressionStatement.hh",

@@ -5,9 +5,16 @@
 namespace mymatrixtoolbox {
 
 void ConstantExpression::emitBytecode(Chunk& chunk) {
-  chunk.literals.push_back(literal);
-  chunk.emitByte(OP_CONSTANT);
-  chunk.emitDynamicBytes(chunk.literals.size() - 1);
+  if(literal.type == LiteralType::STRING) {
+    int idx = chunk.registerStringLiteral(*literal.as.str);
+    chunk.emitByte(OP_CONSTANT);
+    chunk.emitDynamicBytes(idx);
+    literal.free();
+  } else {
+    chunk.literals.push_back(literal);
+    chunk.emitByte(OP_CONSTANT);
+    chunk.emitDynamicBytes(chunk.literals.size() - 1);
+  }
 }
 
 void MatrixExpression::emitBytecode(Chunk& chunk) {
@@ -40,6 +47,13 @@ void LocalExpression::emitBytecode(Chunk& chunk) {
     default:
       break;
   }
+}
+
+void ReadPropertyExpression::emitBytecode(Chunk& chunk) {
+  target->emitBytecode(chunk);
+  int literalId = chunk.registerStringLiteral(propertyName);
+  chunk.emitByte(OP_READ_PROPERTY);
+  chunk.emitDynamicBytes(literalId);
 }
 
 }

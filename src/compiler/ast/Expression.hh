@@ -21,6 +21,8 @@ class Expression {
   static Expression* readFactor(ParserTool& parserTool);
   static Expression* readTerm(ParserTool& parserTool);
   static Expression* readArithmeticExpression(ParserTool& parserTool);
+
+  static Expression* readCall(ParserTool& parserTool, Expression* target);
 };
 
 }

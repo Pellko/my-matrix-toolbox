@@ -69,6 +69,8 @@ void Lexer::lex(std::vector<Token>& tokens) {
       pushTrivialToken(Token::Kind::LBRACKET, tokens);
     } else if(currChar == ']') {
       pushTrivialToken(Token::Kind::RBRACKET, tokens);
+    } else if(currChar == '.') {
+      pushTrivialToken(Token::Kind::DOT, tokens);
     } else if(currChar == '\\') {
       readBackslashOrDoubleBackslash(tokens);
     } else if(currChar == '<') {
@@ -145,6 +147,8 @@ void Lexer::readIdentifierOrKeyword(std::vector<Token>& tokens) {
     type = Token::Kind::WHILE;
   } else if(id == "return") {
     type = Token::Kind::RETURN;
+  } else if(id == "class") {
+    type = Token::Kind::CLASS;
   } else {
     type = Token::Kind::IDENTIFIER;
   }

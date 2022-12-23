@@ -52,6 +52,8 @@ class Token {
     RBRACKET,
     BACKSLASH,
     DBACKSLASH,
+    CLASS,
+    DOT,
   };
 
   Kind type;

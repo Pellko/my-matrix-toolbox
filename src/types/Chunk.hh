@@ -22,6 +22,7 @@ struct Chunk {
 
   void emitByte(uint8_t);
   void emitDynamicBytes(int v);
+  int registerStringLiteral(std::string name);
 };
 
 namespace code {

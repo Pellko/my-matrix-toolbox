@@ -14,6 +14,17 @@ void Chunk::emitDynamicBytes(int v) {
   }
 }
 
+int Chunk::registerStringLiteral(std::string name) {
+  for(int i=0;i<literals.size();i++) {
+    Literal& literal = literals[i];
+    if(literal.type == LiteralType::STRING && *literal.as.str == name) {
+      return i;
+    }
+  }
+  literals.push_back(Literal::fromString(name));
+  return literals.size() - 1;
+}
+
 namespace code {
 
 std::vector<uint8_t> generateDynamicBytes(int value) {
@@ -36,4 +47,5 @@ std::vector<uint8_t> generateDynamicBytes(int value) {
 }
 
 }
+
 }

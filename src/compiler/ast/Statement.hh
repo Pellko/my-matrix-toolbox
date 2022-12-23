@@ -15,6 +15,7 @@ enum class StatementType {
   EXPRESSION,
   PRINT,
   DECLARE_VARIABLE,
+  DECLARE_CLASS,
   RETURN,
   IF,
   FOR,

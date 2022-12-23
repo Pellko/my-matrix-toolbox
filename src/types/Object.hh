@@ -12,6 +12,9 @@ enum class ObjectType {
   STRING,
   NATIVE,
   MATRIX,
+  CLASS,
+  INSTANCE,
+  INSTANCE_METHOD
 };
 
 class Object {

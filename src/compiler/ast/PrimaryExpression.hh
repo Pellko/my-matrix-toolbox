@@ -65,6 +65,20 @@ class LocalExpression : public Expression {
   int index;
 };
 
+class ReadPropertyExpression : public Expression {
+ public:
+  ReadPropertyExpression(std::string propertyName, Expression* target) : propertyName(propertyName), target(target) {}
+  ~ReadPropertyExpression() {
+    if(target != nullptr) delete target;
+  }
+
+  void emitBytecode(Chunk& chunk) override;
+
+ private:
+  std::string propertyName;
+  Expression* target;
+};
+
 }
 
 #endif

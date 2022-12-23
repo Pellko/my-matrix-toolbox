@@ -1,4 +1,5 @@
 #include "Statement.hh"
+#include "DeclareClassStatement.hh"
 #include "src/compiler/Lexer.hh"
 #include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
@@ -99,6 +100,118 @@ Statement* Statement::parse(ParserTool& parserTool) {
     fn->setArguments(argList);
     
     return fn;
+  }
+
+  // Class declaration
+  if(next->type == Token::Kind::CLASS) {
+    parserTool.get();
+
+    // Read class name
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::IDENTIFIER) {
+      throw new SyntaxException("Expected class name");
+    }
+    Token* name = parserTool.get();
+
+    // Make sure that class name is available
+    int classIndex = -1;
+    bool isGlobal = parserTool.currentScope() == 0;
+
+    if(parserTool.currentScope() == 0) {
+      auto [_, index] = parserTool.findIdentifier(name->text);
+      if(index != -1) {
+        throw new SyntaxException("You cannot declare a class");
+      }
+      classIndex = parserTool.registerGlobal(name->text);
+    } else {
+      // Check that class name hasnt been declared already
+      for(const Local& local : parserTool.getLocals()) {
+        if(local.depth == parserTool.getScopeLevel() && local.name == name->text) {
+          throw new SyntaxException("This class name has already been declared");
+        }
+      }
+
+      classIndex = parserTool.registerLocal(name->text);
+    }
+
+    // Pop of opening bracket
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LBRACE) {
+      throw new SyntaxException("Expected { after class identifier");
+    }
+    parserTool.get();
+
+    // Open a class scope
+    parserTool.beginScope();
+
+    // Method declarations
+    DeclareClassStatement* node = new DeclareClassStatement(classIndex, isGlobal);
+
+    while(true) {
+      if(parserTool.empty()) {
+        throw new SyntaxException("Unexpected ending of class declaration");
+      }
+
+      if(parserTool.peek()->type == Token::Kind::RBRACE) {
+        parserTool.get();
+        break;
+      }
+
+      // Read methods name
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::IDENTIFIER) {
+        throw new SyntaxException("Expected method name");
+      }
+      Token* methodName = parserTool.get();
+
+      // Read arguments
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+        throw new SyntaxException("Expected ( after method name");
+      }
+      parserTool.get();
+      std::vector<Argument> argList = FunctionStatement::readArgumentList(parserTool);
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+        throw new SyntaxException("Expected ) after method argument list");
+      }
+      parserTool.get();
+
+      parserTool.beginFunction(methodName->text);
+      int functionIndex = parserTool.getFunctions().size() - 1;
+
+      // Begin method scope
+      parserTool.beginScope();
+
+      // Insert this as local
+      parserTool.registerLocal("this");
+
+      // Insert arguments as locals
+      for(Argument& arg : argList) {
+        parserTool.registerLocal(arg.name);
+        parserTool.currentScope()->chunk.numArguments++;
+      }
+
+      // Read method body
+      CompilerScope* methodScope = parserTool.currentScope();
+      std::vector<Statement*> statements = readBlock(parserTool);
+      BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
+      for(Statement* stmt : statements) {
+        block->addStatement(stmt);
+      }
+      parserTool.storeLocalsInBlockStatement(block);
+      parserTool.endScope();
+      parserTool.endFunction();
+
+      node->addMethod(ClassMethod{
+        .name = methodName->text,
+        .arguments = argList,
+        .block = block,
+        .compilerScope = methodScope,
+        .upvalues = parserTool.getFunctions()[functionIndex]->upvalues,
+        .functionIndex = functionIndex,
+      });
+    }
+
+    // End class scope
+    parserTool.endScope();
+
+    return node;    
   }
 
   // For loop

@@ -3,7 +3,10 @@
 #include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/BinaryExpression.hh"
 #include "src/types/Object.hh"
+#include "src/types/ObjectClass.hh"
 #include "src/types/ObjectClosure.hh"
+#include "src/types/ObjectInstance.hh"
+#include "src/types/ObjectInstanceMethod.hh"
 #include "src/types/ObjectNative.hh"
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
@@ -277,17 +280,17 @@ void VirtualMachine::execute(CompilerOutput& output) {
         Value v = valueStack.back();
         valueStack.pop_back();
 
-        // Put arguments back on stack
-        for(int i=numArgs-1;i>=0;i--) {
-          valueStack.push_back(args[i]);
-        }
-
         if(v.type != ValueType::OBJECT) {
           throw new RuntimeException("You can only call functions");
         }
 
         switch(v.as.object->type) {
           case ObjectType::CLOSURE: {
+            // Put arguments back on stack
+            for(int i=numArgs-1;i>=0;i--) {
+              valueStack.push_back(args[i]);
+            }
+
             ObjectClosure* closure = static_cast<ObjectClosure*>(v.as.object);
             callFrames.push_back(CallFrame{
               .localsOffset = static_cast<int>(valueStack.size() - numArgs),
@@ -298,7 +301,34 @@ void VirtualMachine::execute(CompilerOutput& output) {
             position = 0;
             break;
           }
+          case ObjectType::INSTANCE_METHOD: {
+            int localsOffset = static_cast<int>(valueStack.size() - numArgs);
+            ObjectInstanceMethod* instanceMethod = static_cast<ObjectInstanceMethod*>(v.as.object);
+
+            // Insert reference to instance as this
+            valueStack.push_back(Value::fromObject(instanceMethod->instance));
+
+            // Put arguments back on stack
+            for(int i=numArgs-1;i>=0;i--) {
+              valueStack.push_back(args[i]);
+            }
+
+            ObjectClosure* closure = instanceMethod->method;
+            callFrames.push_back(CallFrame{
+              .localsOffset = localsOffset,
+              .returnAddress = position,
+              .chunk = &output.functions[closure->functionIndex],
+              .closure = closure,
+            });
+            position = 0;
+            break;
+          }
           case ObjectType::NATIVE: {
+            // Put arguments back on stack
+            for(int i=numArgs-1;i>=0;i--) {
+              valueStack.push_back(args[i]);
+            }
+
             ObjectNative* native = static_cast<ObjectNative*>(v.as.object);
             NativeFunction fn = native->function;
             std::reverse(std::begin(args), std::end(args));
@@ -307,6 +337,21 @@ void VirtualMachine::execute(CompilerOutput& output) {
               valueStack.pop_back();
             }
             valueStack.push_back(result);
+            break;
+          }
+          case ObjectType::CLASS: {
+            // Put arguments back on stack
+            for(int i=numArgs-1;i>=0;i--) {
+              valueStack.push_back(args[i]);
+            }
+
+            ObjectClass* clazz = static_cast<ObjectClass*>(v.as.object);
+            ObjectInstance* instance = static_cast<ObjectInstance*>(allocateObject(ObjectType::INSTANCE));
+            instance->classTemplate = clazz;
+            for(int i=0;i<numArgs;i++) {
+              valueStack.pop_back();
+            }
+            valueStack.push_back(Value::fromObject(instance));
             break;
           }
           default:
@@ -343,6 +388,92 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position -= size + 1;
         position -= offset;
         break;
+      }
+      case OP_CLASS: {
+        position++;
+        ObjectClass* object = static_cast<ObjectClass*>(allocateObject(ObjectType::CLASS));
+        valueStack.push_back(Value::fromObject(object));
+        break;
+      }
+      case OP_METHOD: {
+        position++;
+        Value closureValue = valueStack.back();
+        valueStack.pop_back();
+        Value clazz = valueStack.back();
+        
+        auto [literalId, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+        Literal name = literals[literalId];
+
+        if(clazz.type != ValueType::OBJECT && static_cast<Object*>(clazz.as.object)->type != ObjectType::CLASS) {
+          throw new RuntimeException("Expected class value");
+        }
+
+        if(closureValue.type != ValueType::OBJECT && static_cast<Object*>(closureValue.as.object)->type != ObjectType::CLOSURE) {
+          throw new RuntimeException("Expected closure value");
+        }
+
+        if(name.type != LiteralType::STRING) {
+          throw new RuntimeException("Expected string value");
+        }
+
+        ObjectClass* classObject = static_cast<ObjectClass*>(clazz.as.object);
+        ObjectClosure* closureObject = static_cast<ObjectClosure*>(closureValue.as.object);
+        classObject->methods[*name.as.str] = closureObject;
+        break;
+      }
+      case OP_READ_PROPERTY: {
+        position++;
+        auto [literalId, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+
+        Value target = valueStack.back();
+        valueStack.pop_back();
+
+        if(target.type != ValueType::OBJECT || target.as.object->type != ObjectType::INSTANCE) {
+          throw new RuntimeException("Expected instance when reading property");
+        }
+        ObjectInstance* instance = static_cast<ObjectInstance*>(target.as.object);
+        Literal name = literals[literalId];
+        if(name.type != LiteralType::STRING) {
+          throw new RuntimeException("Expected string name");
+        }
+
+        if(instance->fields.contains(*name.as.str)) {
+          valueStack.push_back(instance->fields[*name.as.str]);
+        } else if(instance->classTemplate->methods.contains(*name.as.str)) {
+          ObjectInstanceMethod* boundMethod = static_cast<ObjectInstanceMethod*>(allocateObject(ObjectType::INSTANCE_METHOD));
+          boundMethod->instance = instance;
+          boundMethod->method = instance->classTemplate->methods[*name.as.str];
+          valueStack.push_back(Value::fromObject(boundMethod));
+        } else {
+          valueStack.push_back(Value::nil());
+        }
+        break;
+      }
+      case OP_SET_PROPERTY: {
+        position++;
+        auto [literalId, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+
+        Value target = valueStack.back();
+        valueStack.pop_back();
+        Value value = valueStack.back();
+
+        if(target.type != ValueType::OBJECT || target.as.object->type != ObjectType::INSTANCE) {
+          throw new RuntimeException("Expected instance when reading property");
+        }
+        ObjectInstance* instance = static_cast<ObjectInstance*>(target.as.object);
+        Literal name = literals[literalId];
+        if(name.type != LiteralType::STRING) {
+          throw new RuntimeException("Expected string name");
+        }
+        
+        if(instance->classTemplate->methods.contains(*name.as.str)) {
+          throw new RuntimeException("This variable name is a method of the class");
+        }
+
+        instance->fields[*name.as.str] = value;
       }
       default: {
         position++;
@@ -525,6 +656,15 @@ void VirtualMachine::printObject(Object* object) {
     case ObjectType::MATRIX:
       static_cast<ObjectMatrix*>(object)->print();
       break;
+    case ObjectType::CLASS:
+      std::cout << "<class>" << std::endl;
+      break;
+    case ObjectType::INSTANCE:
+      std::cout << "<class instance>" << std::endl;
+      break;
+    case ObjectType::INSTANCE_METHOD:
+      std::cout << "<method>" << std::endl;
+      break;
   }
 }
 
@@ -588,6 +728,21 @@ Object* VirtualMachine::allocateObject(ObjectType type) {
     }
     case ObjectType::MATRIX: {
       Object* obj = new ObjectMatrix(0, 0);
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::CLASS: {
+      Object* obj = new ObjectClass();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::INSTANCE: {
+      Object* obj = new ObjectInstance();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::INSTANCE_METHOD: {
+      Object* obj = new ObjectInstanceMethod();
       objects.push_back(obj);
       return obj;
     }
@@ -681,6 +836,27 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
           markValue(matrix->get(x, y));
         }
       }
+      break;
+    }
+    case ObjectType::CLASS: {
+      ObjectClass* clazz = static_cast<ObjectClass*>(object);
+      for(auto it : clazz->methods) {
+        markObject(it.second);
+      }
+      break;
+    }
+    case ObjectType::INSTANCE: {
+      ObjectInstance* instance = static_cast<ObjectInstance*>(object);
+      if(instance->classTemplate != nullptr) markObject(instance->classTemplate);
+      for(auto it : instance->fields) {
+        markValue(it.second);
+      }
+      break;
+    }
+    case ObjectType::INSTANCE_METHOD: {
+      ObjectInstanceMethod* method = static_cast<ObjectInstanceMethod*>(object);
+      markObject(method->instance);
+      markObject(method->method);
       break;
     }
   }
