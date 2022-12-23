@@ -9,6 +9,7 @@ custom_cc_binary(
     "//src/compiler:compiler",
     "//src/vm:vm",
     "//src/math:math",
+    "//src/stdlib:stdlib",
   ],
   data = [
     "//examples:examples",

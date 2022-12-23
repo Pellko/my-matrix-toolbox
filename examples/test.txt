@@ -11,11 +11,11 @@ let b = [
   1 \\ 2 \\ 3 \\ 4 \\ 5 \\ 6
 ];
 
-A.solve(b);
+let x = A.solve(b);
 print(A);
 print(b);
+print(x);
 
-let s = "hello world";
-print(s);
-s.toUppercase();
-print(s);
+let a = "hello world";
+print(a.toUppercase());
+print(a);

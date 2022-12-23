@@ -59,6 +59,10 @@ void ObjectMatrix::copy(ObjectMatrix& source) {
 }
 
 void ObjectMatrix::rowEchelon(ObjectMatrix& b) {
+  if(!isNumeric()) {
+    return;
+  }
+
   // TODO: check if matrix is numeric
   if(b.getHeight() != width) {
     return;

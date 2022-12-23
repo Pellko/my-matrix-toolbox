@@ -21,6 +21,7 @@ class VirtualMachine {
   void registerNativeFunction(int index, NativeFunction function);
   void registerNativeObjectMethod(ObjectType type, std::string name, NativeFunction function);
 
+  Object* allocateObject(ObjectType type);
  private:
   std::vector<Value> globals;
   std::vector<Value> valueStack;
@@ -37,8 +38,6 @@ class VirtualMachine {
 
   ObjectUpvalue* getUpvalue(int stackIndex);
   void closeUpvalues(int lastIndex);
-
-  Object* allocateObject(ObjectType type);
 
   std::vector<Object*> gcWorkingStack;
   void collectGarbage();

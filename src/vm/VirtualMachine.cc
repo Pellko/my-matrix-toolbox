@@ -334,7 +334,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
             NativeFunction fn = native->function;
             std::reverse(std::begin(args), std::end(args));
             args.insert(args.begin(), Value::fromObject(native->owner));
-            Value result = fn(args);
+            Value result = fn(this, args);
             for(int i=0;i<numArgs;i++) {
               valueStack.pop_back();
             }

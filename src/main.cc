@@ -6,6 +6,7 @@
 #include "src/types/Chunk.hh"
 #include "src/types/CompilerOutput.hh"
 #include "src/math/ObjectMatrix.hh"
+#include "src/stdlib/MatrixLibrary.hh"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -25,23 +26,18 @@ std::string read_string_from_file(const std::string &file_path) {
   return buffer.str();
 }
 
-static Value clo(std::vector<Value> args) {
-  return Value::fromDouble((double) clock() / CLOCKS_PER_SEC);
-}
+// static Value clo(std::vector<Value> args) {
+//   return Value::fromDouble((double) clock() / CLOCKS_PER_SEC);
+// }
 
-static Value solve(std::vector<Value> args) {
-  ObjectMatrix* a = static_cast<ObjectMatrix*>(args[0].as.object);
-  ObjectMatrix* b = static_cast<ObjectMatrix*>(args[1].as.object);
-  a->rowEchelon(*b);
-  return Value::nil();
-}
-
-static Value toUppercase(std::vector<Value> args) {
+static Value toUppercase(VirtualMachine* vm, std::vector<Value> args) {
   ObjectString* a = static_cast<ObjectString*>(args[0].as.object);
-  for(auto& c : a->getString()) {
+  ObjectString* result = static_cast<ObjectString*>(vm->allocateObject(ObjectType::STRING));
+  result->setString(a->getString());
+  for(auto& c : result->getString()) {
     c = toupper(c);
   }
-  return Value::nil();
+  return Value::fromObject(result);
 }
 
 int main(int argc, char** argv) {
@@ -49,14 +45,14 @@ int main(int argc, char** argv) {
   std::vector<Token> tokens;
   CompilerOutput output;
 
+  Library matrixLibrary = stdlib::createMatrixLibrary();
+
   try {
     Lexer lexer(code);
     lexer.lex(tokens);
 
     Compiler compiler(tokens);
-
-    int CLOCK_ID = compiler.declareNativeFunction("clock");
-
+    matrixLibrary.registerCompiler(&compiler);
     compiler.compile(output);
 
     Disassembler disassembler;
@@ -65,8 +61,7 @@ int main(int argc, char** argv) {
     std::cout << "=========== EXECUTING ===========" << std::endl;
     VirtualMachine machine;
     machine.initialize(output);
-    machine.registerNativeFunction(CLOCK_ID, &clo);
-    machine.registerNativeObjectMethod(ObjectType::MATRIX, "solve", &solve);
+    matrixLibrary.registerVirtualMachine(&machine);
     machine.registerNativeObjectMethod(ObjectType::STRING, "toUppercase", &toUppercase);
     machine.execute(output);
     std::cout << "=========== FINISHED EXECUTING ===========" << std::endl;
