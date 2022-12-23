@@ -22,7 +22,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
   if(next->type == Token::Kind::LBRACE) {
     parserTool.beginScope();
     std::vector<Statement*> statements = readBlock(parserTool);
-    BlockStatement* node = new BlockStatement(parserTool.getScopeLevel());
+    BlockStatement* node = new BlockStatement();
     for(Statement* stmt : statements) {
       node->addStatement(stmt);
     }
@@ -70,7 +70,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     }
 
     std::vector<Statement*> statements = readBlock(parserTool);
-    BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
+    BlockStatement* block = new BlockStatement();
     for(Statement* stmt : statements) {
       block->addStatement(stmt);
     }
@@ -190,7 +190,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
       // Read method body
       CompilerScope* methodScope = parserTool.currentScope();
       std::vector<Statement*> statements = readBlock(parserTool);
-      BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
+      BlockStatement* block = new BlockStatement();
       for(Statement* stmt : statements) {
         block->addStatement(stmt);
       }

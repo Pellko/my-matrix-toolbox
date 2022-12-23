@@ -8,7 +8,7 @@ namespace mymatrixtoolbox {
 
 class BlockStatement : public Statement {
  public:
-  BlockStatement(int depth) : Statement(StatementType::BLOCK), depth(depth) {}
+  BlockStatement() : Statement(StatementType::BLOCK) {}
   ~BlockStatement() {
     for(Statement* stmt : statements) {
       delete stmt;
@@ -26,7 +26,6 @@ class BlockStatement : public Statement {
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  int depth;
   std::vector<Statement*> statements;
   std::vector<Local> locals;
 };

@@ -79,7 +79,7 @@ Expression* Expression::parse(ParserTool& parserTool) {
     std::cout << parserTool.peek()->text << std::endl;
     Statement* body = Statement::parse(parserTool);
     std::cout << parserTool.peek()->text << std::endl;
-    BlockStatement* block = new BlockStatement(parserTool.getScopeLevel());
+    BlockStatement* block = new BlockStatement();
     block->addStatement(body);
     LambdaExpression* node = new LambdaExpression(body, parserTool.currentScope());
     parserTool.storeLocalsInBlockStatement(block);

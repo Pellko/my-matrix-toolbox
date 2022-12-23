@@ -36,6 +36,14 @@ static Value solve(std::vector<Value> args) {
   return Value::nil();
 }
 
+static Value toUppercase(std::vector<Value> args) {
+  ObjectString* a = static_cast<ObjectString*>(args[0].as.object);
+  for(auto& c : a->getString()) {
+    c = toupper(c);
+  }
+  return Value::nil();
+}
+
 int main(int argc, char** argv) {
   std::string code = read_string_from_file("./examples/test.txt");
   std::vector<Token> tokens;
@@ -59,6 +67,7 @@ int main(int argc, char** argv) {
     machine.initialize(output);
     machine.registerNativeFunction(CLOCK_ID, &clo);
     machine.registerNativeObjectMethod(ObjectType::MATRIX, "solve", &solve);
+    machine.registerNativeObjectMethod(ObjectType::STRING, "toUppercase", &toUppercase);
     machine.execute(output);
     std::cout << "=========== FINISHED EXECUTING ===========" << std::endl;
   } catch(SyntaxException* ex) {
