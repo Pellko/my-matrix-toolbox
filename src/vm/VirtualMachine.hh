@@ -19,12 +19,14 @@ class VirtualMachine {
   void initialize(CompilerOutput& output);
   void execute(CompilerOutput& output);
   void registerNativeFunction(int index, NativeFunction function);
+  void registerNativeObjectMethod(ObjectType type, std::string name, NativeFunction function);
 
  private:
   std::vector<Value> globals;
   std::vector<Value> valueStack;
   std::vector<CallFrame> callFrames;
   std::vector<Object*> objects;
+  std::unordered_map<ObjectType, std::unordered_map<std::string, NativeFunction>> nativeObjectMethods;
   ObjectUpvalue* openUpvalues;
 
   std::pair<int, int> readDynamicBytes(std::vector<uint8_t>& bytecode, int position);

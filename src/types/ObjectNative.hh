@@ -15,6 +15,7 @@ class ObjectNative : public Object {
   ~ObjectNative() {}
 
   NativeFunction function;
+  Object* owner = nullptr;
 };
 
 }

@@ -302,7 +302,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
             break;
           }
           case ObjectType::INSTANCE_METHOD: {
-            int localsOffset = static_cast<int>(valueStack.size() - numArgs);
+            int localsOffset = static_cast<int>(valueStack.size());
             ObjectInstanceMethod* instanceMethod = static_cast<ObjectInstanceMethod*>(v.as.object);
 
             // Insert reference to instance as this
@@ -324,6 +324,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
             break;
           }
           case ObjectType::NATIVE: {
+
             // Put arguments back on stack
             for(int i=numArgs-1;i>=0;i--) {
               valueStack.push_back(args[i]);
@@ -332,6 +333,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
             ObjectNative* native = static_cast<ObjectNative*>(v.as.object);
             NativeFunction fn = native->function;
             std::reverse(std::begin(args), std::end(args));
+            args.insert(args.begin(), Value::fromObject(native->owner));
             Value result = fn(args);
             for(int i=0;i<numArgs;i++) {
               valueStack.pop_back();
@@ -430,24 +432,43 @@ void VirtualMachine::execute(CompilerOutput& output) {
         Value target = valueStack.back();
         valueStack.pop_back();
 
-        if(target.type != ValueType::OBJECT || target.as.object->type != ObjectType::INSTANCE) {
-          throw new RuntimeException("Expected instance when reading property");
-        }
-        ObjectInstance* instance = static_cast<ObjectInstance*>(target.as.object);
         Literal name = literals[literalId];
         if(name.type != LiteralType::STRING) {
           throw new RuntimeException("Expected string name");
         }
 
-        if(instance->fields.contains(*name.as.str)) {
-          valueStack.push_back(instance->fields[*name.as.str]);
-        } else if(instance->classTemplate->methods.contains(*name.as.str)) {
-          ObjectInstanceMethod* boundMethod = static_cast<ObjectInstanceMethod*>(allocateObject(ObjectType::INSTANCE_METHOD));
-          boundMethod->instance = instance;
-          boundMethod->method = instance->classTemplate->methods[*name.as.str];
-          valueStack.push_back(Value::fromObject(boundMethod));
-        } else {
-          valueStack.push_back(Value::nil());
+        if(target.type != ValueType::OBJECT) {
+          throw new RuntimeException("You cannot call this datatype");
+        }
+        
+        switch(target.as.object->type) {
+          case ObjectType::INSTANCE: {
+            ObjectInstance* instance = static_cast<ObjectInstance*>(target.as.object);
+            
+            if(instance->fields.contains(*name.as.str)) {
+              valueStack.push_back(instance->fields[*name.as.str]);
+            } else if(instance->classTemplate->methods.contains(*name.as.str)) {
+              ObjectInstanceMethod* boundMethod = static_cast<ObjectInstanceMethod*>(allocateObject(ObjectType::INSTANCE_METHOD));
+              boundMethod->instance = instance;
+              boundMethod->method = instance->classTemplate->methods[*name.as.str];
+              valueStack.push_back(Value::fromObject(boundMethod));
+            } else {
+              valueStack.push_back(Value::nil());
+            }
+            break;
+          }
+          default: {
+            ObjectType type = target.as.object->type;
+            if(nativeObjectMethods.contains(type) && nativeObjectMethods[type].contains(*name.as.str)) {
+              NativeFunction fn = nativeObjectMethods[type][*name.as.str];
+              ObjectNative* function = static_cast<ObjectNative*>(allocateObject(ObjectType::NATIVE));
+              function->owner = target.as.object;
+              function->function = fn;
+              valueStack.push_back(Value::fromObject(function));
+            } else {
+              throw new RuntimeException("This method does not exist");
+            }
+          }
         }
         break;
       }
@@ -651,7 +672,7 @@ void VirtualMachine::printObject(Object* object) {
       std::cout << "Upvalue" << std::endl;
       break;
     case ObjectType::NATIVE:
-      std::cout << "<native function>>" << std::endl;
+      std::cout << "<native function>" << std::endl;
       break;
     case ObjectType::MATRIX:
       static_cast<ObjectMatrix*>(object)->print();
@@ -884,6 +905,10 @@ void VirtualMachine::registerNativeFunction(int index, NativeFunction function) 
   ObjectNative* obj = static_cast<ObjectNative*>(allocateObject(ObjectType::NATIVE));
   obj->function = function;  
   globals[index] = Value::fromObject(obj);
+}
+
+void VirtualMachine::registerNativeObjectMethod(ObjectType type, std::string name, NativeFunction function) {
+  nativeObjectMethods[type][name] = function;
 }
 
 }

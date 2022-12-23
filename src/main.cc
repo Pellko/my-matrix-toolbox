@@ -48,7 +48,6 @@ int main(int argc, char** argv) {
     Compiler compiler(tokens);
 
     int CLOCK_ID = compiler.declareNativeFunction("clock");
-    int SOLVE_ID = compiler.declareNativeFunction("solve");
 
     compiler.compile(output);
 
@@ -59,7 +58,7 @@ int main(int argc, char** argv) {
     VirtualMachine machine;
     machine.initialize(output);
     machine.registerNativeFunction(CLOCK_ID, &clo);
-    machine.registerNativeFunction(SOLVE_ID, &solve);
+    machine.registerNativeObjectMethod(ObjectType::MATRIX, "solve", &solve);
     machine.execute(output);
     std::cout << "=========== FINISHED EXECUTING ===========" << std::endl;
   } catch(SyntaxException* ex) {

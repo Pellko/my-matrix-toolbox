@@ -1,13 +1,12 @@
-class Cat {
-  hello() {
-    return this.name;
-  }
-}
+let A = [
+  1, 2 \\
+  3, 4
+];
 
-let lugge = Cat();
-lugge.name = 200;
+let b = [
+  1 \\ 2
+];
 
-let mario = Cat();
-mario.name = 100;
-
-print(lugge.hello() + mario.hello());
+A.solve(b);
+print(A);
+print(b);
