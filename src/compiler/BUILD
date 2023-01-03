@@ -3,6 +3,7 @@ package(default_visibility = ["//visibility:public"])
 load("//bazel:custom_library.bzl", "custom_cc_library")
 
 AST_SRCS = [
+  "AssignMatrixExpression.cc",
   "AssignPropertyExpression.cc",
   "AssignVariableExpression.cc",
   "BinaryExpression.cc",
@@ -23,6 +24,7 @@ AST_SRCS = [
   "UnaryExpression.cc",
 ]
 AST_HDRS = [
+  "AssignMatrixExpression.hh",
   "AssignPropertyExpression.hh",
   "AssignVariableExpression.hh",
   "BinaryExpression.hh",

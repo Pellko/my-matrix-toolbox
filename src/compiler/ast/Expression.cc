@@ -1,4 +1,5 @@
 #include "Expression.hh"
+#include "AssignMatrixExpression.hh"
 #include "AssignPropertyExpression.hh"
 #include "src/compiler/Lexer.hh"
 #include "src/compiler/SyntaxException.hh"
@@ -76,9 +77,7 @@ Expression* Expression::parse(ParserTool& parserTool) {
     }
 
     // Read function body
-    std::cout << parserTool.peek()->text << std::endl;
     Statement* body = Statement::parse(parserTool);
-    std::cout << parserTool.peek()->text << std::endl;
     BlockStatement* block = new BlockStatement();
     block->addStatement(body);
     LambdaExpression* node = new LambdaExpression(body, parserTool.currentScope());
@@ -244,7 +243,15 @@ Expression* Expression::readFactor(ParserTool& parserTool) {
         }
         parserTool.get();
       }
-      return new MatrixAccessExpression(expression, row, col);
+
+      // Check if we are assigning
+      if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::EQ) {
+        parserTool.get();
+        Expression* value = Expression::parse(parserTool);
+        return new AssignMatrixExpression(expression, value, row, col);
+      } else {
+        return new MatrixAccessExpression(expression, row, col);
+      }
     }
 
     // Access property
@@ -425,7 +432,6 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
     return node;
   }
 
-  std::cout << token->text << std::endl;
   throw new SyntaxException("Invalid token");
 }
 

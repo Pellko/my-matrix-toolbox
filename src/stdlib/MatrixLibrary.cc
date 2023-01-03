@@ -32,11 +32,22 @@ static Value eig(VirtualMachine* vm, std::vector<Value> args) {
   return Value::fromObject(result);
 }
 
+// TODO: type checking
+static Value zeros(VirtualMachine* vm, std::vector<Value> args) {
+  int width = args[0].as.number;
+  int height = args[1].as.number;
+  ObjectMatrix* result = static_cast<ObjectMatrix*>(vm->allocateObject(ObjectType::MATRIX));
+  result->setSize(width, height);
+  return Value::fromObject(result);
+}
+
 Library createMatrixLibrary() {
   Library library;
 
   library.registerObjectMethod("solve", ObjectType::MATRIX, &solve);
   library.registerObjectMethod("eig", ObjectType::MATRIX, &eig);
+  
+  library.registerFunction("zeros", &zeros);
 
   return library;
 }

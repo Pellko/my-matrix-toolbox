@@ -16,7 +16,7 @@ void MatrixAccessExpression::emitBytecode(Chunk& chunk) {
   target->emitBytecode(chunk);
   row->emitBytecode(chunk);
   col->emitBytecode(chunk);
-  chunk.emitByte(OP_MATRIX_ACCESS);
+  chunk.emitByte(OP_READ_MATRIX);
 }
 
 }

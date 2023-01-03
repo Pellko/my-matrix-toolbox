@@ -225,7 +225,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
         valueStack.push_back(Value::fromObject(matrix));
         break;
       }
-      case OP_MATRIX_ACCESS: {
+      case OP_READ_MATRIX: {
         position++;
         Value col = valueStack.back();
         valueStack.pop_back();
@@ -243,6 +243,29 @@ void VirtualMachine::execute(CompilerOutput& output) {
         }
         ObjectMatrix* mat = static_cast<ObjectMatrix*>(target.as.object);
         valueStack.push_back(mat->get(col.as.number, row.as.number));
+        break;
+      }
+      case OP_SET_MATRIX: {
+        position++;
+        Value col = valueStack.back();
+        valueStack.pop_back();
+        Value row = valueStack.back();
+        valueStack.pop_back();
+        Value target = valueStack.back();
+        valueStack.pop_back();
+        Value value = valueStack.back();
+        valueStack.pop_back();
+
+        if(col.type != ValueType::NUMBER || row.type != ValueType::NUMBER) throw new RuntimeException("Matrix index has to be a number");
+        if(target.type != ValueType::OBJECT) {
+          throw new SyntaxException("You can only index matrices");
+        }
+        if(target.as.object->type != ObjectType::MATRIX) {
+          throw new SyntaxException("You can only index matrices");
+        }
+        ObjectMatrix* mat = static_cast<ObjectMatrix*>(target.as.object);
+        mat->set(col.as.number, row.as.number, value);
+        valueStack.push_back(value);
         break;
       }
       case OP_POP: {
@@ -324,7 +347,6 @@ void VirtualMachine::execute(CompilerOutput& output) {
             break;
           }
           case ObjectType::NATIVE: {
-
             // Put arguments back on stack
             for(int i=numArgs-1;i>=0;i--) {
               valueStack.push_back(args[i]);
@@ -333,7 +355,9 @@ void VirtualMachine::execute(CompilerOutput& output) {
             ObjectNative* native = static_cast<ObjectNative*>(v.as.object);
             NativeFunction fn = native->function;
             std::reverse(std::begin(args), std::end(args));
-            args.insert(args.begin(), Value::fromObject(native->owner));
+            if(native->owner != nullptr) {
+              args.insert(args.begin(), Value::fromObject(native->owner));
+            }
             Value result = fn(this, args);
             for(int i=0;i<numArgs;i++) {
               valueStack.pop_back();
@@ -361,9 +385,13 @@ void VirtualMachine::execute(CompilerOutput& output) {
         }
         break;
       }
-      case OP_JUMP_FALSE: {
+      case OP_JUMP_FALSE: {        
         position++;
-        auto [offset, size] = readDynamicBytes(bytecode, position);
+        uint8_t lowByte = bytecode[position];
+        position++;
+        uint8_t highByte = bytecode[position];
+        int offset = lowByte | (highByte << 8);
+        position++;
         Value comparison = valueStack.back();
         valueStack.pop_back();
 
@@ -374,7 +402,6 @@ void VirtualMachine::execute(CompilerOutput& output) {
         if(!comparison.as.boolean) {
           position += offset;
         }
-        position += size + 1;
         break;
       }
       case OP_JUMP: {
@@ -386,8 +413,11 @@ void VirtualMachine::execute(CompilerOutput& output) {
       }
       case OP_LOOP: {
         position++;
-        auto [offset, size] = readDynamicBytes(bytecode, position);
-        position -= size + 1;
+        uint8_t lowByte = bytecode[position];
+        position++;
+        uint8_t highByte = bytecode[position];
+        int offset = lowByte | (highByte << 8);
+        position -= 2;
         position -= offset;
         break;
       }

@@ -21,6 +21,9 @@ void Disassembler::disassemble(CompilerOutput& output) {
 void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
   for(int offset=0;offset<chunk.bytecode.size();) {
     uint8_t instruction = chunk.bytecode[offset];
+
+    std::cout << "<" << offset << "> ";
+
     switch(instruction) {
       case OP_RETURN:
         offset = simpleInstruction("OP_RETURN", offset);
@@ -100,8 +103,11 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_MATRIX:
         offset = matrixInstruction("OP_MATRIX", offset, chunk);
         break;
-      case OP_MATRIX_ACCESS:
-        offset = simpleInstruction("OP_MATRIX_ACCESS", offset);
+      case OP_READ_MATRIX:
+        offset = simpleInstruction("OP_READ_MATRIX", offset);
+        break;
+      case OP_SET_MATRIX:
+        offset = simpleInstruction("OP_SET_MATRIX", offset);
         break;
       case OP_CLASS:
         offset = simpleInstruction("OP_CLASS", offset);
@@ -166,9 +172,11 @@ int Disassembler::closureInstruction(std::string instruction, int offset, Chunk&
 }
 
 int Disassembler::jumpInstruction(std::string instruction, int offset, Chunk& chunk) {
-  auto [index, size] = readDynamicBytes(offset + 1, chunk);
-  std::cout << instruction << " : Skip=" << index << std::endl;
-  return offset + 2 + size;
+  uint8_t lowByte = chunk.bytecode[offset + 1];
+  uint8_t highByte = chunk.bytecode[offset + 2];
+  int value = lowByte | (highByte << 8);
+  std::cout << instruction << " : Skip=" << value << std::endl;
+  return offset + 3;
 }
 
 int Disassembler::matrixInstruction(std::string instruction, int offset, Chunk& chunk) {
