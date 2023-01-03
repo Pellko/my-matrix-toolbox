@@ -12,11 +12,11 @@ void IfStatement::emitBytecode(Chunk& chunk) {
   trueStatement->emitBytecode(chunk);
   int trueStatementLength = chunk.bytecode.size() - trueStatementStart;
 
-  // Set OP_JUMP_FALSE argument
-  std::vector<uint8_t> bytes = code::generateDynamicBytes(trueStatementLength);
-  for(int i=0;i<bytes.size();i++) {
-    chunk.bytecode.insert(chunk.bytecode.begin() + trueStatementStart + i, bytes[i]);
-  }
+  int jump = trueStatementLength;
+  uint8_t jumpLow = ((jump >> 0) & 0xFF);
+  uint8_t jumpHigh = ((jump >> 8) & 0XFF);
+  chunk.bytecode.insert(chunk.bytecode.begin() + trueStatementStart + 0, jumpLow);
+  chunk.bytecode.insert(chunk.bytecode.begin() + trueStatementStart + 1, jumpHigh);
 }
 
 }

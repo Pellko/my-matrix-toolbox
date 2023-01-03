@@ -4,6 +4,7 @@
 
 namespace mymatrixtoolbox {
 
+// TODO: throw error if the jump is too big.
 void ForStatement::emitBytecode(Chunk& chunk) {
   if(initializer != nullptr) {
     initializer->emitBytecode(chunk);
