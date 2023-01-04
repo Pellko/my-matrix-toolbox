@@ -13,6 +13,10 @@ class ObjectClass : public Object {
   ~ObjectClass() {}
 
   std::unordered_map<std::string, ObjectClosure*> methods;
+
+  std::string toString() override {
+    return "<class>";
+  }
 };
 
 }

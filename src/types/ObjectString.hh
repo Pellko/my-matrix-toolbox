@@ -18,6 +18,10 @@ class ObjectString : public Object {
     return str;
   }
 
+  std::string toString() override {
+    return str;
+  }
+
  private:
   std::string str;
 };

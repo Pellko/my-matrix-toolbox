@@ -236,7 +236,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
           valueStack.pop_back();
           Value name = valueStack.back();
           valueStack.pop_back();
-          map->values[valueToString(name)] = v;
+          map->values[name.toString()] = v;
         }
         valueStack.push_back(Value::fromObject(map));
         break;
@@ -691,50 +691,7 @@ void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, BinaryOperatio
 }
 
 void VirtualMachine::printValue(Value v) {
-  std::cout << valueToString(v) << std::endl;
-}
-
-std::string VirtualMachine::valueToString(Value v) {
-    switch(v.type) {
-    case ValueType::NUMBER:
-      return std::to_string(v.as.number);
-    case ValueType::BOOL:
-      return v.as.boolean ? "true" : "false";
-    case ValueType::NIL:
-      return "nil";
-    case ValueType::OBJECT:
-      return objectToString(v.as.object);
-    default:
-      throw new RuntimeException("Unexpected types in print");
-  }
-}
-
-void VirtualMachine::printObject(Object* object) {
-  std::cout << objectToString(object) << std::endl;
-}
-
-std::string VirtualMachine::objectToString(Object* object) {
-  switch(object->type) {
-    case ObjectType::STRING:
-      return static_cast<ObjectString*>(object)->getString();
-    case ObjectType::CLOSURE:
-      return "<closure>";
-      break;
-    case ObjectType::UPVALUE:
-      return "<upvalue>";
-    case ObjectType::NATIVE:
-      return "<native function>";
-    case ObjectType::MATRIX:
-      return "<matrix>";
-    case ObjectType::CLASS:
-      return "<class>";
-    case ObjectType::INSTANCE:
-      return "<class instance>";
-    case ObjectType::INSTANCE_METHOD:
-      return "<method>";
-    case ObjectType::MAP:
-      return "<map>";
-  }
+  std::cout << v.toString() << std::endl;
 }
 
 ObjectUpvalue* VirtualMachine::getUpvalue(int stackIndex) {

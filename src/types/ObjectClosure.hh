@@ -15,6 +15,10 @@ class ObjectUpvalue : public Object {
   Value closed;
   bool isClosed;
   ObjectUpvalue* next;
+
+  std::string toString() override {
+    return "<upvalue>";
+  }
 };
 
 class ObjectClosure : public Object {
@@ -25,6 +29,10 @@ class ObjectClosure : public Object {
   std::string name;
   int functionIndex;
   std::vector<ObjectUpvalue*> upvalues;
+
+  std::string toString() override {
+    return "<closure>";
+  }
 };
 
 

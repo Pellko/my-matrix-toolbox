@@ -38,6 +38,8 @@ class ObjectMatrix : public Object {
   bool isRowVector();
   bool isNumeric();
   void print();
+  std::string toString() override;
+
  private:
   int width;
   int height;

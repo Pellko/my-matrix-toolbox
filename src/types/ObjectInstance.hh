@@ -14,6 +14,10 @@ class ObjectInstance : public Object {
 
   ObjectClass* classTemplate;
   std::unordered_map<std::string, Value> fields;
+
+  std::string toString() override {
+    return "<instance>";
+  }
 };
 
 }

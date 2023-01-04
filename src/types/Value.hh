@@ -64,6 +64,21 @@ struct Value {
         return Value::fromObject(obj);
     }
   }
+
+  std::string toString() {
+    switch(type) {
+      case ValueType::NUMBER:
+        return std::to_string(as.number);
+      case ValueType::BOOL:
+        return as.boolean ? "true" : "false";
+      case ValueType::NIL:
+        return "nil";
+      case ValueType::OBJECT:
+        return as.object->toString();
+      default:
+        return "<unexpected type>";
+  }
+  }
 };
 
 }

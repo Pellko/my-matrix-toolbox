@@ -13,6 +13,10 @@ class ObjectInstanceMethod : public Object {
 
   ObjectInstance* instance;
   ObjectClosure* method;
+
+  std::string toString() override {
+    return "<method>";
+  }
 };
 
 }

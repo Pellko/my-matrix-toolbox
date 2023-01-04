@@ -1,4 +1,5 @@
 #include "ObjectMatrix.hh"
+#include <sstream>
 
 namespace mymatrixtoolbox {
 
@@ -347,15 +348,21 @@ bool ObjectMatrix::isNumeric() {
   return isNumeric;
 }
 
-void ObjectMatrix::print() {
+std::string ObjectMatrix::toString() {
+  std::stringstream ss;
   for(int y=0;y<height;y++) {
     for(int x=0;x<width;x++) {
       if(get(x,y).type == ValueType::NUMBER) {
-        std::cout << get(x,y).as.number << " ";
+        ss << get(x,y).as.number << " ";
       }
     }
-    std::cout << std::endl;
+    ss << std::endl;
   }
+  return ss.str();
+}
+
+void ObjectMatrix::print() {
+  std::cout << toString() << std::endl;
 }
 
 }

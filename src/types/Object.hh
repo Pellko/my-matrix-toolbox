@@ -23,6 +23,8 @@ class Object {
   Object(ObjectType type) : type(type) {}
   virtual ~Object() {}
 
+  virtual std::string toString() = 0;
+
   ObjectType type;
   bool isMarked = false;
 };

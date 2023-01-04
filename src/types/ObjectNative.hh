@@ -17,6 +17,10 @@ class ObjectNative : public Object {
 
   NativeFunction function;
   Object* owner = nullptr;
+
+  std::string toString() override {
+    return "<native function>";
+  }
 };
 
 }
