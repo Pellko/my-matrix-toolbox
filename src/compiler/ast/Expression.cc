@@ -337,6 +337,7 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
     return node;
   }
 
+  // Matrix
   if(token->type == Token::Kind::LBRACKET) {
     // Read all expressions
     int currX = 0;
@@ -394,6 +395,43 @@ Expression* Expression::readPrimary(ParserTool& parserTool) {
       }
     }
 
+    return node;
+  }
+
+  // Map
+  if(token->type == Token::Kind::LBRACE) {
+    MapExpression* node = new MapExpression();
+    while(true) {
+      if(parserTool.empty()) {
+        break;
+      }
+      if(parserTool.peek()->type != Token::Kind::IDENTIFIER && parserTool.peek()->type != Token::Kind::STRING_LITERAL) {
+        break;
+      }
+      Token* name = parserTool.get();
+      
+
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::COLON) {
+        throw new SyntaxException("Expected : after property name");
+      }
+      parserTool.get();
+      Expression* value = Expression::parse(parserTool);
+
+      if(parserTool.peek()->type == Token::Kind::COMMA) {
+        parserTool.get();
+      } else {
+        if(parserTool.peek()->type != Token::Kind::RBRACE) {
+          throw new SyntaxException("Expected , after property value in map");
+        }
+      }
+
+      Expression* nameExpression = new ConstantExpression(Literal::fromString(name->text));    
+      node->addValue(nameExpression, value);  
+    }
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RBRACE) {
+      throw new SyntaxException("Expected } to close map");
+    }
+    parserTool.get();
     return node;
   }
 

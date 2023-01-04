@@ -14,7 +14,8 @@ enum class ObjectType {
   MATRIX,
   CLASS,
   INSTANCE,
-  INSTANCE_METHOD
+  INSTANCE_METHOD,
+  MAP,
 };
 
 class Object {

@@ -19,6 +19,7 @@ custom_cc_library(
     "ObjectClosure.hh",
     "ObjectInstance.hh",
     "ObjectInstanceMethod.hh",
+    "ObjectMap.hh",
     "ObjectNative.hh",
     "ObjectString.hh",
     "OpCode.hh",

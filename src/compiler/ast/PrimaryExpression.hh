@@ -39,6 +39,20 @@ class MatrixExpression : public Expression {
   std::vector<Expression*> expressions;
 };
 
+class MapExpression : public Expression {
+ public:
+  MapExpression() {}
+  ~MapExpression() {}
+
+  void emitBytecode(Chunk& chunk) override;
+  void addValue(Expression* name, Expression* value) {
+    values.push_back(std::make_pair(name, value));
+  }
+
+ private:
+  std::vector<std::pair<Expression*, Expression*>> values;
+};
+
 class GroupExpression : public Expression {
  public:
   GroupExpression(Expression* expression) : expression(expression) {}

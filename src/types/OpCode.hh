@@ -36,6 +36,7 @@ enum OpCode {
   OP_METHOD,
   OP_SET_PROPERTY,
   OP_READ_PROPERTY,
+  OP_MAP,
 };
 
 }

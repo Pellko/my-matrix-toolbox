@@ -8,6 +8,7 @@
 #include "src/types/ObjectInstance.hh"
 #include "src/types/ObjectInstanceMethod.hh"
 #include "src/types/ObjectNative.hh"
+#include "src/types/ObjectMap.hh"
 #include "src/types/OpCode.hh"
 #include "src/types/Value.hh"
 #include "src/math/ObjectMatrix.hh"
@@ -223,6 +224,21 @@ void VirtualMachine::execute(CompilerOutput& output) {
         }
 
         valueStack.push_back(Value::fromObject(matrix));
+        break;
+      }
+      case OP_MAP: {
+        position++;
+        auto [num, numSize] = readDynamicBytes(bytecode, position);
+        position += numSize + 1;
+        ObjectMap* map = static_cast<ObjectMap*>(allocateObject(ObjectType::MAP));
+        for(int i=0;i<num;i++) {
+          Value v = valueStack.back();
+          valueStack.pop_back();
+          Value name = valueStack.back();
+          valueStack.pop_back();
+          map->values[valueToString(name)] = v;
+        }
+        valueStack.push_back(Value::fromObject(map));
         break;
       }
       case OP_READ_MATRIX: {
@@ -675,50 +691,49 @@ void VirtualMachine::comparisonOp(std::vector<uint8_t>& bytecode, BinaryOperatio
 }
 
 void VirtualMachine::printValue(Value v) {
-  switch(v.type) {
+  std::cout << valueToString(v) << std::endl;
+}
+
+std::string VirtualMachine::valueToString(Value v) {
+    switch(v.type) {
     case ValueType::NUMBER:
-      std::cout << v.as.number << std::endl;
-      break;
+      return std::to_string(v.as.number);
     case ValueType::BOOL:
-      std::cout << (v.as.boolean ? "true" : "false") << std::endl;
-      break;
+      return v.as.boolean ? "true" : "false";
     case ValueType::NIL:
-      std::cout << "nil" << std::endl;
-      break;
+      return "nil";
     case ValueType::OBJECT:
-      printObject(v.as.object);
-      break;
+      return objectToString(v.as.object);
     default:
       throw new RuntimeException("Unexpected types in print");
   }
 }
 
 void VirtualMachine::printObject(Object* object) {
+  std::cout << objectToString(object) << std::endl;
+}
+
+std::string VirtualMachine::objectToString(Object* object) {
   switch(object->type) {
     case ObjectType::STRING:
-      std::cout << static_cast<ObjectString*>(object)->getString() << std::endl;
-      break;
+      return static_cast<ObjectString*>(object)->getString();
     case ObjectType::CLOSURE:
-      std::cout << "Closure" << std::endl;
+      return "<closure>";
       break;
     case ObjectType::UPVALUE:
-      std::cout << "Upvalue" << std::endl;
-      break;
+      return "<upvalue>";
     case ObjectType::NATIVE:
-      std::cout << "<native function>" << std::endl;
-      break;
+      return "<native function>";
     case ObjectType::MATRIX:
-      static_cast<ObjectMatrix*>(object)->print();
-      break;
+      return "<matrix>";
     case ObjectType::CLASS:
-      std::cout << "<class>" << std::endl;
-      break;
+      return "<class>";
     case ObjectType::INSTANCE:
-      std::cout << "<class instance>" << std::endl;
-      break;
+      return "<class instance>";
     case ObjectType::INSTANCE_METHOD:
-      std::cout << "<method>" << std::endl;
-      break;
+      return "<method>";
+    case ObjectType::MAP:
+      return "<map>";
   }
 }
 
@@ -797,6 +812,11 @@ Object* VirtualMachine::allocateObject(ObjectType type) {
     }
     case ObjectType::INSTANCE_METHOD: {
       Object* obj = new ObjectInstanceMethod();
+      objects.push_back(obj);
+      return obj;
+    }
+    case ObjectType::MAP: {
+      Object* obj = new ObjectMap();
       objects.push_back(obj);
       return obj;
     }
@@ -911,6 +931,13 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
       ObjectInstanceMethod* method = static_cast<ObjectInstanceMethod*>(object);
       markObject(method->instance);
       markObject(method->method);
+      break;
+    }
+    case ObjectType::MAP: {
+      ObjectMap* map = static_cast<ObjectMap*>(object);
+      for(auto v : map->values) {
+        markValue(v.second);
+      }
       break;
     }
   }

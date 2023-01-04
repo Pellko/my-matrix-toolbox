@@ -121,6 +121,9 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_READ_PROPERTY:
         offset = readVariable("OP_READ_PROPERTY", offset, chunk);
         break;
+      case OP_MAP:
+        offset = mapInstruction("OP_MAP", offset, chunk);
+        break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";
         offset += 1;
@@ -184,6 +187,12 @@ int Disassembler::matrixInstruction(std::string instruction, int offset, Chunk& 
   auto [height, size2] = readDynamicBytes(offset + 2 + size, chunk);
   std::cout << instruction << " : Width=" << width << ", Height=" << height << std::endl;
   return offset + 3 + size + size2;
+}
+
+int Disassembler::mapInstruction(std::string instruction, int offset, Chunk& chunk) {
+  auto [num, size] = readDynamicBytes(offset + 1, chunk);
+  std::cout << instruction << " : Num of Properties=" << num << std::endl;
+  return offset + 2 + size;
 }
 
 std::string Disassembler::printLiteral(Literal literal) {

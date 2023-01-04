@@ -17,6 +17,15 @@ void ConstantExpression::emitBytecode(Chunk& chunk) {
   }
 }
 
+void MapExpression::emitBytecode(Chunk& chunk) {
+  for(auto value : values) {
+    value.first->emitBytecode(chunk);
+    value.second->emitBytecode(chunk);
+  }
+  chunk.emitByte(OP_MAP);
+  chunk.emitDynamicBytes(values.size());
+}
+
 void MatrixExpression::emitBytecode(Chunk& chunk) {
   for(Expression* expression : expressions) {
     expression->emitBytecode(chunk);

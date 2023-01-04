@@ -36,6 +36,9 @@ class VirtualMachine {
   void printValue(Value value);
   void printObject(Object* object);
 
+  std::string valueToString(Value value);
+  std::string objectToString(Object* object);
+
   ObjectUpvalue* getUpvalue(int stackIndex);
   void closeUpvalues(int lastIndex);
 
