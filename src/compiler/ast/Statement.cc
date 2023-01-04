@@ -293,6 +293,36 @@ Statement* Statement::parse(ParserTool& parserTool) {
     parserTool.get();
     Statement* trueStatement = Statement::parse(parserTool);
     IfStatement* node = new IfStatement(condition, trueStatement);
+
+    // Read else if statements
+    std::vector<std::pair<Expression*, Statement*>> elifStatements;
+    while(true) {
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::ELIF) {
+        break;
+      }
+      parserTool.get();
+
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+        throw new SyntaxException("Expected ( after elif statement");
+      }
+      parserTool.get();
+      Expression* condition = Expression::parse(parserTool);
+
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+        throw new SyntaxException("Expected ) after elif condition");
+      }
+      parserTool.get();
+
+      Statement* statement = Statement::parse(parserTool);
+      node->addElifStatement(condition, statement);
+    }
+
+    // Read else statement
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::ELSE) {
+      parserTool.get();
+      node->setElseStatement(Statement::parse(parserTool));
+    }
+
     return node;
   }
 

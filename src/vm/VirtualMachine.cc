@@ -406,8 +406,11 @@ void VirtualMachine::execute(CompilerOutput& output) {
       }
       case OP_JUMP: {
         position++;
-        auto [offset, size] = readDynamicBytes(bytecode, position);
-        position += size + 1;
+        uint8_t lowByte = bytecode[position];
+        position++;
+        uint8_t highByte = bytecode[position];
+        int offset = lowByte | (highByte << 8);
+        position++;
         position += offset;
         break;
       }
