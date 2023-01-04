@@ -1,5 +1,6 @@
 #include "Statement.hh"
 #include "DeclareClassStatement.hh"
+#include "WhileStatement.hh"
 #include "src/compiler/Lexer.hh"
 #include "src/compiler/SyntaxException.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
@@ -276,6 +277,23 @@ Statement* Statement::parse(ParserTool& parserTool) {
     node->setBody(body);
     parserTool.endScope();
 
+    return node;
+  }
+
+  // While loop
+  if(next->type == Token::Kind::WHILE) {
+    parserTool.get();
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected ( after while statement");
+    }
+    parserTool.get();
+    Expression* condition = Expression::parse(parserTool);
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected ) after while statement");
+    }
+    parserTool.get();
+    Statement* body = Statement::parse(parserTool);
+    WhileStatement* node = new WhileStatement(condition, body);
     return node;
   }
 

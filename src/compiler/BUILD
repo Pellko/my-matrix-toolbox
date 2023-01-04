@@ -22,6 +22,7 @@ AST_SRCS = [
   "ReturnStatement.cc",
   "Statement.cc",
   "UnaryExpression.cc",
+  "WhileStatement.cc",
 ]
 AST_HDRS = [
   "AssignMatrixExpression.hh",
@@ -43,6 +44,7 @@ AST_HDRS = [
   "ReturnStatement.hh",
   "Statement.hh",
   "UnaryExpression.hh",
+  "WhileStatement.hh",
 ]
 
 COMPILER_SRCS = [
