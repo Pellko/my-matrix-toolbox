@@ -10,6 +10,7 @@ custom_cc_binary(
     "//src/vm:vm",
     "//src/math:math",
     "//src/stdlib:stdlib",
+    "//src/graphics:graphics",
   ],
   data = [
     "//examples:examples",
