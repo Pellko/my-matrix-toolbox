@@ -87,6 +87,8 @@ DARWIN_LINKOPTS = [
   "-framework Cocoa",
   "-framework IOKit",
   "-framework CoreFoundation",
+  "-framework Foundation",
+  "-framework IOSurface"
 ]
 
 # ===== common =====
