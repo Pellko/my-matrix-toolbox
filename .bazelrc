@@ -1,0 +1,2 @@
+build --action_env=VULKAN_SDK
+run --action_env=VULKAN_SDK

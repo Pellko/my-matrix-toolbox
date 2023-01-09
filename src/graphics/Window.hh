@@ -2,7 +2,10 @@
 #define _MY_MATRIX_TOOLBOX_GRAPHICS_WINDOW_H_
 
 #include <string>
+#include "src/graphics/VkUtil.hh"
 #include "vkb/VkBootstrap.h"
+#include "vk_mem_alloc.h"
+#include "VkMesh.hh"
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 #include <iostream>
@@ -43,6 +46,13 @@ class Window {
   VkSemaphore renderSemaphore;
   VkFence renderFence;
   VkExtent2D windowExtent = {0, 0};
+  VmaAllocator allocator;
+
+  VkPipelineLayout trianglePipelineLayout;
+  VkPipeline trianglePipeline;
+  Mesh triangleMesh;
+
+  vkutil::DeletionQueue deletionQueue;
 
   void initVulkan();
   void initSwapchain();
@@ -50,6 +60,11 @@ class Window {
   void initDefaultRenderpass();
   void initFramebuffers();
   void initSyncStructures();
+  void initPipelines();
+  void initMeshes();
+  void uploadMesh(Mesh& mesh);
+
+  bool loadShaderModule(const char* filePath, VkShaderModule* outShaderModule);
 
   int frameNumber = 0;
 };
