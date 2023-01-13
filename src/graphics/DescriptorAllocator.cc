@@ -83,4 +83,13 @@ void DescriptorAllocator::resetPools() {
   currentPool = VK_NULL_HANDLE;
 }
 
+void DescriptorAllocator::terminate() {
+  for(auto p : freePools) {
+    vkDestroyDescriptorPool(window->getDevice(), p, nullptr);
+  }
+  for(auto p : usedPools) {
+    vkDestroyDescriptorPool(window->getDevice(), p, nullptr);
+  }
+}
+
 }

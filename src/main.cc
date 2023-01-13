@@ -78,6 +78,7 @@ int main(int argc, char** argv) {
     renderer.draw();
     window->end(id);
   }
+  renderer.terminate();
   window->terminate();
 
   return 0;

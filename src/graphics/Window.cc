@@ -1,4 +1,5 @@
 #include "Window.hh"
+#include "src/graphics/Memory.hh"
 
 namespace mymatrixtoolbox {
 
@@ -299,6 +300,24 @@ bool Window::loadShaderModule(const char* filePath, VkShaderModule* outShaderMod
   }
   *outShaderModule = shaderModule;
   return true;
+}
+
+vkmemory::AllocatedBuffer Window::createBuffer(size_t allocationSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage) {
+  VkBufferCreateInfo bufferInfo = {};
+  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+  bufferInfo.pNext = nullptr;
+
+  bufferInfo.size = allocationSize;
+  bufferInfo.usage = usage;
+
+  VmaAllocationCreateInfo vmaallocInfo = {};
+  vmaallocInfo.usage = memoryUsage;
+
+  vkmemory::AllocatedBuffer buffer;
+
+  VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &vmaallocInfo, &buffer.buffer, &buffer.allocation, nullptr));
+
+  return buffer;
 }
 
 void Window::terminate() {

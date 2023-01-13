@@ -9,6 +9,7 @@
 #include "vkb/VkBootstrap.h"
 #include "vk_mem_alloc.h"
 #include "VkUtil.hh"
+#include "Memory.hh"
 
 namespace mymatrixtoolbox {
 
@@ -48,6 +49,7 @@ class Window {
   }
 
   bool loadShaderModule(const char* filePath, VkShaderModule* outShaderModule);
+  vkmemory::AllocatedBuffer createBuffer(size_t allocationSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 
  private:
   int width = 800;

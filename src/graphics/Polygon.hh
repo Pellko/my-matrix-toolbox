@@ -48,6 +48,10 @@ struct PolygonVertex {
   }
 };
 
+struct PolygonCameraData {
+  glm::mat4 projection;
+};
+
 class Polygon {
  public:
   Polygon();

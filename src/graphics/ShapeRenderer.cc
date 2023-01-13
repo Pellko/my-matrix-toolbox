@@ -1,12 +1,19 @@
 #include "ShapeRenderer.hh"
-#include "src/graphics/VkUtil.hh"
+#include "src/graphics/DescriptorAllocator.hh"
+#include "src/graphics/DescriptorBuilder.hh"
+#include "src/graphics/Polygon.hh"
 
 namespace mymatrixtoolbox {
 
-ShapeRenderer::ShapeRenderer(std::shared_ptr<Window> window) : window(window) {}
+ShapeRenderer::ShapeRenderer(std::shared_ptr<Window> window) : window(window), descriptorAllocator(window), descriptorLayoutCache(window) {}
 ShapeRenderer::~ShapeRenderer() {}
 
 void ShapeRenderer::init() {
+  initDescriptors();  
+  initPipeline();
+}
+
+void ShapeRenderer::initPipeline() {
   VkShaderModule polygonVertexShader;
   if(!window->loadShaderModule("src/graphics/shaders/polygon.vert.spv", &polygonVertexShader)) {
     std::cout << "[Graphics Engine]: Error when loading the polygon vertex shader module" << std::endl;
@@ -22,6 +29,9 @@ void ShapeRenderer::init() {
   }
 
   VkPipelineLayoutCreateInfo pipelineLayoutInfo = vkutil::pipelineLayoutCreateInfo();
+  pipelineLayoutInfo.setLayoutCount = 1;
+  pipelineLayoutInfo.pSetLayouts = &cameraSetLayout;
+
   VK_CHECK(vkCreatePipelineLayout(window->getDevice(), &pipelineLayoutInfo, nullptr, &polygonPipelineLayout));
 
   vkutil::PipelineBuilder pipelineBuilder;
@@ -61,20 +71,48 @@ void ShapeRenderer::init() {
   });
 
   test.vertices.resize(3);
-	test.vertices[0].position = { 1.f, 1.f, 0.0f };
-	test.vertices[1].position = {-1.f, 1.f, 0.0f };
-	test.vertices[2].position = { 0.f,-1.f, 0.0f };
+	test.vertices[0].position = { 100, 100, 0.0f };
+	test.vertices[1].position = {0, 100, 0.0f };
+	test.vertices[2].position = { 0.f, 0, 0.0f };
 	test.vertices[0].color = { 1.f, 0.f, 0.0f };
 	test.vertices[1].color = { 0.f, 1.f, 0.0f };
 	test.vertices[2].color = { 0.f, 0.f, 1.0f };
   test.upload(window);
 }
 
+void ShapeRenderer::initDescriptors() {
+  cameraBuffer = window->createBuffer(sizeof(PolygonCameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+  VkDescriptorBufferInfo bufferInfo = {};
+  bufferInfo.buffer = cameraBuffer.buffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(PolygonCameraData);
+
+  DescriptorBuilder::begin(window, &descriptorLayoutCache, &descriptorAllocator)
+    .bindBuffer(0, &bufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+    .build(cameraSet, cameraSetLayout);
+}
+
 void ShapeRenderer::draw() {
+  glm::mat4 projection = glm::ortho<float>(0.0f, window->getExtent().width, 0.0f, window->getExtent().height);
+  PolygonCameraData camera;
+  camera.projection = projection;
+
+  void* data;
+  vmaMapMemory(window->getAllocator(), cameraBuffer.allocation, &data);
+  memcpy(data, &camera, sizeof(PolygonCameraData));
+  vmaUnmapMemory(window->getAllocator(), cameraBuffer.allocation);
+
   vkCmdBindPipeline(window->getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, polygonPipeline);
+  vkCmdBindDescriptorSets(window->getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, polygonPipelineLayout, 0, 1, &cameraSet, 0, nullptr);
   VkDeviceSize offset = 0;
   vkCmdBindVertexBuffers(window->getCommandBuffer(), 0, 1, &test.vertexBuffer.buffer, &offset);
   vkCmdDraw(window->getCommandBuffer(), test.vertices.size(), 1, 0, 0);
+}
+
+void ShapeRenderer::terminate() {
+  descriptorLayoutCache.terminate();
+  descriptorAllocator.terminate();
 }
 
 }
