@@ -5,14 +5,16 @@ load("//bazel:custom_library.bzl", "custom_cc_library")
 custom_cc_library(
   name = "graphics",
   srcs = [
-    "VkMemory.cc",
-    "VkMesh.cc",
+    "Memory.cc",
+    "Polygon.cc",
+    "ShapeRenderer.cc",
     "VkUtil.cc",
     "Window.cc",
   ],
   hdrs = [
-    "VkMemory.hh",
-    "VkMesh.hh",
+    "Memory.hh",
+    "Polygon.hh",
+    "ShapeRenderer.hh",
     "VkUtil.hh",
     "Window.hh",
   ],
@@ -24,7 +26,7 @@ custom_cc_library(
     "//bazel:vulkan",
   ],
   data  =[
-    "//src/graphics/shaders:triangle_vert",
-    "//src/graphics/shaders:triangle_frag",
+    "//src/graphics/shaders:polygon_vert",
+    "//src/graphics/shaders:polygon_frag",
   ]
 )

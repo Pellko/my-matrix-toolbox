@@ -59,6 +59,12 @@ struct DeletionQueue {
 	}
 };
 
+struct VertexInputDescription {
+  std::vector<VkVertexInputBindingDescription> bindings;
+  std::vector<VkVertexInputAttributeDescription> attributes;
+  VkPipelineVertexInputStateCreateFlags flags = 0;
+};
+
 }
 }
 

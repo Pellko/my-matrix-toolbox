@@ -1,12 +1,8 @@
 #include "Window.hh"
-#include "VkUtil.hh"
-#include <math.h>
-#include <fstream>
 
 namespace mymatrixtoolbox {
 
-static void errorCallback(int error, const char *description)
-{
+static void errorCallback(int error, const char *description) {
 	fprintf(stderr, "GLFW error %d: %s\n", error, description);
 }
 
@@ -34,18 +30,11 @@ void Window::init() {
   initDefaultRenderpass();
   initFramebuffers();
   initSyncStructures();
-  initPipelines();
-  initMeshes();
 }
 
-void Window::run() {
-  while(!glfwWindowShouldClose(window)) {
-    glfwPollEvents();
-    draw();
-  }
-}
+uint32_t Window::begin() {
+  glfwPollEvents();
 
-void Window::draw() {
   // Wait for previous frame
   VK_CHECK(vkWaitForFences(device, 1, &renderFence, true, 1000000000));
   VK_CHECK(vkResetFences(device, 1, &renderFence));
@@ -54,7 +43,7 @@ void Window::draw() {
   uint32_t swapchainImageIndex;
   VK_CHECK(vkAcquireNextImageKHR(device, swapchain, 1000000000, presentSemaphore, nullptr, &swapchainImageIndex));
 
-  // Initialize now command buffer
+  // Initialize new command buffer
   VK_CHECK(vkResetCommandBuffer(mainCommandBuffer, 0));
   VkCommandBufferBeginInfo cmdBeginInfo = {};
   cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -65,8 +54,7 @@ void Window::draw() {
 
   // Create a renderpass
   VkClearValue clearValue;
-	float flash = abs(sin(frameNumber / 120.f));
-	clearValue.color = { { 0.0f, 0.0f, flash, 1.0f } };
+	clearValue.color = { { 0.0f, 0.0f, 0.0f } };
 
   VkRenderPassBeginInfo rpInfo = {};
   rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -80,14 +68,12 @@ void Window::draw() {
   rpInfo.clearValueCount = 1;
   rpInfo.pClearValues = &clearValue;
 
-  // Draw
   vkCmdBeginRenderPass(mainCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
-  vkCmdBindPipeline(mainCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
 
-  VkDeviceSize offset = 0;
-  vkCmdBindVertexBuffers(mainCommandBuffer, 0, 1, &triangleMesh.vertexBuffer.buffer, &offset);
-  vkCmdDraw(mainCommandBuffer, triangleMesh.vertices.size(), 1, 0, 0);
+  return swapchainImageIndex;
+}
 
+void Window::end(uint32_t id) {
   vkCmdEndRenderPass(mainCommandBuffer);
   VK_CHECK(vkEndCommandBuffer(mainCommandBuffer));
 
@@ -119,11 +105,9 @@ void Window::draw() {
   presentInfo.waitSemaphoreCount = 1;
   presentInfo.pWaitSemaphores = &renderSemaphore;
 
-  presentInfo.pImageIndices = &swapchainImageIndex;
+  presentInfo.pImageIndices = &id;
   
   VK_CHECK(vkQueuePresentKHR(graphicsQueue, &presentInfo));
-
-  frameNumber++;
 }
 
 void Window::initVulkan() {
@@ -144,7 +128,7 @@ void Window::initVulkan() {
   for(int i=0;i<requiredExtensionsCount;i++) {
     builder = builder.enable_extension(requiredExtensions[i]);
   }
-  
+
   auto instRet = builder.build();
 
   if(!instRet) {
@@ -290,93 +274,6 @@ void Window::initSyncStructures() {
   });
 }
 
-void Window::initPipelines() {
-  VkShaderModule triangleVertexShader;
-  if(!loadShaderModule("src/graphics/shaders/triangle.vert.spv", &triangleVertexShader)) {
-    std::cout << "Error when loading the triangle vertex shader module" << std::endl;
-  } else {
-    std::cout << "[Graphics Engine]: Sucessfully loaded triangle vertex shader" << std::endl;
-  }
-
-  VkShaderModule triangleFragmentShader;
-  if(!loadShaderModule("src/graphics/shaders/triangle.frag.spv", &triangleFragmentShader)) {
-    std::cout << "Error when loading the triangle fragment shader module" << std::endl;
-  } else {
-    std::cout << "[Graphics Engine]: Sucessfully loaded triangle fragment shader" << std::endl;
-  }
-
-  VkPipelineLayoutCreateInfo pipelineLayoutInfo = vkutil::pipelineLayoutCreateInfo();
-  VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &trianglePipelineLayout));
-
-  vkutil::PipelineBuilder pipelineBuilder;
-  pipelineBuilder.shaderStages.push_back(vkutil::pipelineShaderStageCreateInfo(VK_SHADER_STAGE_VERTEX_BIT, triangleVertexShader));
-  pipelineBuilder.shaderStages.push_back(vkutil::pipelineShaderStageCreateInfo(VK_SHADER_STAGE_FRAGMENT_BIT, triangleFragmentShader));
-  pipelineBuilder.vertexInputInfo = vkutil::vertexInputStateCreateInfo();
-  pipelineBuilder.inputAssembly = vkutil::inputAssemblyCreateInfo(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-
-  VertexInputDescription vertexDescription = Vertex::getVertexDescription();
-  pipelineBuilder.vertexInputInfo.pVertexAttributeDescriptions = vertexDescription.attributes.data();
-  pipelineBuilder.vertexInputInfo.vertexAttributeDescriptionCount = vertexDescription.attributes.size();
-  pipelineBuilder.vertexInputInfo.pVertexBindingDescriptions = vertexDescription.bindings.data();
-  pipelineBuilder.vertexInputInfo.vertexBindingDescriptionCount = vertexDescription.bindings.size();
-
-  pipelineBuilder.viewport.x = 0.0f;
-	pipelineBuilder.viewport.y = 0.0f;
-	pipelineBuilder.viewport.width = (float) windowExtent.width;
-	pipelineBuilder.viewport.height = (float) windowExtent.height;
-	pipelineBuilder.viewport.minDepth = 0.0f;
-	pipelineBuilder.viewport.maxDepth = 1.0f;
-
-  pipelineBuilder.scissor.offset = { 0, 0 };
-	pipelineBuilder.scissor.extent = windowExtent;
-
-  pipelineBuilder.rasterizer = vkutil::rasterizationStateCreateInfo(VK_POLYGON_MODE_FILL);
-  pipelineBuilder.multisampling = vkutil::multisamplingStateCreateInfo();
-  pipelineBuilder.colorBlendAttachment = vkutil::colorBlendAttachmentState();
-  pipelineBuilder.pipelineLayout = trianglePipelineLayout;
-  trianglePipeline = pipelineBuilder.build(device, renderPass);
-
-  vkDestroyShaderModule(device, triangleVertexShader, nullptr);
-  vkDestroyShaderModule(device, triangleFragmentShader, nullptr);
-
-  deletionQueue.push_function([=]() {
-    vkDestroyPipeline(device, trianglePipeline, nullptr);
-    vkDestroyPipelineLayout(device, trianglePipelineLayout, nullptr);
-  });
-}
-
-void Window::initMeshes() {
-  triangleMesh.vertices.resize(3);
-	triangleMesh.vertices[0].position = { 1.f, 1.f, 0.0f };
-	triangleMesh.vertices[1].position = {-1.f, 1.f, 0.0f };
-	triangleMesh.vertices[2].position = { 0.f,-1.f, 0.0f };
-	triangleMesh.vertices[0].color = { 0.f, 1.f, 0.0f };
-	triangleMesh.vertices[1].color = { 0.f, 1.f, 0.0f };
-	triangleMesh.vertices[2].color = { 0.f, 1.f, 0.0f };
-
-  uploadMesh(triangleMesh);
-}
-
-void Window::uploadMesh(Mesh& mesh) {
-  VkBufferCreateInfo bufferInfo = {};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = mesh.vertices.size() * sizeof(Vertex);
-  bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-
-  VmaAllocationCreateInfo vmaallocInfo = {};
-  vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-  VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &vmaallocInfo, &mesh.vertexBuffer.buffer, &mesh.vertexBuffer.allocation, nullptr));
-
-  deletionQueue.push_function([=]() {
-    vmaDestroyBuffer(allocator, mesh.vertexBuffer.buffer, mesh.vertexBuffer.allocation);
-  });
-
-  void* data;
-  vmaMapMemory(allocator, mesh.vertexBuffer.allocation, &data);
-  memcpy(data, mesh.vertices.data(), mesh.vertices.size() * sizeof(Vertex));
-  vmaUnmapMemory(allocator, mesh.vertexBuffer.allocation);
-}
-
 bool Window::loadShaderModule(const char* filePath, VkShaderModule* outShaderModule) {
   std::ifstream file(filePath, std::ios::ate | std::ios::binary);
   if(!file.is_open()) {
@@ -414,6 +311,10 @@ void Window::terminate() {
   vkDestroyInstance(instance, nullptr);
   glfwDestroyWindow(window);
   glfwTerminate();
+}
+
+bool Window::shouldClose() {
+  return glfwWindowShouldClose(window);
 }
 
 }

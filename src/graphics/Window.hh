@@ -2,13 +2,13 @@
 #define _MY_MATRIX_TOOLBOX_GRAPHICS_WINDOW_H_
 
 #include <string>
-#include "src/graphics/VkUtil.hh"
+#include <vulkan/vulkan.hpp>
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include <fstream>
 #include "vkb/VkBootstrap.h"
 #include "vk_mem_alloc.h"
-#include "VkMesh.hh"
-#include <GLFW/glfw3.h>
-#include <vulkan/vulkan.hpp>
-#include <iostream>
+#include "VkUtil.hh"
 
 namespace mymatrixtoolbox {
 
@@ -18,26 +18,56 @@ class Window {
   ~Window();
 
   void init();
-  void run();
-  void draw();
+  uint32_t begin();
+  void end(uint32_t id);
   void terminate();
+  bool shouldClose();
+
+  VmaAllocator getAllocator() {
+    return allocator;
+  }
+
+  vkutil::DeletionQueue& getDeletionQueue() {
+    return deletionQueue;
+  }
+
+  VkDevice getDevice() {
+    return device;
+  }
+
+  VkExtent2D getExtent() {
+    return windowExtent;
+  }
+
+  VkRenderPass getRenderPass() {
+    return renderPass;
+  }
+
+  VkCommandBuffer getCommandBuffer() {
+    return mainCommandBuffer;
+  }
+
+  bool loadShaderModule(const char* filePath, VkShaderModule* outShaderModule);
 
  private:
   int width = 800;
   int height = 600;
+  VkExtent2D windowExtent = {0, 0};
   std::string title;
   GLFWwindow* window;
+  
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
-  VkPhysicalDevice physicalDevice;
-  VkDevice device;
   VkSurfaceKHR surface;
+  VkDevice device;
+  VkPhysicalDevice physicalDevice;
+  VkQueue graphicsQueue;
+  uint32_t graphicsQueueFamily;
   VkSwapchainKHR swapchain;
   VkFormat swapchainImageFormat;
   std::vector<VkImage> swapchainImages;
   std::vector<VkImageView> swapchainImageViews;
-  VkQueue graphicsQueue;
-  uint32_t graphicsQueueFamily;
+  VmaAllocator allocator;
   VkCommandPool commandPool;
   VkCommandBuffer mainCommandBuffer;
   VkRenderPass renderPass;
@@ -45,12 +75,6 @@ class Window {
   VkSemaphore presentSemaphore;
   VkSemaphore renderSemaphore;
   VkFence renderFence;
-  VkExtent2D windowExtent = {0, 0};
-  VmaAllocator allocator;
-
-  VkPipelineLayout trianglePipelineLayout;
-  VkPipeline trianglePipeline;
-  Mesh triangleMesh;
 
   vkutil::DeletionQueue deletionQueue;
 
@@ -60,13 +84,6 @@ class Window {
   void initDefaultRenderpass();
   void initFramebuffers();
   void initSyncStructures();
-  void initPipelines();
-  void initMeshes();
-  void uploadMesh(Mesh& mesh);
-
-  bool loadShaderModule(const char* filePath, VkShaderModule* outShaderModule);
-
-  int frameNumber = 0;
 };
 
 }

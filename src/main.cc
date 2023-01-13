@@ -1,3 +1,4 @@
+#include "src/graphics/ShapeRenderer.hh"
 #include "src/vm/VirtualMachine.hh"
 #include "src/vm/RuntimeException.hh"
 #include "src/compiler/Disassembler.hh"
@@ -68,10 +69,16 @@ int main(int argc, char** argv) {
   //   std::cout << "Runtime Exception: " << ex->what() << std::endl;
   // }
 
-  Window window("My Matrix Toolbox");
-  window.init();
-  window.run();
-  window.terminate();
+  std::shared_ptr<Window> window = std::make_shared<Window>("My Matrix Toolbox");
+  ShapeRenderer renderer(window);
+  window->init();
+  renderer.init();
+  while(!window->shouldClose()) {
+    uint32_t id = window->begin();
+    renderer.draw();
+    window->end(id);
+  }
+  window->terminate();
 
   return 0;
 }
