@@ -9,6 +9,7 @@
 #include "src/compiler/ast/LambdaExpression.hh"
 #include "src/compiler/ast/PrimaryExpression.hh"
 #include "src/compiler/ast/UnaryExpression.hh"
+#include "src/compiler/ast/IncrementExpression.hh"
 #include "src/compiler/ast/CallExpression.hh"
 #include "src/compiler/ast/FunctionStatement.hh"
 #include "src/compiler/ast/BlockStatement.hh"
@@ -132,8 +133,12 @@ Expression* Expression::parse(ParserTool& parserTool) {
     return node;
   }
 
-  // Dot operator
-
+  // Incrementor/Decrementor
+  if(parserTool.require(1) && (parserTool.peek()->type == Token::Kind::PLUSPLUS || parserTool.peek()->type == Token::Kind::MINUSMINUS)) {
+    Token* op = parserTool.get();
+    IncrementExpression* node = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, expression);
+    return node;
+  }
 
   return expression;
 }
