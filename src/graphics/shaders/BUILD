@@ -11,3 +11,14 @@ glsl_library(
   name = "polygon_frag",
   shader = "polygon.frag"
 )
+
+glsl_library(
+  name = "line_vert",
+  shader = "line.vert"
+)
+
+glsl_library(
+  name = "line_frag",
+  shader = "line.frag"
+)
+

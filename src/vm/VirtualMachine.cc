@@ -34,7 +34,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
     std::vector<Literal>& literals = callFrames.back().chunk->literals;
     uint8_t instruction = bytecode[position];
 
-    collectGarbage(); // TODO: move this from here.
+    // collectGarbage(); // TODO: move this from here.
 
     switch(instruction) {
       case OP_RETURN: {
@@ -401,7 +401,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
         }
         break;
       }
-      case OP_JUMP_FALSE: {        
+      case OP_JUMP_FALSE: {       
         position++;
         uint8_t lowByte = bytecode[position];
         position++;
@@ -421,6 +421,10 @@ void VirtualMachine::execute(CompilerOutput& output) {
         break;
       }
       case OP_JUMP: {
+        bool flag = false;
+        if(position == 33) {
+          flag = true;
+        } 
         position++;
         uint8_t lowByte = bytecode[position];
         position++;
@@ -428,6 +432,9 @@ void VirtualMachine::execute(CompilerOutput& output) {
         int offset = lowByte | (highByte << 8);
         position++;
         position += offset;
+        if(flag) {
+          std::cout << position << std::endl;
+        }
         break;
       }
       case OP_LOOP: {

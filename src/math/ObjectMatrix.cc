@@ -356,7 +356,9 @@ std::string ObjectMatrix::toString() {
         ss << get(x,y).as.number << " ";
       }
     }
-    ss << std::endl;
+    if(y != height-1) {
+      ss << std::endl;
+    }
   }
   return ss.str();
 }

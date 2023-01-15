@@ -8,6 +8,7 @@ custom_cc_library(
     "DescriptorAllocator.cc",
     "DescriptorBuilder.cc",
     "DescriptorLayoutCache.cc",
+    "LineSegment.cc",
     "Memory.cc",
     "Polygon.cc",
     "ShapeRenderer.cc",
@@ -18,6 +19,7 @@ custom_cc_library(
     "DescriptorAllocator.hh",
     "DescriptorBuilder.hh",
     "DescriptorLayoutCache.hh",
+    "LineSegment.hh",
     "Memory.hh",
     "Polygon.hh",
     "ShapeRenderer.hh",
@@ -34,5 +36,7 @@ custom_cc_library(
   data  =[
     "//src/graphics/shaders:polygon_vert",
     "//src/graphics/shaders:polygon_frag",
+    "//src/graphics/shaders:line_vert",
+    "//src/graphics/shaders:line_frag",
   ]
 )

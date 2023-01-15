@@ -1,6 +1,7 @@
 #include "IfStatement.hh"
 #include "src/types/Chunk.hh"
 #include "src/types/OpCode.hh"
+#include <iostream>
 
 namespace mymatrixtoolbox {
 
@@ -37,7 +38,6 @@ void IfStatement::emitBytecode(Chunk& chunk) {
     chunk.emitByte(OP_JUMP);
     chunk.emitByte(0);
     chunk.emitByte(0);
-
     jump = jumpOffsets[elifIndex] - bodyOffsets[elifIndex] + OP_JUMP_SIZE;
     jumpLow = ((jump >> 0) & 0xFF);
     jumpHigh = ((jump >> 8) & 0XFF);
@@ -56,11 +56,10 @@ void IfStatement::emitBytecode(Chunk& chunk) {
   // (4) Set OP_JUMP skip lengths
   for(int i=0;i<bodyOffsets.size();i++) {
     int endPoint = elseStart + elseLength;
-    int startPoint = jumpOffsets[i] + OP_JUMP_SIZE;
+    int startPoint = jumpOffsets[i] + OP_JUMP_SIZE + 2;
     jump = endPoint - startPoint;
     jumpLow = ((jump >> 0) & 0xFF);
     jumpHigh = ((jump >> 8) & 0XFF);
-    std::cout << jumpOffsets[i] << std::endl;
     chunk.bytecode[jumpOffsets[i] + OP_JUMP_SIZE] = jumpLow;
     chunk.bytecode[jumpOffsets[i] + OP_JUMP_SIZE + 1] = jumpHigh;
   }

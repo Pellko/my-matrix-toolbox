@@ -5,6 +5,8 @@
 #include "ObjectString.hh"
 #include "Literal.hh"
 #include <memory>
+#include <sstream>
+#include <iomanip>
 
 namespace mymatrixtoolbox {
 
@@ -67,8 +69,11 @@ struct Value {
 
   std::string toString() {
     switch(type) {
-      case ValueType::NUMBER:
-        return std::to_string(as.number);
+      case ValueType::NUMBER: {
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(10) << as.number;
+        return ss.str();
+      }
       case ValueType::BOOL:
         return as.boolean ? "true" : "false";
       case ValueType::NIL:
