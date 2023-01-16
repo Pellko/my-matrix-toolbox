@@ -4,13 +4,22 @@
 namespace mymatrixtoolbox {
 
 void LineRenderer::init() {
+  initDescriptors();
   initPipeline();
   initMesh();
   initInstances();
 }
 
 void LineRenderer::render() {
+  CameraData cameraData = CameraData::getStandardOrtho(window);
+
+  void* data;
+  vmaMapMemory(window->getAllocator(), cameraBuffer.allocation, &data);
+  memcpy(data, &cameraData, sizeof(CameraData));
+  vmaUnmapMemory(window->getAllocator(), cameraBuffer.allocation);
+
   vkCmdBindPipeline(window->getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  vkCmdBindDescriptorSets(window->getCommandBuffer(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &cameraSet, 0, nullptr);
   VkDeviceSize vertexOffset = 0;
   VkDeviceSize instanceOffset = 0;
   vkCmdBindVertexBuffers(window->getCommandBuffer(), 0, 1, &lineMesh.vertexBuffer.buffer, &vertexOffset);
@@ -23,6 +32,19 @@ void LineRenderer::addLineSegment(glm::vec2 a, glm::vec2 b) {
     .pointA = a,
     .pointB = b,
   });
+}
+
+void LineRenderer::initDescriptors() {
+  cameraBuffer = window->createBuffer(sizeof(CameraData), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+  VkDescriptorBufferInfo bufferInfo = {};
+  bufferInfo.buffer = cameraBuffer.buffer;
+  bufferInfo.offset = 0;
+  bufferInfo.range = sizeof(CameraData);
+
+  DescriptorBuilder::begin(window, &window->getDescriptorLayoutCache(), &window->getDescriptorAllocator())
+    .bindBuffer(0, &bufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+    .build(cameraSet, cameraSetLayout);
 }
 
 void LineRenderer::initPipeline() {
@@ -43,6 +65,9 @@ void LineRenderer::initPipeline() {
 
   // (2) Create pipeline layout
   VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
+  pipelineLayoutInfo.setLayoutCount = 1;
+  pipelineLayoutInfo.pSetLayouts = &cameraSetLayout;
+
   VK_CHECK(vkCreatePipelineLayout(window->getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout));
 
   // (3) Create pipeline

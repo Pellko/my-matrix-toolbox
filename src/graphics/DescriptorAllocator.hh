@@ -3,13 +3,14 @@
 
 #include <vector>
 #include <vulkan/vulkan.hpp>
-#include "Window.hh"
 
 namespace mymatrixtoolbox {
 
+class Window;
+
 class DescriptorAllocator {
  public:
-  DescriptorAllocator(std::shared_ptr<Window> window);
+  DescriptorAllocator(Window* window);
   ~DescriptorAllocator();
 
   struct PoolSizes {
@@ -33,7 +34,7 @@ class DescriptorAllocator {
   void terminate();
 
  private:
-  std::shared_ptr<Window> window;
+  Window* window;
   VkDescriptorPool grabPool();
   VkDescriptorPool currentPool{VK_NULL_HANDLE};
   PoolSizes descriptorSizes;

@@ -2,6 +2,7 @@
 #define _MY_MATRIX_TOOLBOX_GRAPHICS_VERTEX_H_
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include "Memory.hh"
 #include "VkUtil.hh"
 #include "Window.hh"
@@ -10,6 +11,8 @@ namespace mymatrixtoolbox {
 
 struct CameraData {
   glm::mat4 projection;
+
+  static CameraData getStandardOrtho(std::shared_ptr<Window> window);
 };
 
 struct PolygonVertex {

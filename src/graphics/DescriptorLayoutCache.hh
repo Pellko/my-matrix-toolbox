@@ -3,13 +3,14 @@
 
 #include <unordered_map>
 #include <vulkan/vulkan.hpp>
-#include "Window.hh"
 
 namespace mymatrixtoolbox {
 
+class Window;
+
 class DescriptorLayoutCache {
  public:
-  DescriptorLayoutCache(std::shared_ptr<Window> window);
+  DescriptorLayoutCache(Window* window);
   ~DescriptorLayoutCache();
 
   VkDescriptorSetLayout createDescriptorLayout(VkDescriptorSetLayoutCreateInfo* info);
@@ -27,7 +28,7 @@ class DescriptorLayoutCache {
       return k.hash();
     }
   };
-  std::shared_ptr<Window> window;
+  Window* window;
   std::unordered_map<DescriptorLayoutInfo, VkDescriptorSetLayout, DescriptorLayoutHash> layoutCache;
 };
 

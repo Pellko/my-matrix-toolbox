@@ -2,7 +2,9 @@
 #define _MY_MATRIX_TOOLBOX_GRAPHICS_LINE_RENDERER_H_
 
 #include <vulkan/vulkan.hpp>
+#include "DescriptorBuilder.hh"
 #include "Renderable.hh"
+#include "Memory.hh"
 #include "Vertex.hh"
 #include "Window.hh"
 
@@ -23,7 +25,11 @@ class LineRenderer : public Renderable {
   LineInstanceBuffer lineInstanceBuffer;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
+  vkmemory::AllocatedBuffer cameraBuffer;
+  VkDescriptorSet cameraSet;
+  VkDescriptorSetLayout cameraSetLayout;
 
+  void initDescriptors();
   void initPipeline();
   void initMesh();
   void initInstances();

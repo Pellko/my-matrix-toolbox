@@ -1,8 +1,9 @@
 #include "DescriptorLayoutCache.hh"
+#include "Window.hh"
 
 namespace mymatrixtoolbox {
 
-DescriptorLayoutCache::DescriptorLayoutCache(std::shared_ptr<Window> window) : window(window) {}
+DescriptorLayoutCache::DescriptorLayoutCache(Window* window) : window(window) {}
 DescriptorLayoutCache::~DescriptorLayoutCache() {}
 
 void DescriptorLayoutCache::terminate() {

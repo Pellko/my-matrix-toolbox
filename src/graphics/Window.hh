@@ -8,6 +8,8 @@
 #include <fstream>
 #include "vkb/VkBootstrap.h"
 #include "vk_mem_alloc.h"
+#include "DescriptorAllocator.hh"
+#include "DescriptorLayoutCache.hh"
 #include "VkUtil.hh"
 #include "Memory.hh"
 #include "Renderable.hh"
@@ -54,6 +56,14 @@ class Window {
     return window;
   }
 
+  DescriptorAllocator& getDescriptorAllocator() {
+    return descriptorAllocator;
+  }
+
+  DescriptorLayoutCache& getDescriptorLayoutCache() {
+    return descriptorLayoutCache;
+  }
+
   void addRenderable(std::shared_ptr<Renderable> renderable) {
     renderables.push_back(renderable);
     std::sort(renderables.begin(), renderables.end(), [](std::shared_ptr<Renderable> a, std::shared_ptr<Renderable> b) {
@@ -95,6 +105,8 @@ class Window {
   VkFence renderFence;
 
   vkutil::DeletionQueue deletionQueue;
+  DescriptorAllocator descriptorAllocator;
+  DescriptorLayoutCache descriptorLayoutCache;
   std::vector<std::shared_ptr<Renderable>> renderables;
 
   void initVulkan();

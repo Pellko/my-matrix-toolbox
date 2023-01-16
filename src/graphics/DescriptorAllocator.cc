@@ -1,4 +1,5 @@
 #include "DescriptorAllocator.hh"
+#include "Window.hh"
 
 namespace mymatrixtoolbox {
 
@@ -21,7 +22,7 @@ VkDescriptorPool createPool(VkDevice device, const DescriptorAllocator::PoolSize
   return descriptorPool;
 }
 
-DescriptorAllocator::DescriptorAllocator(std::shared_ptr<Window> window) : window(window) {}
+DescriptorAllocator::DescriptorAllocator(Window* window) : window(window) {}
 DescriptorAllocator::~DescriptorAllocator() {}
 
 VkDescriptorPool DescriptorAllocator::grabPool() {

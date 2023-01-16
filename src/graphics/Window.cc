@@ -1,5 +1,4 @@
 #include "Window.hh"
-#include "src/graphics/Memory.hh"
 
 namespace mymatrixtoolbox {
 
@@ -7,7 +6,7 @@ static void errorCallback(int error, const char *description) {
 	fprintf(stderr, "GLFW error %d: %s\n", error, description);
 }
 
-Window::Window(std::string title) : title(title) {}
+Window::Window(std::string title) : title(title), descriptorAllocator(this), descriptorLayoutCache(this) {}
 Window::~Window() {}
 
 void Window::initGLFW() {
@@ -336,6 +335,8 @@ vkmemory::AllocatedBuffer Window::createBuffer(size_t allocationSize, VkBufferUs
 
 void Window::terminate() {
   vkWaitForFences(device, 1, &renderFence, true, 1000000000);
+  descriptorLayoutCache.terminate();
+  descriptorAllocator.terminate();
   deletionQueue.flush();
   vmaDestroyAllocator(allocator);
   vkDestroyDevice(device, nullptr);

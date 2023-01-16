@@ -2,6 +2,13 @@
 
 namespace mymatrixtoolbox {
 
+CameraData CameraData::getStandardOrtho(std::shared_ptr<Window> window) {
+  glm::mat4 projection = glm::ortho<float>(0.0f, window->getExtent().width, 0.0f, window->getExtent().height);
+  CameraData data;
+  data.projection = projection;
+  return data;
+}
+ 
 vkutil::VertexInputDescription PolygonVertex::getVertexDescription() {
   vkutil::VertexInputDescription description;
 

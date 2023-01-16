@@ -29,8 +29,8 @@ class ShapeRenderer {
   VkPipeline polygonPipeline;
   // VkPipelineLayout linePipelineLayout;
   // VkPipeline linePipeline;
-  DescriptorAllocator descriptorAllocator;
-  DescriptorLayoutCache descriptorLayoutCache;
+  // DescriptorAllocator descriptorAllocator;
+  // DescriptorLayoutCache descriptorLayoutCache;
 
   void initPolygonPipeline();
   void initDescriptors();

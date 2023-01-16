@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.hpp>
 #include <deque>
 #include <functional>
+#include "Memory.hh"
 
 namespace mymatrixtoolbox {
 namespace vkutil {

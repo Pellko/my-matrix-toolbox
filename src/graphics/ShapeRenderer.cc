@@ -5,7 +5,7 @@
 
 namespace mymatrixtoolbox {
 
-ShapeRenderer::ShapeRenderer(std::shared_ptr<Window> window) : window(window), descriptorAllocator(window), descriptorLayoutCache(window) {}
+ShapeRenderer::ShapeRenderer(std::shared_ptr<Window> window) : window(window) {}
 ShapeRenderer::~ShapeRenderer() {}
 
 void ShapeRenderer::init() {

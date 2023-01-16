@@ -39,8 +39,8 @@ let x = zeros(1, 200);
 let y = zeros(1, 200);
 
 for(let i=0;i<200;i=i+1) {
-  x[i] = (i-100) / 100;
-  y[i] = x[i] * x[i] * -1;
+  x[i] = i;
+  y[i] = x[i] * x[i];
 }
 
 plot(x, y);
