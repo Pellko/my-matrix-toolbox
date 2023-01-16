@@ -34,7 +34,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
     std::vector<Literal>& literals = callFrames.back().chunk->literals;
     uint8_t instruction = bytecode[position];
 
-    // collectGarbage(); // TODO: move this from here.
+    collectGarbage(); // TODO: move this from here.
 
     switch(instruction) {
       case OP_RETURN: {
@@ -374,7 +374,7 @@ void VirtualMachine::execute(CompilerOutput& output) {
             if(native->owner != nullptr) {
               args.insert(args.begin(), Value::fromObject(native->owner));
             }
-            Value result = fn(this, args);
+            Value result = fn(context, this, args);
             for(int i=0;i<numArgs;i++) {
               valueStack.pop_back();
             }

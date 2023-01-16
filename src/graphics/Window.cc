@@ -10,14 +10,16 @@ static void errorCallback(int error, const char *description) {
 Window::Window(std::string title) : title(title) {}
 Window::~Window() {}
 
-void Window::init() {
+void Window::initGLFW() {
   glfwSetErrorCallback(errorCallback);
 
   if(!glfwInit()) {
     exit(EXIT_FAILURE);
   }
+}
 
-  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);  
+void Window::init() {
+  glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
   int framebufferWidth;
   int framebufferHeight;
@@ -31,6 +33,10 @@ void Window::init() {
   initDefaultRenderpass();
   initFramebuffers();
   initSyncStructures();
+
+  for(std::shared_ptr<Renderable>& renderable : renderables) {
+    renderable->init();
+  }
 }
 
 uint32_t Window::begin() {
@@ -72,6 +78,12 @@ uint32_t Window::begin() {
   vkCmdBeginRenderPass(mainCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
 
   return swapchainImageIndex;
+}
+
+void Window::drawRenderables() {
+  for(std::shared_ptr<Renderable>& renderable : renderables) {
+    renderable->render();
+  }
 }
 
 void Window::end(uint32_t id) {
@@ -329,6 +341,9 @@ void Window::terminate() {
   vkb::destroy_debug_utils_messenger(instance, debugMessenger);
   vkDestroyInstance(instance, nullptr);
   glfwDestroyWindow(window);
+}
+
+void Window::terminateGLFW() {
   glfwTerminate();
 }
 

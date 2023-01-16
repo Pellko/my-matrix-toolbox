@@ -8,7 +8,9 @@
 namespace mymatrixtoolbox {
 
 class VirtualMachine;
-typedef Value (*NativeFunction)(VirtualMachine* vm, std::vector<Value> args);
+class ExecutionContext;
+
+typedef Value (*NativeFunction)(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args);
 
 class ObjectNative : public Object {
  public:

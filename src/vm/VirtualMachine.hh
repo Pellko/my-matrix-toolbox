@@ -13,7 +13,7 @@ namespace mymatrixtoolbox {
 
 class VirtualMachine {
  public:
-  VirtualMachine() {}
+  VirtualMachine(ExecutionContext* context) : context(context) {}
   ~VirtualMachine() {}
 
   void initialize(CompilerOutput& output);
@@ -23,6 +23,7 @@ class VirtualMachine {
 
   Object* allocateObject(ObjectType type);
  private:
+  ExecutionContext* context;
   std::vector<Value> globals;
   std::vector<Value> valueStack;
   std::vector<CallFrame> callFrames;

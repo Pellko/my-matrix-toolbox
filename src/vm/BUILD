@@ -18,5 +18,6 @@ custom_cc_library(
     "//src/types:types",
     "//src/compiler:compiler",
     "//src/math:math",
+    "//src/context:context",
   ],
 )

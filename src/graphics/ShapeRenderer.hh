@@ -6,9 +6,8 @@
 #include <iostream>
 #include "VkUtil.hh"
 #include "Window.hh"
-#include "Polygon.hh"
+#include "Vertex.hh"
 #include "Memory.hh"
-#include "LineSegment.hh"
 #include "DescriptorAllocator.hh"
 #include "DescriptorLayoutCache.hh"
 #include "DescriptorBuilder.hh"
@@ -28,23 +27,22 @@ class ShapeRenderer {
   std::shared_ptr<Window> window;
   VkPipelineLayout polygonPipelineLayout;
   VkPipeline polygonPipeline;
-  VkPipelineLayout linePipelineLayout;
-  VkPipeline linePipeline;
+  // VkPipelineLayout linePipelineLayout;
+  // VkPipeline linePipeline;
   DescriptorAllocator descriptorAllocator;
   DescriptorLayoutCache descriptorLayoutCache;
 
   void initPolygonPipeline();
-  void initLinePipeline();
   void initDescriptors();
 
   VkDescriptorSet cameraSet;
   VkDescriptorSetLayout cameraSetLayout;
   vkmemory::AllocatedBuffer cameraBuffer;
-  Polygon test;
+  PolygonMesh test;
 
-  LineSegment lineSegment;
-  vkmemory::AllocatedBuffer lineInstanceBuffer;
-  std::vector<LineSegmentInstanceData> lineInstanceData;
+  // LineSegment lineSegment;
+  // vkmemory::AllocatedBuffer lineInstanceBuffer;
+  // std::vector<LineSegmentInstanceData> lineInstanceData;
 };
 
 }

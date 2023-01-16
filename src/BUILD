@@ -11,6 +11,7 @@ custom_cc_binary(
     "//src/math:math",
     "//src/stdlib:stdlib",
     "//src/graphics:graphics",
+    "//src/context:context",
   ],
   data = [
     "//examples:examples",

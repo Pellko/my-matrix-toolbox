@@ -5,7 +5,7 @@ namespace mymatrixtoolbox {
 namespace stdlib {
 
 // TODO: There is a eventual GC bug here where temporary matrices can be collected if GC were to be triggered from allocate object
-static Value solve(VirtualMachine* vm, std::vector<Value> args) {
+static Value solve(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args) {
   ObjectMatrix* a = static_cast<ObjectMatrix*>(args[0].as.object);
   ObjectMatrix* b = static_cast<ObjectMatrix*>(args[1].as.object);
 
@@ -18,7 +18,7 @@ static Value solve(VirtualMachine* vm, std::vector<Value> args) {
 }
 
 // TODO: There is a eventual GC bug here where temporary matrices can be collected if GC were to be triggered from allocate object
-static Value eig(VirtualMachine* vm, std::vector<Value> args) {
+static Value eig(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args) {
   ObjectMatrix* a = static_cast<ObjectMatrix*>(args[0].as.object);
   ObjectMatrix* eigenvalues = static_cast<ObjectMatrix*>(vm->allocateObject(ObjectType::MATRIX));
   ObjectMatrix* eigenvectors = static_cast<ObjectMatrix*>(vm->allocateObject(ObjectType::MATRIX));
@@ -33,7 +33,7 @@ static Value eig(VirtualMachine* vm, std::vector<Value> args) {
 }
 
 // TODO: type checking
-static Value zeros(VirtualMachine* vm, std::vector<Value> args) {
+static Value zeros(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args) {
   int width = args[0].as.number;
   int height = args[1].as.number;
   ObjectMatrix* result = static_cast<ObjectMatrix*>(vm->allocateObject(ObjectType::MATRIX));

@@ -23,6 +23,7 @@ custom_cc_library(
     "ObjectNative.hh",
     "ObjectString.hh",
     "OpCode.hh",
+    "SafeQueue.hh",
     "Upvalue.hh",
     "Value.hh",
   ]

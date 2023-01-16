@@ -10,6 +10,7 @@
 #include "vk_mem_alloc.h"
 #include "VkUtil.hh"
 #include "Memory.hh"
+#include "Renderable.hh"
 
 namespace mymatrixtoolbox {
 
@@ -20,6 +21,7 @@ class Window {
 
   void init();
   uint32_t begin();
+  void drawRenderables();
   void end(uint32_t id);
   void terminate();
   bool shouldClose();
@@ -47,6 +49,20 @@ class Window {
   VkCommandBuffer getCommandBuffer() {
     return mainCommandBuffer;
   }
+
+  GLFWwindow* getGlfwHandle() {
+    return window;
+  }
+
+  void addRenderable(std::shared_ptr<Renderable> renderable) {
+    renderables.push_back(renderable);
+    std::sort(renderables.begin(), renderables.end(), [](std::shared_ptr<Renderable> a, std::shared_ptr<Renderable> b) {
+      return a->getZIndex() < b->getZIndex();
+    });
+  }
+
+  static void initGLFW();
+  static void terminateGLFW();
 
   bool loadShaderModule(const char* filePath, VkShaderModule* outShaderModule);
   vkmemory::AllocatedBuffer createBuffer(size_t allocationSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
@@ -79,6 +95,7 @@ class Window {
   VkFence renderFence;
 
   vkutil::DeletionQueue deletionQueue;
+  std::vector<std::shared_ptr<Renderable>> renderables;
 
   void initVulkan();
   void initSwapchain();
