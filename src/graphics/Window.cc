@@ -60,8 +60,9 @@ uint32_t Window::begin() {
   VK_CHECK(vkBeginCommandBuffer(mainCommandBuffer, &cmdBeginInfo));
 
   // Create a renderpass
-  VkClearValue clearValue;
-	clearValue.color = { { 0.0f, 0.0f, 0.0f } };
+  VkClearColorValue clearColor = {{ 28.0f/256.0f, 33.0f/256.0f, 40.0f/256.0f, 1.0f }};
+  VkClearValue clearValue = {};
+	clearValue.color = clearColor;
 
   VkRenderPassBeginInfo rpInfo = {};
   rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -186,6 +187,7 @@ void Window::initSwapchain() {
     .use_default_format_selection()
     .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
     .set_desired_extent(windowExtent.width, windowExtent.height)
+    .set_desired_format(VkSurfaceFormatKHR{.format = VK_FORMAT_B8G8R8A8_UNORM, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
     .build()
     .value();
 
