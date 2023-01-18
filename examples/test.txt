@@ -44,10 +44,4 @@ for(let i=0;i<500;i=i+1) {
 plot(x, y);
 */
 
-fn my_man() {
-  import module
-
-  print(module.a);
-  module.test();
-  return 0;
-}
+import module

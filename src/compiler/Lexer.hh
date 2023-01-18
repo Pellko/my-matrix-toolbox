@@ -55,6 +55,7 @@ class Token {
     CLASS,
     DOT,
     IMPORT,
+    AS,
   };
 
   Kind type;

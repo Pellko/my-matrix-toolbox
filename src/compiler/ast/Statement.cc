@@ -455,25 +455,35 @@ Statement* Statement::parse(ParserTool& parserTool) {
     Token* moduleName = parserTool.get();
     int moduleId = parserTool.registerImport(moduleName->text);
 
+    std::string importAlias = moduleName->text;
+    if(!parserTool.empty() && parserTool.peek()->type == Token::Kind::AS) {
+      parserTool.get();
+      if(parserTool.empty()) {
+        throw new SyntaxException("Expected module alias");
+      }
+      Token* moduleAlias = parserTool.get();
+      importAlias = moduleAlias->text;
+    }
+
     if(parserTool.getScopeLevel() == 0) {
-      auto [_, index] = parserTool.findIdentifier(moduleName->text);
+      auto [_, index] = parserTool.findIdentifier(importAlias);
       if(index != -1) {
         throw new SyntaxException("There is already an identifier with the name of this module");
       }
 
-      int newIndex = parserTool.registerGlobal(moduleName->text);
+      int newIndex = parserTool.registerGlobal(importAlias);
       ImportModuleStatement* node = new ImportModuleStatement(DeclareVariableType::GLOBAL, newIndex, moduleId);
       return node;
     } else {
       // Check that variable name hasnt been declared already in this scope
       for(const Local& local : parserTool.getLocals()) {
-        if(local.depth == parserTool.getScopeLevel() && local.name == moduleName->text) {
+        if(local.depth == parserTool.getScopeLevel() && local.name == importAlias) {
           throw new SyntaxException("There is already an identifier with name of this module in the current scope");
         }
       }
 
       // Register local
-      int newIndex = parserTool.registerLocal(moduleName->text);
+      int newIndex = parserTool.registerLocal(importAlias);
       ImportModuleStatement* node = new ImportModuleStatement(DeclareVariableType::LOCAL, newIndex, moduleId);
       return node;
     }
