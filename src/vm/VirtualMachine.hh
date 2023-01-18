@@ -2,10 +2,12 @@
 #define _MY_MATRIX_TOOLBOX_VM_VIRTUAL_MACHINE_H_
 
 #include "src/compiler/ast/BinaryExpression.hh"
+#include "src/types/Chunk.hh"
 #include "src/types/CompilerOutput.hh"
 #include "src/types/ObjectClosure.hh"
 #include "src/types/ObjectString.hh"
 #include "src/types/ObjectNative.hh"
+#include "src/types/ObjectModule.hh"
 #include "src/types/Value.hh"
 #include "CallFrame.hh"
 
@@ -27,6 +29,7 @@ class VirtualMachine {
   std::vector<Value> globals;
   std::vector<Value> valueStack;
   std::vector<CallFrame> callFrames;
+  std::vector<ObjectModule*> modules;
   std::vector<Object*> objects;
   std::unordered_map<ObjectType, std::unordered_map<std::string, NativeFunction>> nativeObjectMethods;
   ObjectUpvalue* openUpvalues;
@@ -48,6 +51,9 @@ class VirtualMachine {
   void traverseObjectReferences(Object* object);
   void markValue(Value value);
   void markObject(Object* object);
+
+  std::vector<Value>& getGlobalsList();
+  Chunk* getChunk(CompilerOutput& output, int moduleId, int functionIndex);
 
   bool debugGarbageCollector = false;
 };

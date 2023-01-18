@@ -6,9 +6,23 @@
 
 namespace mymatrixtoolbox {
 
+struct ModuleOutput {
+  Chunk root;
+  std::vector<Chunk> functions;
+  std::vector<std::string> globalNames;
+
+  void free() {
+    root.free();
+    for(Chunk& chunk : functions) {
+      chunk.free();
+    }
+  }
+};
+
 struct CompilerOutput {
   Chunk root;
   std::vector<Chunk> functions;
+  std::vector<ModuleOutput> modules;
   int numGlobals;
 
   void free() {

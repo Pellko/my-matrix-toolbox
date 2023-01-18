@@ -200,6 +200,20 @@ int ParserTool::registerUpvalue(std::string name) {
   return resolveUpvalue(compilerScopeTree, name); 
 }
 
+int ParserTool::registerImport(std::string name) {
+  // Check if this module has already been imported
+  for(int i=0;i<imports.size();i++) {
+    std::string& module = imports[i];
+    if(module == name) {
+      return  i;
+    }
+  }
+
+  // Register as a new import
+  imports.push_back(name);
+  return imports.size() - 1;
+}
+
 int ParserTool::resolveUpvalue(CompilerScopeTree* scope, std::string name) {
   int parentDepth = 0;
   if(scope->parent != nullptr) {

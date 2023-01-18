@@ -11,6 +11,8 @@ struct CallFrame {
   int returnAddress;
   Chunk* chunk;
   ObjectClosure* closure;
+  int moduleId = -1;
+  bool hasReturnValue = true;
 };
 
 }

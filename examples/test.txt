@@ -33,14 +33,21 @@ let i = FDM();
 i.init();
 print(i.solve());
 
-*/
+let x = zeros(1, 500);
+let y = zeros(1, 500);
 
-let x = zeros(1, 200);
-let y = zeros(1, 200);
-
-for(let i=0;i<200;i=i+1) {
-  x[i] = i;
-  y[i] = x[i] * x[i];
+for(let i=0;i<500;i=i+1) {
+  x[i] = i + 100;
+  y[i] = sin((x[i]-100) / 20) * 100 + 250;
 }
 
 plot(x, y);
+*/
+
+fn my_man() {
+  import module
+
+  print(module.a);
+  module.test();
+  return 0;
+}

@@ -71,9 +71,14 @@ class ParserTool {
     return globals;
   }
 
+  std::vector<std::string>& getImports() {
+    return imports;
+  }
+
   int registerGlobal(std::string name);
   int registerLocal(std::string name);
   int registerUpvalue(std::string name);
+  int registerImport(std::string name);
 
   void storeLocalsInBlockStatement(BlockStatement* statement);
 
@@ -81,6 +86,7 @@ class ParserTool {
   std::vector<Token>& tokens;
   std::vector<Local> locals;
   std::vector<std::string> globals;
+  std::vector<std::string> imports;
   std::vector<CompilerScope*> functionCompilerScopes;
   CompilerScopeTree* compilerScopeTree = nullptr;
 

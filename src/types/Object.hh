@@ -16,6 +16,7 @@ enum class ObjectType {
   INSTANCE,
   INSTANCE_METHOD,
   MAP,
+  MODULE,
 };
 
 class Object {

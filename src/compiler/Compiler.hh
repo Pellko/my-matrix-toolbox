@@ -24,6 +24,8 @@ class Compiler {
   CompilerScope* rootScope;
 
   void statement();
+  void compileModule(std::string name, CompilerOutput& compilerOutput);
+  std::string readFile(std::string fileName);
 };
 
 }

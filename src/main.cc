@@ -79,6 +79,7 @@
 //   return 0;
 // }
 
+#include <math.h>
 #include "src/context/ExecutionContext.hh"
 #include "src/compiler/Compiler.hh"
 #include "src/compiler/Disassembler.hh"
@@ -101,6 +102,11 @@ std::string read_string_from_file(const std::string &file_path) {
   return buffer.str();
 }
 
+static Value sin(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args) {
+  double input = args[0].as.number;
+  return Value::fromDouble(sin(input));
+}
+
 int main(int argc, char** argv) {
   std::shared_ptr<ExecutionContext> executionContext = std::make_shared<ExecutionContext>();
   
@@ -117,6 +123,7 @@ int main(int argc, char** argv) {
       lexer.lex(tokens);
 
       Compiler compiler(tokens);
+      int SIN_ID = compiler.declareNativeFunction("sin");
       matrixLibrary.registerCompiler(&compiler);
       plotLibrary.registerCompiler(&compiler);
       compiler.compile(output);
@@ -127,6 +134,7 @@ int main(int argc, char** argv) {
       std::cout << "=========== EXECUTING ===========" << std::endl;
       VirtualMachine machine(executionContext.get());
       machine.initialize(output);
+      machine.registerNativeFunction(SIN_ID, &sin);
       matrixLibrary.registerVirtualMachine(&machine);
       plotLibrary.registerVirtualMachine(&machine);
       machine.execute(output);

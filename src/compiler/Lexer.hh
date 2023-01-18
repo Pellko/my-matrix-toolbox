@@ -54,6 +54,7 @@ class Token {
     DBACKSLASH,
     CLASS,
     DOT,
+    IMPORT,
   };
 
   Kind type;

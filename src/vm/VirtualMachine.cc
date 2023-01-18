@@ -18,6 +18,8 @@ namespace mymatrixtoolbox {
 void VirtualMachine::initialize(CompilerOutput& output) {
   globals.clear();
   globals.resize(output.numGlobals);
+  modules.clear();
+  modules.resize(output.modules.size());
   openUpvalues = nullptr;
 
   // Initialize the first call frame
@@ -44,18 +46,23 @@ void VirtualMachine::execute(CompilerOutput& output) {
           return;
         }
 
-        Value result = valueStack.back();
-        valueStack.pop_back();
-
-        // Get current call frame
         CallFrame& callFrame = callFrames.back();
+        Value result = Value::nil();
+
+        if(callFrame.hasReturnValue) {
+          result = valueStack.back();
+          valueStack.pop_back();
+        }
+
         closeUpvalues(callFrame.localsOffset);
 
         while(valueStack.size() > callFrame.localsOffset) {
           valueStack.pop_back();
         }
 
-        valueStack.push_back(result);
+        if(callFrame.hasReturnValue) {
+          valueStack.push_back(result);
+        }
         position = callFrame.returnAddress;
         callFrames.pop_back();
         break;
@@ -127,14 +134,14 @@ void VirtualMachine::execute(CompilerOutput& output) {
         position++;
         auto [offset, size] = readDynamicBytes(bytecode, position);
         Value value = valueStack.back();
-        globals[offset] = value;
+        getGlobalsList()[offset] = value;
         position += size + 1;
         break;
       }
       case OP_READ_GLOBAL: {
         position++;
         auto [offset, size] = readDynamicBytes(bytecode, position);
-        valueStack.push_back(globals[offset]);
+        valueStack.push_back(getGlobalsList()[offset]);
         position += size + 1;
         break;
       }
@@ -186,10 +193,12 @@ void VirtualMachine::execute(CompilerOutput& output) {
 
         ObjectClosure* closure = static_cast<ObjectClosure*>(allocateObject(ObjectType::CLOSURE));
         closure->functionIndex = offset;
+        closure->moduleId = callFrames.back().moduleId;
         closure->name = "temporary function name";
 
-        Chunk& functionChunk = output.functions[offset];
-        int numUpvalues = functionChunk.numUpvalues;
+        Chunk* functionChunk = getChunk(output, callFrames.back().moduleId, offset);
+
+        int numUpvalues = functionChunk->numUpvalues;
 
         for(int i=0;i<numUpvalues;i++) {
           uint8_t isLocal = bytecode[position];
@@ -204,6 +213,37 @@ void VirtualMachine::execute(CompilerOutput& output) {
           }
         }
         valueStack.push_back(Value::fromObject(closure));
+        break;
+      }
+      case OP_MODULE: {
+        position++;
+        auto [offset, size] = readDynamicBytes(bytecode, position);
+        position += size + 1;
+
+        if(modules[offset] != nullptr) {
+          valueStack.push_back(Value::fromObject(modules[offset]));
+        } else {
+          ModuleOutput& moduleOutput = output.modules[offset];
+
+          // Create the module object
+          ObjectModule* module = static_cast<ObjectModule*>(allocateObject(ObjectType::MODULE));
+          for(int i=0;i<moduleOutput.globalNames.size();i++) {
+            module->globals.push_back(Value::nil());
+            module->globalNames[moduleOutput.globalNames[i]] = module->globals.size() - 1;
+          }
+          module->moduleIndex = offset;
+          modules[offset] = module;
+
+          // Initialize the module        
+          callFrames.push_back(CallFrame{
+            .localsOffset = static_cast<int>(valueStack.size()),
+            .returnAddress = position - size - 2, // We got back some instructions => we return at this instruction again after callframe, in which case the module is put on the stack this time!
+            .chunk = &moduleOutput.root,
+            .moduleId = offset,
+            .hasReturnValue = false,
+          });
+          position = 0;
+        }
         break;
       }
       case OP_MATRIX: {
@@ -331,11 +371,15 @@ void VirtualMachine::execute(CompilerOutput& output) {
             }
 
             ObjectClosure* closure = static_cast<ObjectClosure*>(v.as.object);
+
+            Chunk* chunk = getChunk(output, closure->moduleId, closure->functionIndex);
+
             callFrames.push_back(CallFrame{
               .localsOffset = static_cast<int>(valueStack.size() - numArgs),
               .returnAddress = position,
-              .chunk = &output.functions[closure->functionIndex],
+              .chunk = chunk,
               .closure = closure,
+              .moduleId = closure->moduleId,
             });
             position = 0;
             break;
@@ -356,8 +400,9 @@ void VirtualMachine::execute(CompilerOutput& output) {
             callFrames.push_back(CallFrame{
               .localsOffset = localsOffset,
               .returnAddress = position,
-              .chunk = &output.functions[closure->functionIndex],
+              .chunk = getChunk(output, closure->moduleId, closure->functionIndex),
               .closure = closure,
+              .moduleId = closure->moduleId,
             });
             position = 0;
             break;
@@ -421,10 +466,6 @@ void VirtualMachine::execute(CompilerOutput& output) {
         break;
       }
       case OP_JUMP: {
-        bool flag = false;
-        if(position == 33) {
-          flag = true;
-        } 
         position++;
         uint8_t lowByte = bytecode[position];
         position++;
@@ -432,9 +473,6 @@ void VirtualMachine::execute(CompilerOutput& output) {
         int offset = lowByte | (highByte << 8);
         position++;
         position += offset;
-        if(flag) {
-          std::cout << position << std::endl;
-        }
         break;
       }
       case OP_LOOP: {
@@ -511,6 +549,12 @@ void VirtualMachine::execute(CompilerOutput& output) {
             } else {
               valueStack.push_back(Value::nil());
             }
+            break;
+          }
+          case ObjectType::MODULE: {
+            ObjectModule* module = static_cast<ObjectModule*>(target.as.object);
+            int idx = module->globalNames[*name.as.str];
+            valueStack.push_back(module->globals[idx]);
             break;
           }
           default: {
@@ -784,6 +828,11 @@ Object* VirtualMachine::allocateObject(ObjectType type) {
       objects.push_back(obj);
       return obj;
     }
+    case ObjectType::MODULE: {
+      Object* obj = new ObjectModule();
+      objects.push_back(obj);
+      return obj;
+    }
   }
 }
 
@@ -815,6 +864,11 @@ void VirtualMachine::markRoots() {
   // (4) Mark all open upvalues
   for(ObjectUpvalue* upvalue = openUpvalues;upvalue != nullptr;upvalue=upvalue->next) {
     markObject(static_cast<Object*>(upvalue));
+  }
+
+  // (5) Mark all modules
+  for(ObjectModule* module : modules) {
+    markObject(static_cast<Object*>(module));
   }
 }
 
@@ -904,6 +958,13 @@ void VirtualMachine::traverseObjectReferences(Object* object) {
       }
       break;
     }
+    case ObjectType::MODULE: {
+      ObjectModule* module = static_cast<ObjectModule*>(object);
+      for(auto v : module->globals) {
+        markValue(v);
+      }
+      break;
+    }
   }
 }
 
@@ -933,6 +994,23 @@ void VirtualMachine::registerNativeFunction(int index, NativeFunction function) 
 
 void VirtualMachine::registerNativeObjectMethod(ObjectType type, std::string name, NativeFunction function) {
   nativeObjectMethods[type][name] = function;
+}
+
+std::vector<Value>& VirtualMachine::getGlobalsList() {
+  CallFrame& current = callFrames.back();
+  if(current.moduleId == -1) {
+    return globals;
+  } else {
+    return modules[current.moduleId]->globals;
+  }
+}
+
+Chunk* VirtualMachine::getChunk(CompilerOutput& output, int moduleId, int functionIndex) {
+  if(moduleId == -1) {
+    return &output.functions[functionIndex];
+  } else {
+    return &output.modules[moduleId].functions[functionIndex];
+  }
 }
 
 }

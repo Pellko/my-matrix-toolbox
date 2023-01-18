@@ -16,6 +16,19 @@ void Disassembler::disassemble(CompilerOutput& output) {
     disassembleChunk(chunk, output);
     std::cout << std::endl;
   }
+
+  // for(int i=0;i<output.modules.size();i++) {
+  //   std::cout << "Module <" << i << ">" << std::endl;
+  //   disassembleChunk(output.modules[i].root, output);
+  //   std::cout << std::endl;
+
+  //   for(int j=0;j<output.modules[i].functions.size();j++) {
+  //     Chunk& chunk = output.modules[i].functions[j];
+  //     std::cout << "Chunk <" << j+1 << ">:" << std::endl;
+  //     disassembleChunk(chunk, output);
+  //     std::cout << std::endl;
+  //   } 
+  // }
 }
 
 void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
@@ -123,6 +136,9 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
         break;
       case OP_MAP:
         offset = mapInstruction("OP_MAP", offset, chunk);
+        break;
+      case OP_MODULE:
+        offset = setVariable("OP_MODULE", offset, chunk);
         break;
       default:
         std::cout << "Unknown opcode " << instruction << "\n";

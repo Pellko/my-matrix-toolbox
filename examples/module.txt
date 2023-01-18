@@ -1,0 +1,7 @@
+let a = 10;
+
+fn test() {
+  print("This is a test function");
+  a = a + 10;
+  return 0;
+}

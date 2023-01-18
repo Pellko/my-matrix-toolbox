@@ -20,6 +20,7 @@ enum class StatementType {
   IF,
   FOR,
   WHILE,
+  IMPORT_MODULE,
 };
 
 class Statement {

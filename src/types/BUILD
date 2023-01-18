@@ -20,6 +20,7 @@ custom_cc_library(
     "ObjectInstance.hh",
     "ObjectInstanceMethod.hh",
     "ObjectMap.hh",
+    "ObjectModule.hh",
     "ObjectNative.hh",
     "ObjectString.hh",
     "OpCode.hh",
