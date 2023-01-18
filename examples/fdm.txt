@@ -1,23 +1,43 @@
-let numVerticalSteps = 10;
-let output = zeros(31, numVerticalSteps);
-let pi = 3.14159265359;
-let dx = 0.1;
-let dt = 0.0025;
+class FDM {
+  init() {
+    this.dx = 0.1;
+    this.dt = 0.0025;
+    this.pi = 3.14159265359;
+    this.output = zeros(31, 10);
+    return 0;
+  }
 
-let g1 = @(x) => {
-  return x * (pi - x);
-};
+  g1(x) {
+    return x * (this.pi - x);
+  }
 
-for(let x=0;x<31;x=x+1) {
-  output[0, x] = g1(x * dx);
-}
+  solve() {
+    for(let x=0;x<31;x=x+1) {
+      (this.output)[0, x] = this.g1(x * this.dx);
+    }
 
-for(let y=1;y<numVerticalSteps;y=y+1) {
-  for(let x=1;x<30;x=x+1) {
-    let c2 = ((dt)/((dx)*(dx)));
-    let c1 = (1 - 2 * c2);
-    output[y,x] = c1 * output[y-1, x] + c2 * output[y-1, x+1] + c2 * output[y-1, x-1];
+    for(let y=1;y<10;y=y++) {
+      for(let x=1;x<30;x=x++) {
+        let c2 = this.dt / (this.dx*this.dx);
+        let c1 = (1 - 2 * c2);
+        (this.output)[y, x] = c1 * (this.output)[y-1, x] + c2 * (this.output)[y-1, x+1] + c2 * (this.output)[y-1, x-1];
+      }
+    }
+
+    return this.output;
   }
 }
 
-print(output);
+let i = FDM();
+i.init();
+print(i.solve());
+
+let x = zeros(1, 500);
+let y = zeros(1, 500);
+
+for(let i=0;i<500;i=i+1) {
+  x[i] = i + 100;
+  y[i] = sin((x[i]-100) / 20) * 100 + 250;
+}
+
+plot(x, y);
