@@ -44,6 +44,35 @@ Expression* Expression::parse(ParserTool& parserTool) {
     }
   }
 
+  // Incrementor
+  if(parserTool.require(2) && parserTool.peek()->type == Token::Kind::IDENTIFIER && (parserTool.peek(1)->type == Token::Kind::PLUSPLUS || parserTool.peek(1)->type == Token::Kind::MINUSMINUS)) {
+    Token* name = parserTool.get();
+    Token* op = parserTool.get();
+
+    auto [type, index] = parserTool.findIdentifier(name->text);
+    switch(type) {
+      case VarRefType::GLOBAL: {
+        LocalExpression* value = new LocalExpression(VarRefType::GLOBAL, index);
+        IncrementExpression* increment = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, value);
+        AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::GLOBAL, index, false, increment);
+        return node;
+      }
+      case VarRefType::LOCAL: {
+        LocalExpression* value = new LocalExpression(VarRefType::LOCAL, index);
+        IncrementExpression* increment = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, value);
+        AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, index, false, increment);
+        return node;
+      }
+      case VarRefType::UPVALUE: {
+        int upvalueIndex = parserTool.registerUpvalue(name->text);
+        LocalExpression* value = new LocalExpression(VarRefType::LOCAL, index);
+        IncrementExpression* increment = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, value);
+        AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, upvalueIndex, true, increment);
+        return node;
+      }
+    }
+  }
+
   // Lambda function
   if(parserTool.require(1) && parserTool.peek()->type == Token::Kind::AT) {
     parserTool.get();
@@ -130,13 +159,6 @@ Expression* Expression::parse(ParserTool& parserTool) {
     if(op->type == Token::Kind::GEQ) type = BinaryOperation::GREATER_THAN_EQUALS;
 
     BinaryExpression* node = new BinaryExpression(type, expression, rhs);
-    return node;
-  }
-
-  // Incrementor/Decrementor
-  if(parserTool.require(1) && (parserTool.peek()->type == Token::Kind::PLUSPLUS || parserTool.peek()->type == Token::Kind::MINUSMINUS)) {
-    Token* op = parserTool.get();
-    IncrementExpression* node = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, expression);
     return node;
   }
 
