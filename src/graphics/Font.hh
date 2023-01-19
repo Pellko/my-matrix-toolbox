@@ -26,6 +26,14 @@ class Font {
   void init(std::shared_ptr<Window> window);
   void terminate();
   
+  VkImageView getImageView() {
+    return imageView;
+  }
+
+  Character& getCharacter(char c) {
+    return characters[c];
+  }
+
  private:
   FT_Library ft;
   FT_Face face;

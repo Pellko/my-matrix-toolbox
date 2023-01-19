@@ -45,6 +45,8 @@ custom_cc_library(
     "//src/graphics/shaders:polygon_frag",
     "//src/graphics/shaders:line_vert",
     "//src/graphics/shaders:line_frag",
+    "//src/graphics/shaders:text_vert",
+    "//src/graphics/shaders:text_frag",  
     "//assets:fonts",
   ]
 )

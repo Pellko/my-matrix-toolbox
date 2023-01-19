@@ -61,39 +61,37 @@ void Font::init(std::shared_ptr<Window> window) {
         std::cout << "[FreeType]: Failed to load glyph" << std::endl;
         continue;
       }
-
-      uint32_t targetX = x * spriteWidth;
-      uint32_t targetY = y * spriteHeight;
       uint32_t glyphWidth = face->glyph->bitmap.width;
       uint32_t glyphHeight = face->glyph->bitmap.rows;
 
-      for(int i=0;i<spriteHeight;i++) {
-        for(int j=0;j<spriteWidth;j++) {
-          int srcOffset = j + i * spriteWidth;          
-          int dstOffset = (j + targetX) + (i + targetY) * spriteWidth;
+      for(int spriteY=0;spriteY<glyphHeight;spriteY++) {
+        for(int spriteX=0;spriteX<glyphWidth;spriteX++) {
+          int srcOffset = spriteX + spriteY * glyphWidth;
+          if(srcOffset >= glyphWidth * glyphHeight) continue;
 
-          if(srcOffset >= glyphWidth * glyphHeight) {
-            buffer[dstOffset + 0] = 0xFF;
-            buffer[dstOffset + 1] = 0xFF;
-            buffer[dstOffset + 1] = 0xFF;
-            buffer[dstOffset + 1] = 0x00;
-          } else {
-            auto value = face->glyph->bitmap.buffer + srcOffset;
-            buffer[dstOffset + 0] = 0xFF;
-            buffer[dstOffset + 1] = 0xFF;
-            buffer[dstOffset + 1] = 0xFF;
-            buffer[dstOffset + 1] = *value;
-          }
+          uint32_t atlasX = spriteX + x * spriteWidth;
+          uint32_t atlasY = spriteY + y * spriteHeight;
+          uint32_t dstOffset = 4 * (atlasX + atlasY * atlasWidth);
+
+          auto value = face->glyph->bitmap.buffer + srcOffset;
+
+          buffer[dstOffset + 0] = *value;
+          buffer[dstOffset + 1] = *value;
+          buffer[dstOffset + 2] = *value;
+          buffer[dstOffset + 3] = 0xFF;
         }
       }
 
-      // Store reference to glyph
-      characters[glyph] = Character{
-        .offset = { (float) targetX / (float) atlasWidth, (float) targetY / (float) atlasHeight },
-        .size = { (float) face->glyph->metrics.width / (float) atlasWidth, (float) face->glyph->metrics.height / (float) atlasHeight },
-        .advance = static_cast<unsigned int>(face->glyph->advance.x),
-        .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top },
-      };
+    // Store reference to glyph
+    uint32_t atlasX = x * spriteWidth;
+    uint32_t atlasY = y * spriteHeight;
+
+    characters[glyph] = Character{
+      .offset = { (float) atlasX / (float) atlasWidth, (float) atlasY / (float) atlasHeight },
+      .size = { (float) glyphWidth / (float) atlasWidth, (float) glyphHeight / (float) atlasHeight },
+      .advance = static_cast<unsigned int>(face->glyph->advance.x),
+      .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top },
+    };
     }
   }
 

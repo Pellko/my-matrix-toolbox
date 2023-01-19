@@ -17,7 +17,27 @@ DescriptorBuilder& DescriptorBuilder::bindBuffer(uint32_t binding, VkDescriptorB
   bindingInfo.pImmutableSamplers = nullptr;
   bindingInfo.stageFlags = stageFlags;
   bindingInfo.binding = binding;
+  bindings.push_back(bindingInfo);
 
+  VkWriteDescriptorSet write = {};
+  write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+  write.pNext = nullptr;
+  write.descriptorCount = 1;
+  write.descriptorType = type;
+  write.pBufferInfo = bufferInfo;
+  write.dstBinding = binding;
+  writes.push_back(write);
+
+  return *this;
+}
+
+DescriptorBuilder& DescriptorBuilder::bindImage(uint32_t binding, VkDescriptorImageInfo* imageInfo, VkDescriptorType type, VkShaderStageFlags stageFlags) {
+  VkDescriptorSetLayoutBinding bindingInfo = {};
+  bindingInfo.descriptorCount = 1;
+  bindingInfo.descriptorType = type;
+  bindingInfo.pImmutableSamplers = nullptr;
+  bindingInfo.stageFlags = stageFlags;
+  bindingInfo.binding = binding;
   bindings.push_back(bindingInfo);
 
   VkWriteDescriptorSet write = {};
@@ -26,10 +46,10 @@ DescriptorBuilder& DescriptorBuilder::bindBuffer(uint32_t binding, VkDescriptorB
 
   write.descriptorCount = 1;
   write.descriptorType = type;
-  write.pBufferInfo = bufferInfo;
+  write.pImageInfo = imageInfo;
   write.dstBinding = binding;
-
   writes.push_back(write);
+
   return *this;
 }
 

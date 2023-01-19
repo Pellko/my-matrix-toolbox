@@ -2,6 +2,7 @@
 #define _MY_MATRIX_TOOLBOX_GRAPHICS_FONT_RENDERER_H_
 
 #include <vulkan/vulkan.hpp>
+#include "DescriptorBuilder.hh"
 #include "Renderable.hh"
 #include "Window.hh"
 #include "Vertex.hh"
@@ -16,21 +17,22 @@ class FontRenderer : public Renderable {
 
   void init() override;
   void render() override;
-  void terminate();
 
  private:
   std::shared_ptr<Window> window;
   VkPipelineLayout pipelineLayout;
   VkPipeline pipeline;
+  VkSampler textureSampler;
   vkmemory::AllocatedBuffer cameraBuffer;
   VkDescriptorSet cameraSet;
   VkDescriptorSetLayout cameraSetLayout;
   FontMesh fontMesh;
   Font font;
 
-  // void initDescriptors();
-  // void initPipeline();
-  // void initMesh();
+  void initSampler();
+  void initDescriptors();
+  void initPipeline();
+  void initMesh();
 };
 
 }

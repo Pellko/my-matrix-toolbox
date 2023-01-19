@@ -22,3 +22,12 @@ glsl_library(
   shader = "line.frag"
 )
 
+glsl_library(
+  name = "text_vert",
+  shader = "text.vert",
+)
+
+glsl_library(
+  name = "text_frag",
+  shader = "text.frag",
+)
