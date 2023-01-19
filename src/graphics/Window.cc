@@ -1,4 +1,5 @@
 #include "Window.hh"
+#include "src/graphics/VkUtil.hh"
 
 namespace mymatrixtoolbox {
 
@@ -200,6 +201,7 @@ void Window::initSwapchain() {
 }
 
 void Window::initCommands() {
+  // Initialize graphics command buffer
   VkCommandPoolCreateInfo commandPoolInfo = vkutil::commandPoolCreateInfo(graphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
   VK_CHECK(vkCreateCommandPool(device, &commandPoolInfo, nullptr, &commandPool));
 
@@ -208,6 +210,17 @@ void Window::initCommands() {
 
   deletionQueue.push_function([=]() {
     vkDestroyCommandPool(device, commandPool, nullptr);
+  });
+
+  // Initialize immediate commad buffer
+  VkCommandPoolCreateInfo uploadContextPoolInfo = vkutil::commandPoolCreateInfo(graphicsQueueFamily, VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
+  VK_CHECK(vkCreateCommandPool(device, &uploadContextPoolInfo, nullptr, &uploadContext.commandPool));
+
+  VkCommandBufferAllocateInfo uploadContextCmdAllocInfo = vkutil::commandBufferAllocateInfo(uploadContext.commandPool, 1, VK_COMMAND_BUFFER_LEVEL_PRIMARY);
+  VK_CHECK(vkAllocateCommandBuffers(device, &uploadContextCmdAllocInfo, &uploadContext.commandBuffer));
+
+  deletionQueue.push_function([=]() {
+    vkDestroyCommandPool(device, uploadContext.commandPool, nullptr);
   });
 }
 
@@ -268,10 +281,7 @@ void Window::initFramebuffers() {
 }
 
 void Window::initSyncStructures() {
-  VkFenceCreateInfo fenceCreateInfo = {};
-  fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-  fenceCreateInfo.pNext = nullptr;
-  fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+  VkFenceCreateInfo fenceCreateInfo = vkutil::fenceCreateInfo(VK_FENCE_CREATE_SIGNALED_BIT);
   VK_CHECK(vkCreateFence(device, &fenceCreateInfo, nullptr, &renderFence));
 
   VkSemaphoreCreateInfo semaphoreCreateInfo = {};
@@ -282,10 +292,30 @@ void Window::initSyncStructures() {
   VK_CHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &presentSemaphore));
   VK_CHECK(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &renderSemaphore));
 
+  VkFenceCreateInfo uploadFenceInfo = vkutil::fenceCreateInfo();
+  VK_CHECK(vkCreateFence(device, &uploadFenceInfo, nullptr, &uploadContext.fence));
+
   deletionQueue.push_function([=]() {
+    vkDestroyFence(device, uploadContext.fence, nullptr);
     vkDestroySemaphore(device, presentSemaphore, nullptr);
     vkDestroySemaphore(device, renderSemaphore, nullptr);
+    vkDestroyFence(device, renderFence, nullptr);
   });
+}
+
+void Window::immediateSubmit(std::function<void (VkCommandBuffer cmd)>&& function) {
+  VkCommandBuffer cmd = uploadContext.commandBuffer;
+  VkCommandBufferBeginInfo cmdBeginInfo = vkutil::commandBufferBeginInfo(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+  VK_CHECK(vkBeginCommandBuffer(cmd, &cmdBeginInfo));
+  function(cmd);
+  VK_CHECK(vkEndCommandBuffer(cmd));
+
+  VkSubmitInfo submitInfo = vkutil::submitInfo(&cmd);
+  VK_CHECK(vkQueueSubmit(graphicsQueue, 1, &submitInfo, uploadContext.fence));
+
+  vkWaitForFences(device, 1, &uploadContext.fence, true, 9999999999);
+  vkResetFences(device, 1, &uploadContext.fence);
+  vkResetCommandPool(device, uploadContext.commandPool, 0);
 }
 
 bool Window::loadShaderModule(const char* filePath, VkShaderModule* outShaderModule) {

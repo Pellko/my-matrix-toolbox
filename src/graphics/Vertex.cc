@@ -43,26 +43,6 @@ vkutil::VertexInputDescription PolygonVertex::getVertexDescription() {
   return description;
 }
 
-void PolygonMesh::upload(std::shared_ptr<Window> window) {
-  VkBufferCreateInfo bufferInfo = {};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = vertices.size() * sizeof(PolygonVertex);
-  bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-  
-  VmaAllocationCreateInfo vmaallocInfo = {};
-  vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-  VK_CHECK(vmaCreateBuffer(window->getAllocator(), &bufferInfo, &vmaallocInfo, &vertexBuffer.buffer, &vertexBuffer.allocation, nullptr));
-
-  window->getDeletionQueue().push_function([=]() {
-    vmaDestroyBuffer(window->getAllocator(), vertexBuffer.buffer, vertexBuffer.allocation);
-  });
-
-  void* data;
-  vmaMapMemory(window->getAllocator(), vertexBuffer.allocation, &data);
-  memcpy(data, vertices.data(), vertices.size() * sizeof(PolygonVertex));
-  vmaUnmapMemory(window->getAllocator(), vertexBuffer.allocation);
-}
-
 vkutil::VertexInputDescription LineVertex::getVertexDescription() {
   vkutil::VertexInputDescription description;
 
@@ -103,44 +83,31 @@ vkutil::VertexInputDescription LineVertex::getVertexDescription() {
   return description;
 }
 
-void LineMesh::upload(std::shared_ptr<Window> window) {
-  VkBufferCreateInfo bufferInfo = {};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = vertices.size() * sizeof(LineVertex);
-  bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+vkutil::VertexInputDescription FontVertex::getVertexDescription() {
+  vkutil::VertexInputDescription description;
 
-  VmaAllocationCreateInfo vmaallocInfo = {};
-  vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-  VK_CHECK(vmaCreateBuffer(window->getAllocator(), &bufferInfo, &vmaallocInfo, &vertexBuffer.buffer, &vertexBuffer.allocation, nullptr));
+  VkVertexInputBindingDescription mainBinding = {};
+  mainBinding.binding = 0;
+  mainBinding.stride = sizeof(FontVertex);
+  mainBinding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+  description.bindings.push_back(mainBinding);
 
-  window->getDeletionQueue().push_function([=]() {
-    vmaDestroyBuffer(window->getAllocator(), vertexBuffer.buffer, vertexBuffer.allocation);
-  });
+  VkVertexInputAttributeDescription positionAttribute = {};
+  positionAttribute.binding = 0;
+  positionAttribute.location = 0;
+  positionAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+  positionAttribute.offset = offsetof(FontVertex, position);
 
-  void* data;
-  vmaMapMemory(window->getAllocator(), vertexBuffer.allocation, &data);
-  memcpy(data, vertices.data(), vertices.size() * sizeof(LineVertex));
-  vmaUnmapMemory(window->getAllocator(), vertexBuffer.allocation);
-}
+  VkVertexInputAttributeDescription uvAttribute = {};
+  uvAttribute.binding = 0;
+  uvAttribute.location = 1;
+  uvAttribute.format = VK_FORMAT_R32G32_SFLOAT;
+  uvAttribute.offset = offsetof(FontVertex, uv);
 
-void LineInstanceBuffer::upload(std::shared_ptr<Window> window) {
-  VkBufferCreateInfo bufferInfo = {};
-  bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-  bufferInfo.size = instances.size() * sizeof(LineInstance);
-  bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+  description.attributes.push_back(positionAttribute);
+  description.attributes.push_back(uvAttribute);
 
-  VmaAllocationCreateInfo vmaallocInfo = {};
-  vmaallocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-  VK_CHECK(vmaCreateBuffer(window->getAllocator(), &bufferInfo, &vmaallocInfo, &instanceBuffer.buffer, &instanceBuffer.allocation, nullptr));
-
-  window->getDeletionQueue().push_function([=]() {
-    vmaDestroyBuffer(window->getAllocator(), instanceBuffer.buffer, instanceBuffer.allocation);
-  });
-
-  void* data;
-  vmaMapMemory(window->getAllocator(), instanceBuffer.allocation, &data);
-  memcpy(data, instances.data(), instances.size() * sizeof(LineInstance));
-  vmaUnmapMemory(window->getAllocator(), instanceBuffer.allocation);
+  return description;
 }
 
 }

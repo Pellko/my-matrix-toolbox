@@ -35,6 +35,38 @@ new_git_repository(
   build_file = "@//third_party:glm.BUILD",
 )
 
+# FreeType Library
+new_git_repository(
+  name = "freetype",
+  remote = "https://gitlab.freedesktop.org/freetype/freetype.git",
+  commit = "e8ebfe988b5f57bfb9a3ecb13c70d9791bce9ecf",
+  build_file = "@//third_party:freetype.BUILD",
+)
+
+# PNG Library
+new_git_repository(
+  name = "png",
+  remote = "https://github.com/glennrp/libpng.git",
+  commit = "07b8803110da160b158ebfef872627da6c85cbdf",
+  build_file = "@//third_party:png.BUILD",
+)
+
+# BZip2 Library
+new_git_repository(
+  name = "bzip2",
+  remote = "https://gitlab.com/bzip2/bzip2.git",
+  commit = "2d8393924b9f3e014000c7420c7da7c3ddb74e2c",
+  build_file = "@//third_party:bzip2.BUILD",
+)
+
+# ZLib Library
+new_git_repository(
+  name = "zlib",
+  remote = "https://github.com/madler/zlib.git",
+  commit = "04f42ceca40f73e2978b50e93806c2a18c1281fc",
+  build_file = "@//third_party:zlib.BUILD",
+)
+
 # Compilation database tooling
 http_archive(
   name = "hedron_compile_commands",

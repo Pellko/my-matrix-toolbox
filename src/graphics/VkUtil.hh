@@ -29,6 +29,11 @@ VkPipelineRasterizationStateCreateInfo rasterizationStateCreateInfo(VkPolygonMod
 VkPipelineMultisampleStateCreateInfo multisamplingStateCreateInfo();
 VkPipelineColorBlendAttachmentState colorBlendAttachmentState();
 VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo();
+VkFenceCreateInfo fenceCreateInfo(VkFenceCreateFlags flags = 0);
+VkCommandBufferBeginInfo commandBufferBeginInfo(VkCommandBufferUsageFlags flags = 0);
+VkSubmitInfo submitInfo(VkCommandBuffer* cmd);
+VkImageCreateInfo imageCreateInfo(VkFormat format, VkImageUsageFlags flags, VkExtent3D extent);
+VkImageViewCreateInfo imageViewCreateInfo(VkFormat format, VkImage image, VkImageAspectFlags aspectFlags);
 
 class PipelineBuilder {
  public:
@@ -64,6 +69,12 @@ struct VertexInputDescription {
   std::vector<VkVertexInputBindingDescription> bindings;
   std::vector<VkVertexInputAttributeDescription> attributes;
   VkPipelineVertexInputStateCreateFlags flags = 0;
+};
+
+struct UploadContext {
+	VkFence fence;
+	VkCommandPool commandPool;
+	VkCommandBuffer commandBuffer;
 };
 
 }

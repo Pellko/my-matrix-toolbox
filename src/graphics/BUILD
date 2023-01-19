@@ -8,6 +8,8 @@ custom_cc_library(
     "DescriptorAllocator.cc",
     "DescriptorBuilder.cc",
     "DescriptorLayoutCache.cc",
+    "Font.cc",
+    "FontRenderer.cc",
     "LineRenderer.cc",
     "Memory.cc",
     "Renderable.cc",
@@ -20,6 +22,8 @@ custom_cc_library(
     "DescriptorAllocator.hh",
     "DescriptorBuilder.hh",
     "DescriptorLayoutCache.hh",
+    "Font.hh",
+    "FontRenderer.hh",
     "LineRenderer.hh",
     "Memory.hh",
     "Renderable.hh",
@@ -33,6 +37,7 @@ custom_cc_library(
     "@vkbootstrap//:vkbootstrap",
     "@vma//:vma",
     "@glm//:glm",
+    "@freetype//:freetype",
     "//bazel:vulkan",
   ],
   data  =[
@@ -40,5 +45,6 @@ custom_cc_library(
     "//src/graphics/shaders:polygon_frag",
     "//src/graphics/shaders:line_vert",
     "//src/graphics/shaders:line_frag",
+    "//assets:fonts",
   ]
 )

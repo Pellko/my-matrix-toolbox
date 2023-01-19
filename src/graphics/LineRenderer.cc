@@ -1,5 +1,4 @@
 #include "LineRenderer.hh"
-#include "src/graphics/VkUtil.hh"
 
 namespace mymatrixtoolbox {
 
@@ -45,6 +44,10 @@ void LineRenderer::initDescriptors() {
   DescriptorBuilder::begin(window, &window->getDescriptorLayoutCache(), &window->getDescriptorAllocator())
     .bindBuffer(0, &bufferInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
     .build(cameraSet, cameraSetLayout);
+
+  window->getDeletionQueue().push_function([=]() {
+    vmaDestroyBuffer(window->getAllocator(), cameraBuffer.buffer, cameraBuffer.allocation);
+  });
 }
 
 void LineRenderer::initPipeline() {
@@ -116,11 +119,11 @@ void LineRenderer::initMesh() {
   lineMesh.vertices[3].position = {0, -0.5f};
   lineMesh.vertices[4].position = {1, 0.5f};
   lineMesh.vertices[5].position = {0, 0.5f};
-  lineMesh.upload(window);
+  vertex::uploadMesh<LineVertex>(window, lineMesh.vertices, &lineMesh.vertexBuffer);
 }
 
 void LineRenderer::initInstances() {
-  lineInstanceBuffer.upload(window);
+  vertex::uploadMesh<LineInstance>(window, lineInstanceBuffer.instances, &lineInstanceBuffer.instanceBuffer);
 }
 
 }

@@ -74,6 +74,7 @@ class Window {
   static void initGLFW();
   static void terminateGLFW();
 
+  void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
   bool loadShaderModule(const char* filePath, VkShaderModule* outShaderModule);
   vkmemory::AllocatedBuffer createBuffer(size_t allocationSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 
@@ -104,6 +105,7 @@ class Window {
   VkSemaphore renderSemaphore;
   VkFence renderFence;
 
+  vkutil::UploadContext uploadContext;
   vkutil::DeletionQueue deletionQueue;
   DescriptorAllocator descriptorAllocator;
   DescriptorLayoutCache descriptorLayoutCache;
