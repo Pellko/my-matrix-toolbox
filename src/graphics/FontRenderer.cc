@@ -136,7 +136,7 @@ void FontRenderer::initPipeline() {
 }
 
 void FontRenderer::initMesh() {
-  drawString("hejsan min broder", 100, 100);
+  drawString("My Matrix Toolbox is awesome!", 100, 100);
   vertex::uploadMesh<FontVertex>(window, fontMesh.vertices, &fontMesh.vertexBuffer);
 }
 

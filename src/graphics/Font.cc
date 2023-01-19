@@ -19,7 +19,7 @@ void Font::init(std::shared_ptr<Window> window) {
   }
 
   characters.resize(128);
-  FT_Set_Pixel_Sizes(face, 0, 48);
+  FT_Set_Pixel_Sizes(face, 0, 24);
 
   const uint32_t ATLAS_WIDTH = 2048;
 
