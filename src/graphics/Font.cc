@@ -82,16 +82,17 @@ void Font::init(std::shared_ptr<Window> window) {
         }
       }
 
-    // Store reference to glyph
-    uint32_t atlasX = x * spriteWidth;
-    uint32_t atlasY = y * spriteHeight;
+      // Store reference to glyph
+      uint32_t atlasX = x * spriteWidth;
+      uint32_t atlasY = y * spriteHeight;
 
-    characters[glyph] = Character{
-      .offset = { (float) atlasX / (float) atlasWidth, (float) atlasY / (float) atlasHeight },
-      .size = { (float) glyphWidth / (float) atlasWidth, (float) glyphHeight / (float) atlasHeight },
-      .advance = static_cast<unsigned int>(face->glyph->advance.x),
-      .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top },
-    };
+      characters[glyph] = Character{
+        .offset = { (float) atlasX / (float) atlasWidth, (float) atlasY / (float) atlasHeight },
+        .size = { (float) glyphWidth / (float) atlasWidth, (float) glyphHeight / (float) atlasHeight },
+        .pixelSize = {face->glyph->bitmap.width, face->glyph->bitmap.rows},
+        .advance = static_cast<unsigned int>(face->glyph->advance.x),
+        .bearing = { face->glyph->bitmap_left, face->glyph->bitmap_top },
+      };
     }
   }
 

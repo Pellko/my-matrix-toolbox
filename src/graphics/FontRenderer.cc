@@ -1,4 +1,5 @@
 #include "FontRenderer.hh"
+#include "src/graphics/Vertex.hh"
 
 namespace mymatrixtoolbox {
 
@@ -135,37 +136,55 @@ void FontRenderer::initPipeline() {
 }
 
 void FontRenderer::initMesh() {
-  int x = 0;
-  int y = 0;
-  int width = 20;
-  int height = 20;
+  drawString("hejsan min broder", 100, 100);
+  vertex::uploadMesh<FontVertex>(window, fontMesh.vertices, &fontMesh.vertexBuffer);
+}
 
-  Character& character = font.getCharacter('a');
+void FontRenderer::drawString(std::string str, int x, int y) {
+  int currX = x;
+  for(const char c : str) {
+    Character& character = font.getCharacter(c);
+    addCharacter(c, currX + character.bearing.x, y - character.bearing.y, character.pixelSize.x, character.pixelSize.y);
+    currX += character.advance >> 6;
+  }
+}
+
+void FontRenderer::addCharacter(char c, int x, int y, int width, int height) {
+  Character& character = font.getCharacter(c);
   float xs = character.offset.x;
   float xe = character.offset.x + character.size.x;
   float ys = character.offset.y;
   float ye = character.offset.y + character.size.y;
 
-  fontMesh.vertices.resize(6);
-  fontMesh.vertices[0].position = {x, y};
-  fontMesh.vertices[0].uv = {xs, ys};
+  fontMesh.vertices.push_back(FontVertex{
+    .position = {x, y},
+    .uv = {xs, ys}
+  });
 
-  fontMesh.vertices[1].position = {x+width, y};
-  fontMesh.vertices[1].uv = {xe, ys};
+  fontMesh.vertices.push_back(FontVertex{
+    .position = {x+width, y},
+    .uv = {xe, ys}
+  });
 
-  fontMesh.vertices[2].position = {x+width, y+height};
-  fontMesh.vertices[2].uv = {xe, ye};
+  fontMesh.vertices.push_back(FontVertex{
+    .position = {x+width, y+height},
+    .uv = {xe, ye}
+  });
 
-  fontMesh.vertices[3].position = {x+width, y+height};
-  fontMesh.vertices[3].uv = {xe, ye};
+  fontMesh.vertices.push_back(FontVertex{
+    .position = {x+width, y+height},
+    .uv = {xe, ye}
+  });
 
-  fontMesh.vertices[4].position = {x, y+height};
-  fontMesh.vertices[4].uv = {xs, ye};
+  fontMesh.vertices.push_back(FontVertex{
+    .position = {x, y+height},
+    .uv = {xs, ye}
+  });
 
-  fontMesh.vertices[5].position = {x, y};
-  fontMesh.vertices[5].uv = {xs, ys};
-  
-  vertex::uploadMesh<FontVertex>(window, fontMesh.vertices, &fontMesh.vertexBuffer);
+  fontMesh.vertices.push_back(FontVertex{
+    .position = {x, y},
+    .uv = {xs, ys}
+  });
 }
 
 } 

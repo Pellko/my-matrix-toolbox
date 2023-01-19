@@ -14,6 +14,7 @@ namespace mymatrixtoolbox {
 struct Character {
   glm::vec2 offset;
   glm::vec2 size;
+  glm::ivec2 pixelSize;
   glm::ivec2 bearing;
   unsigned int advance;
 };

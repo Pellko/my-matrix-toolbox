@@ -33,6 +33,10 @@ class FontRenderer : public Renderable {
   void initDescriptors();
   void initPipeline();
   void initMesh();
+
+  void addCharacter(char c, int x, int y, int width, int height);
+  void drawString(std::string str, int x, int y);
+
 };
 
 }

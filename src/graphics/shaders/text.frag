@@ -6,5 +6,9 @@ layout (location = 0) out vec4 outFragColor;
 layout(binding = 1) uniform sampler2D textureSampler;
 
 void main() {
-  outFragColor = texture(textureSampler, inUv);
+  if(texture(textureSampler, inUv) == vec4(0,0,0,1)) {
+    discard;
+  } else {
+    outFragColor = texture(textureSampler, inUv);
+  }
 }
