@@ -110,16 +110,6 @@ void FontRenderer::initPipeline() {
   pipelineBuilder.vertexInputInfo.pVertexBindingDescriptions = vertexDescription.bindings.data();
   pipelineBuilder.vertexInputInfo.vertexBindingDescriptionCount = vertexDescription.bindings.size();
   
-  pipelineBuilder.viewport.x = 0.0f;
-	pipelineBuilder.viewport.y = 0.0f;
-	pipelineBuilder.viewport.width = (float) window->getExtent().width;
-	pipelineBuilder.viewport.height = (float) window->getExtent().height;
-	pipelineBuilder.viewport.minDepth = 0.0f;
-	pipelineBuilder.viewport.maxDepth = 1.0f;
-
-  pipelineBuilder.scissor.offset = { 0, 0 };
-	pipelineBuilder.scissor.extent = window->getExtent();
-
   pipelineBuilder.rasterizer = vkutil::rasterizationStateCreateInfo(VK_POLYGON_MODE_FILL);
   pipelineBuilder.multisampling = vkutil::multisamplingStateCreateInfo();
   pipelineBuilder.colorBlendAttachment = vkutil::colorBlendAttachmentState();
@@ -136,7 +126,7 @@ void FontRenderer::initPipeline() {
 }
 
 void FontRenderer::initMesh() {
-  drawString("My Matrix Toolbox is awesome!", 100, 100);
+  drawString("My Matrix Toolbox is awesome!", 0, 50);
   vertex::uploadMesh<FontVertex>(window, fontMesh.vertices, &fontMesh.vertexBuffer);
 }
 

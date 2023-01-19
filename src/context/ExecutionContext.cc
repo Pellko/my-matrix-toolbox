@@ -13,6 +13,7 @@ void ExecutionContext::launch(std::function<void()> executionMain) {
     executionMain();
     markExecutionFinished();
   });
+  executionThread.detach();
 
   while(!(isExecutionFinished() && shouldClose())) {
     auto windowReq = windowRequests.pop();
@@ -24,6 +25,7 @@ void ExecutionContext::launch(std::function<void()> executionMain) {
 
     for(std::shared_ptr<Window>& window : windows) {
       uint32_t id = window->begin();
+      if(id == -1) continue;
       window->drawRenderables();
       window->end(id);
     }

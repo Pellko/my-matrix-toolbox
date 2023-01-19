@@ -7,6 +7,11 @@ static void errorCallback(int error, const char *description) {
 	fprintf(stderr, "GLFW error %d: %s\n", error, description);
 }
 
+static void resizeCallback(GLFWwindow* window, int width, int height) {
+  auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+  app->markResized();
+}
+
 Window::Window(std::string title) : title(title), descriptorAllocator(this), descriptorLayoutCache(this) {}
 Window::~Window() {}
 
@@ -20,7 +25,10 @@ void Window::initGLFW() {
 
 void Window::init() {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+  window = glfwCreateWindow(800, 600, title.c_str(), nullptr, nullptr);
+  glfwSetWindowUserPointer(window, this);
+  glfwSetFramebufferSizeCallback(window, resizeCallback);
+
   int framebufferWidth;
   int framebufferHeight;
   glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
@@ -39,16 +47,40 @@ void Window::init() {
   }
 }
 
+void Window::recreateSwapchain() {
+  int width = 0;
+  int height = 0;
+  glfwGetFramebufferSize(window, &width, &height);
+  while (width == 0 || height == 0) {
+    glfwGetFramebufferSize(window, &width, &height);
+    glfwWaitEvents();
+  }
+  vkDeviceWaitIdle(device);
+  windowExtent.width = width;
+  windowExtent.height = height;
+  vkDeviceWaitIdle(device);
+  terminateSwapchain();
+  initSwapchain();
+  initFramebuffers();
+}
+
 uint32_t Window::begin() {
   glfwPollEvents();
 
   // Wait for previous frame
   VK_CHECK(vkWaitForFences(device, 1, &renderFence, true, 1000000000));
-  VK_CHECK(vkResetFences(device, 1, &renderFence));
 
   // Aquire next image to render to
   uint32_t swapchainImageIndex;
-  VK_CHECK(vkAcquireNextImageKHR(device, swapchain, 1000000000, presentSemaphore, nullptr, &swapchainImageIndex));
+  VkResult result = vkAcquireNextImageKHR(device, swapchain, 1000000000, presentSemaphore, nullptr, &swapchainImageIndex);
+  if(result == VK_ERROR_OUT_OF_DATE_KHR) {
+    recreateSwapchain();
+    return -1;
+  } else if(result != VK_SUCCESS  && result != VK_SUBOPTIMAL_KHR) {
+    std::cout << "Detected Vulkan error: " << result << std::endl;
+    abort();
+  }
+  VK_CHECK(vkResetFences(device, 1, &renderFence));
 
   // Initialize new command buffer
   VK_CHECK(vkResetCommandBuffer(mainCommandBuffer, 0));
@@ -77,6 +109,21 @@ uint32_t Window::begin() {
   rpInfo.pClearValues = &clearValue;
 
   vkCmdBeginRenderPass(mainCommandBuffer, &rpInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+  // Bind scissor and viewport
+  VkViewport viewport = {};
+  viewport.x = 0;
+  viewport.y = 0;
+  viewport.width = (float) windowExtent.width;
+  viewport.height = (float) windowExtent.height;
+  viewport.minDepth = 0.0f;
+  viewport.maxDepth = 1.0f;
+  vkCmdSetViewport(mainCommandBuffer, 0, 1, &viewport);
+
+  VkRect2D scissor = {};
+  scissor.offset = {0, 0};
+  scissor.extent = windowExtent;
+  vkCmdSetScissor(mainCommandBuffer, 0, 1, &scissor);
 
   return swapchainImageIndex;
 }
@@ -121,7 +168,14 @@ void Window::end(uint32_t id) {
 
   presentInfo.pImageIndices = &id;
   
-  VK_CHECK(vkQueuePresentKHR(graphicsQueue, &presentInfo));
+  VkResult result = vkQueuePresentKHR(graphicsQueue, &presentInfo);
+  if(result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+    framebufferResized = false;
+    recreateSwapchain();
+  } else if(result != VK_SUCCESS) {
+    std::cout << "Detected Vulkan error: " << result << std::endl;
+    abort();
+  }
 }
 
 void Window::initVulkan() {
@@ -195,9 +249,6 @@ void Window::initSwapchain() {
   swapchainImages = vkbSwapchain.get_images().value();
   swapchainImageViews = vkbSwapchain.get_image_views().value();
   swapchainImageFormat = vkbSwapchain.image_format;
-  deletionQueue.push_function([=]() {
-    vkDestroySwapchainKHR(device, swapchain, nullptr);
-  });
 }
 
 void Window::initCommands() {
@@ -272,11 +323,6 @@ void Window::initFramebuffers() {
   for(int i=0;i<swapchainImageCount;i++) {
     frameBufferInfo.pAttachments = &swapchainImageViews[i];
     VK_CHECK(vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &framebuffers[i]));
-
-    deletionQueue.push_function([=]() {
-      vkDestroyFramebuffer(device, framebuffers[i], nullptr);
-      vkDestroyImageView(device, swapchainImageViews[i], nullptr);
-    });
   }
 }
 
@@ -365,6 +411,7 @@ vkmemory::AllocatedBuffer Window::createBuffer(size_t allocationSize, VkBufferUs
 
 void Window::terminate() {
   vkWaitForFences(device, 1, &renderFence, true, 1000000000);
+  terminateSwapchain();
   descriptorLayoutCache.terminate();
   descriptorAllocator.terminate();
   deletionQueue.flush();
@@ -376,12 +423,28 @@ void Window::terminate() {
   glfwDestroyWindow(window);
 }
 
+void Window::terminateSwapchain() {
+  for(auto framebuffer : framebuffers) {
+    vkDestroyFramebuffer(device, framebuffer, nullptr);
+  }
+
+  for(auto imageView : swapchainImageViews) {
+    vkDestroyImageView(device, imageView, nullptr);
+  }
+
+  vkDestroySwapchainKHR(device, swapchain, nullptr);
+}
+
 void Window::terminateGLFW() {
   glfwTerminate();
 }
 
 bool Window::shouldClose() {
   return glfwWindowShouldClose(window);
+}
+
+void Window::markResized() {
+  framebufferResized = true;
 }
 
 }

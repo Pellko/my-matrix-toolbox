@@ -168,11 +168,6 @@ VkPipeline PipelineBuilder::build(VkDevice device, VkRenderPass renderPass) {
   viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
   viewportState.pNext = nullptr;
 
-  viewportState.viewportCount = 1;
-  viewportState.pViewports = &viewport;
-  viewportState.scissorCount = 1;
-  viewportState.pScissors = &scissor;
-
   VkPipelineColorBlendStateCreateInfo colorBlending = {};
   colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
   colorBlending.pNext = nullptr;

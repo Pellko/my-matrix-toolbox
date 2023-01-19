@@ -27,6 +27,7 @@ class Window {
   void end(uint32_t id);
   void terminate();
   bool shouldClose();
+  void markResized();
 
   VmaAllocator getAllocator() {
     return allocator;
@@ -79,8 +80,6 @@ class Window {
   vkmemory::AllocatedBuffer createBuffer(size_t allocationSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 
  private:
-  int width = 800;
-  int height = 600;
   VkExtent2D windowExtent = {0, 0};
   std::string title;
   GLFWwindow* window;
@@ -104,6 +103,7 @@ class Window {
   VkSemaphore presentSemaphore;
   VkSemaphore renderSemaphore;
   VkFence renderFence;
+  bool framebufferResized = false;
 
   vkutil::UploadContext uploadContext;
   vkutil::DeletionQueue deletionQueue;
@@ -117,6 +117,9 @@ class Window {
   void initDefaultRenderpass();
   void initFramebuffers();
   void initSyncStructures();
+
+  void terminateSwapchain();
+  void recreateSwapchain();
 };
 
 }

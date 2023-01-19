@@ -13,13 +13,13 @@ void Font::init(std::shared_ptr<Window> window) {
     return;
   }
 
-  if(FT_New_Face(ft, "assets/fonts/Roboto-Regular.ttf", 0, &face)) {
+  if(FT_New_Face(ft, "assets/fonts/ComicNeue-Regular.ttf", 0, &face)) {
     std::cout << "[FreeType]: Failed to load font" << std::endl; 
     return;
   }
 
   characters.resize(128);
-  FT_Set_Pixel_Sizes(face, 0, 24);
+  FT_Set_Pixel_Sizes(face, 0, 48);
 
   const uint32_t ATLAS_WIDTH = 2048;
 
