@@ -2,8 +2,8 @@ let x = zeros(1, 500);
 let y = zeros(1, 500);
 
 for(let i=0;i<500;i++) {
-  x[i] = i + 100;
-  y[i] = sin((x[i]-100) / 20) * 100 + 250;
+  x[i] = i;
+  y[i] = sin((x[i]) / 20) * 100;
 }
 
 plot(x, y);

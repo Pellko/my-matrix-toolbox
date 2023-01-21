@@ -17,6 +17,8 @@ void Disassembler::disassemble(CompilerOutput& output) {
     std::cout << std::endl;
   }
 
+  // TODO: Disassemble modules properly
+  
   // for(int i=0;i<output.modules.size();i++) {
   //   std::cout << "Module <" << i << ">" << std::endl;
   //   disassembleChunk(output.modules[i].root, output);

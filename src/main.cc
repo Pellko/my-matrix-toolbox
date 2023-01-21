@@ -8,19 +8,6 @@
 
 using namespace mymatrixtoolbox;
 
-std::string read_string_from_file(const std::string &file_path) {
-  const std::ifstream input_stream(file_path, std::ios_base::binary);
-
-  if (input_stream.fail()) {
-    throw std::runtime_error("Failed to open file");
-  }
-
-  std::stringstream buffer;
-  buffer << input_stream.rdbuf();
-
-  return buffer.str();
-}
-
 static Value sin(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args) {
   double input = args[0].as.number;
   return Value::fromDouble(sin(input));
@@ -30,7 +17,7 @@ int main(int argc, char** argv) {
   std::shared_ptr<ExecutionContext> executionContext = std::make_shared<ExecutionContext>();
   
   executionContext->launch([&]() {
-    std::string code = read_string_from_file("examples/test.txt");
+    std::string code = Compiler::readFile("examples/test.txt");
     std::vector<Token> tokens;
     CompilerOutput output;
 

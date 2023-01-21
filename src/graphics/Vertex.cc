@@ -76,9 +76,23 @@ vkutil::VertexInputDescription LineVertex::getVertexDescription() {
   pointBAttribute.format = VK_FORMAT_R32G32_SFLOAT;
   pointBAttribute.offset = offsetof(LineInstance, pointB);
 
+  VkVertexInputAttributeDescription colorAttribute = {};
+  colorAttribute.binding = 1;
+  colorAttribute.location = 3;
+  colorAttribute.format = VK_FORMAT_R32G32B32_SFLOAT;
+  colorAttribute.offset = offsetof(LineInstance, color);
+
+  VkVertexInputAttributeDescription widthAttribute = {};
+  widthAttribute.binding = 1;
+  widthAttribute.location = 4;
+  widthAttribute.format = VK_FORMAT_R32_SFLOAT;
+  widthAttribute.offset = offsetof(LineInstance, width);
+
   description.attributes.push_back(positionAttribute);
   description.attributes.push_back(pointAAttribute);
   description.attributes.push_back(pointBAttribute);
+  description.attributes.push_back(colorAttribute);
+  description.attributes.push_back(widthAttribute);
 
   return description;
 }

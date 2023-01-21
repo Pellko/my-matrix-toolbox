@@ -90,6 +90,8 @@ struct LineVertex {
 struct LineInstance {
   glm::vec2 pointA;
   glm::vec2 pointB;
+  glm::vec3 color;
+  float width;
 };
 
 class LineMesh {

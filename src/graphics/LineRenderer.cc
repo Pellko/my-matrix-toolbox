@@ -26,10 +26,12 @@ void LineRenderer::render() {
   vkCmdDraw(window->getCommandBuffer(), lineMesh.vertices.size(), lineInstanceBuffer.instances.size(), 0, 0);
 }
 
-void LineRenderer::addLineSegment(glm::vec2 a, glm::vec2 b) {
+void LineRenderer::addLineSegment(glm::vec2 a, glm::vec2 b, glm::vec3 color, float width) {
   lineInstanceBuffer.instances.push_back(LineInstance{
     .pointA = a,
     .pointB = b,
+    .color = color / 255.0f,
+    .width = width,
   });
 }
 

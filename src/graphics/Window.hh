@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include "vkb/VkBootstrap.h"
 #include "vk_mem_alloc.h"
 #include "DescriptorAllocator.hh"
@@ -65,6 +66,10 @@ class Window {
     return descriptorLayoutCache;
   }
 
+  void addInitializer(std::function<void()> fn) {
+    initializers.push_back(fn);
+  }
+
   void addRenderable(std::shared_ptr<Renderable> renderable) {
     renderables.push_back(renderable);
     std::sort(renderables.begin(), renderables.end(), [](std::shared_ptr<Renderable> a, std::shared_ptr<Renderable> b) {
@@ -109,6 +114,8 @@ class Window {
   vkutil::DeletionQueue deletionQueue;
   DescriptorAllocator descriptorAllocator;
   DescriptorLayoutCache descriptorLayoutCache;
+
+  std::vector<std::function<void()>> initializers;
   std::vector<std::shared_ptr<Renderable>> renderables;
 
   void initVulkan();

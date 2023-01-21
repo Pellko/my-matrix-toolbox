@@ -17,7 +17,7 @@ class LineRenderer : public Renderable {
   void init() override;
   void render() override;
 
-  void addLineSegment(glm::vec2 a, glm::vec2 b);
+  void addLineSegment(glm::vec2 a, glm::vec2 b, glm::vec3 color, float width);
 
  private:
   std::shared_ptr<Window> window;

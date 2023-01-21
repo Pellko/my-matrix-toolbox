@@ -42,6 +42,10 @@ void Window::init() {
   initFramebuffers();
   initSyncStructures();
 
+  for(const auto& fn : initializers) {
+    fn();
+  }
+
   for(std::shared_ptr<Renderable>& renderable : renderables) {
     renderable->init();
   }

@@ -18,6 +18,8 @@ class Compiler {
 
   void compile(CompilerOutput& compilerOutput);
   int declareNativeFunction(std::string name);
+  
+  static std::string readFile(std::string fileName);
 
  private:
   ParserTool parserTool;
@@ -25,7 +27,6 @@ class Compiler {
 
   void statement();
   void compileModule(std::string name, CompilerOutput& compilerOutput);
-  std::string readFile(std::string fileName);
 };
 
 }
