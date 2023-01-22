@@ -1,5 +1,6 @@
 #include "Font.hh"
 #include "src/graphics/VkUtil.hh"
+#include "src/context/Runfiles.hh"
 #include <iostream>
 
 namespace mymatrixtoolbox {
@@ -13,7 +14,7 @@ void Font::init(std::shared_ptr<Window> window) {
     return;
   }
 
-  if(FT_New_Face(ft, "assets/fonts/ComicNeue-Regular.ttf", 0, &face)) {
+  if(FT_New_Face(ft, Runfiles::convert("assets/fonts/ComicNeue-Regular.ttf").c_str(), 0, &face)) {
     std::cout << "[FreeType]: Failed to load font" << std::endl; 
     return;
   }

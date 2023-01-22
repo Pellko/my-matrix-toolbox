@@ -15,3 +15,16 @@ custom_cc_library(
     "//src/types:types",
   ],
 )
+
+custom_cc_library(
+  name = "runfiles",
+  srcs = [
+    "Runfiles.cc",
+  ],
+  hdrs = [
+    "Runfiles.hh"
+  ],
+  deps = [
+    "@wai//:wai",
+  ]
+)

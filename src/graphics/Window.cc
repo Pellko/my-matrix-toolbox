@@ -1,5 +1,6 @@
 #include "Window.hh"
 #include "src/graphics/VkUtil.hh"
+#include "src/context/Runfiles.hh"
 
 namespace mymatrixtoolbox {
 
@@ -369,7 +370,7 @@ void Window::immediateSubmit(std::function<void (VkCommandBuffer cmd)>&& functio
 }
 
 bool Window::loadShaderModule(const char* filePath, VkShaderModule* outShaderModule) {
-  std::ifstream file(filePath, std::ios::ate | std::ios::binary);
+  std::ifstream file(Runfiles::convert(filePath), std::ios::ate | std::ios::binary);
   if(!file.is_open()) {
     return false;
   }

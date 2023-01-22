@@ -39,6 +39,7 @@ custom_cc_library(
     "@glm//:glm",
     "@freetype//:freetype",
     "//bazel:vulkan",
+    "//src/context:runfiles",
   ],
   data  =[
     "//src/graphics/shaders:polygon_vert",

@@ -1,9 +1,11 @@
-let x = zeros(1, 500);
-let y = zeros(1, 500);
+let x = zeros(1, 100);
+let y = zeros(1, 100);
 
-for(let i=0;i<500;i++) {
-  x[i] = i;
-  y[i] = sin((x[i]) / 20) * 100;
+let xc = 0;
+for(let i=0;i<100;i++) {
+  x[i] = xc;
+  y[i] = sin(x[i]);
+  xc = xc + 0.1;
 }
 
 plot(x, y);

@@ -67,6 +67,14 @@ new_git_repository(
   build_file = "@//third_party:zlib.BUILD",
 )
 
+# Where Am I Library
+new_git_repository(
+  name = "wai",
+  remote = "https://github.com/gpakosz/whereami.git",
+  commit = "ba364cd54fd431c76c045393b6522b4bff547f50",
+  build_file = "@//third_party:wai.BUILD",
+)
+
 # Compilation database tooling
 http_archive(
   name = "hedron_compile_commands",

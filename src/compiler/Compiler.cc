@@ -1,4 +1,5 @@
 #include "Compiler.hh"
+#include "src/context/Runfiles.hh"
 #include "src/types/CompilerScope.hh"
 #include "src/types/Object.hh"
 #include "src/types/OpCode.hh"
@@ -76,7 +77,7 @@ void Compiler::statement() {
 }
 
 std::string Compiler::readFile(std::string fileName) {
-  const std::ifstream inputStream(fileName, std::ios_base::binary);
+  const std::ifstream inputStream(Runfiles::convert(fileName), std::ios_base::binary);
 
   if (inputStream.fail()) {
     throw std::runtime_error("Failed to open file");

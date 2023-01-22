@@ -76,5 +76,6 @@ custom_cc_library(
   hdrs = COMPILER_HDRS + ["ast/" + f for f in AST_HDRS],
   deps = [
     "//src/types:types",
+    "//src/context:runfiles",
   ],
 )
