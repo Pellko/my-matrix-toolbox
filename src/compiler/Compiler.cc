@@ -35,7 +35,7 @@ void Compiler::compile(CompilerOutput& compilerOutput) {
 }
 
 void Compiler::compileModule(std::string name, CompilerOutput& compilerOutput) {
-  std::string contents = readFile("examples/" + name + ".txt");
+  std::string contents = readFile("examples/" + name + ".mmt");
   std::vector<Token> tokens;
   Lexer lexer(contents);
   lexer.lex(tokens);

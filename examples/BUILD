@@ -2,5 +2,5 @@ package(default_visibility = ["//visibility:public"])
 
 filegroup(
   name = "examples",
-  srcs = glob(["**/*.txt"]),
+  srcs = glob(["**/*.mmt"]),
 )

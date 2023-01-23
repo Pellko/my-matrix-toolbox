@@ -17,7 +17,7 @@ int main(int argc, char** argv) {
   std::shared_ptr<ExecutionContext> executionContext = std::make_shared<ExecutionContext>();
   
   executionContext->launch([&]() {
-    std::string code = Compiler::readFile("examples/test.txt");
+    std::string code = Compiler::readFile("examples/test.mmt");
     std::vector<Token> tokens;
     CompilerOutput output;
 
