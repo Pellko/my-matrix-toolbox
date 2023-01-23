@@ -7,7 +7,7 @@ namespace mymatrixtoolbox {
 
 class IncrementExpression : public Expression {
  public:
-  IncrementExpression(bool isIncrement, std::shared_ptr<Expression> expression) : isIncrement(isIncrement), expression(expression) {}
+  IncrementExpression(bool isIncrement, std::shared_ptr<Expression> expression, std::shared_ptr<Expression> value) : isIncrement(isIncrement), expression(expression), value(value) {}
   ~IncrementExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
@@ -15,6 +15,7 @@ class IncrementExpression : public Expression {
  private:
   bool isIncrement;
   std::shared_ptr<Expression> expression;
+  std::shared_ptr<Expression> value;
 };
 
 }

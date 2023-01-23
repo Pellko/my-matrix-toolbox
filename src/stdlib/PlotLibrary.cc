@@ -10,8 +10,16 @@ namespace mymatrixtoolbox {
 namespace stdlib {
 
 static Value plot(ExecutionContext* context, VirtualMachine* vm, std::vector<Value> args) {
-  ObjectMatrix* x = static_cast<ObjectMatrix*>(args[0].as.object);
-  ObjectMatrix* y = static_cast<ObjectMatrix*>(args[1].as.object);
+  ObjectMatrix* xData = static_cast<ObjectMatrix*>(args[0].as.object);
+  ObjectMatrix* yData = static_cast<ObjectMatrix*>(args[1].as.object);
+
+  std::vector<double> x(xData->getHeight());
+  std::vector<double> y(xData->getHeight());
+
+  for(int i=0;i<xData->getHeight();i++) {
+    x[i] = xData->get(0, i).as.number;
+    y[i] = yData->get(0, i).as.number;
+  }
 
   std::shared_ptr<Window> window = context->createWindow("My Matrix Toolbox");
   std::shared_ptr<LineRenderer> lineRenderer = std::make_shared<LineRenderer>(window, 0);
@@ -24,21 +32,21 @@ static Value plot(ExecutionContext* context, VirtualMachine* vm, std::vector<Val
     glm::vec2 max = {0,0};
     glm::vec2 min = {0,0};
 
-    for(int i=0;i<x->getHeight();i++) {
+    for(int i=0;i<x.size();i++) {
       // Get maximum values
-      if(x->get(0, i).as.number > max.x) {
-        max.x = x->get(0, i).as.number;
+      if(x[i] > max.x) {
+        max.x = x[i];
       }
-      if(y->get(0, i).as.number > max.y) {
-        max.y = y->get(0, i).as.number;
+      if(y[i] > max.y) {
+        max.y = y[i];
       }
 
       // Get minimum values
-      if(x->get(0, i).as.number < min.x) {
-        min.x = x->get(0, i).as.number;
+      if(x[i] < min.x) {
+        min.x = x[i];
       }
-      if(y->get(0, i).as.number < min.y) {
-        min.y = y->get(0, i).as.number;
+      if(y[i] < min.y) {
+        min.y = y[i];
       }
     }
 
@@ -52,10 +60,10 @@ static Value plot(ExecutionContext* context, VirtualMachine* vm, std::vector<Val
     glm::vec2 screenMin = {(min.x/xAxis)*screenWidth, (min.y/yAxis)*screenHeight};
 
     // Add plot transformed to screen coordinates to GUI
-    for(int i=0;i<x->getHeight()-1;i++) {
+    for(int i=0;i<x.size()-1;i++) {
       // Get raw coordinates
-      glm::vec2 start = {x->get(0, i).as.number, y->get(0, i).as.number};
-      glm::vec2 end = {x->get(0, i+1).as.number, y->get(0, i+1).as.number};
+      glm::vec2 start = {x[i], y[i]};
+      glm::vec2 end = {x[i+1], y[i+1]};
 
 
       // Transform

@@ -39,7 +39,8 @@ std::shared_ptr<Expression> Expression::parse(ParserTool& parserTool) {
     Token* op = parserTool.get();
 
     return readAssignment(parserTool, name->text, [&](std::shared_ptr<Expression> currentValue) {
-      std::shared_ptr<IncrementExpression> increment = std::make_shared<IncrementExpression>(op->type == Token::Kind::PLUSPLUS, currentValue);
+      std::shared_ptr<ConstantExpression> constant = std::make_shared<ConstantExpression>(Literal::fromDouble(1));
+      std::shared_ptr<IncrementExpression> increment = std::make_shared<IncrementExpression>(op->type == Token::Kind::PLUSPLUS, currentValue, constant);
       return increment;
     });
   }
@@ -52,10 +53,10 @@ std::shared_ptr<Expression> Expression::parse(ParserTool& parserTool) {
   ) {
     Token* name = parserTool.get();
     Token* op = parserTool.get();
-    std::shared_ptr<Expression> newValue = Expression::parse(parserTool);
+    std::shared_ptr<Expression> deltaValue = Expression::parse(parserTool);
 
     return readAssignment(parserTool, name->text, [&](std::shared_ptr<Expression> currentValue) {
-      std::shared_ptr<IncrementExpression> increment = std::make_shared<IncrementExpression>(op->type == Token::Kind::PLUSPLUS, currentValue);
+      std::shared_ptr<IncrementExpression> increment = std::make_shared<IncrementExpression>(op->type == Token::Kind::PLUS_EQUALS, currentValue, deltaValue);
       return increment;
     });
   }
