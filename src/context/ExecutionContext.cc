@@ -13,7 +13,6 @@ void ExecutionContext::launch(std::function<void()> executionMain) {
     executionMain();
     markExecutionFinished();
   });
-  executionThread.detach();
 
   while(!(isExecutionFinished() && shouldClose())) {
     auto windowReq = windowRequests.pop();
@@ -31,6 +30,7 @@ void ExecutionContext::launch(std::function<void()> executionMain) {
     }
   }
 
+  executionThread.join();
   Window::terminateGLFW();
 }
 

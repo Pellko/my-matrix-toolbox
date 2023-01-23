@@ -7,16 +7,14 @@ namespace mymatrixtoolbox {
 
 class IncrementExpression : public Expression {
  public:
-  IncrementExpression(bool isIncrement, Expression* expression) : isIncrement(isIncrement), expression(expression) {}
-  ~IncrementExpression() {
-    if(expression != nullptr) delete expression;
-  }
+  IncrementExpression(bool isIncrement, std::shared_ptr<Expression> expression) : isIncrement(isIncrement), expression(expression) {}
+  ~IncrementExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
   bool isIncrement;
-  Expression* expression;
+  std::shared_ptr<Expression> expression;
 };
 
 }

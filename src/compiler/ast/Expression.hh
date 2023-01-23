@@ -13,16 +13,18 @@ class Expression {
   Expression() {}
   virtual ~Expression() {}
 
-  static Expression* parse(ParserTool& parserToolfalse);
+  static std::shared_ptr<Expression> parse(ParserTool& parserToolfalse);
   virtual void emitBytecode(Chunk& chunk) = 0;
 
  private:
-  static Expression* readPrimary(ParserTool& parserTool);
-  static Expression* readFactor(ParserTool& parserTool);
-  static Expression* readTerm(ParserTool& parserTool);
-  static Expression* readArithmeticExpression(ParserTool& parserTool);
+  static std::shared_ptr<Expression> readPrimary(ParserTool& parserTool);
+  static std::shared_ptr<Expression> readFactor(ParserTool& parserTool);
+  static std::shared_ptr<Expression> readTerm(ParserTool& parserTool);
+  static std::shared_ptr<Expression> readArithmeticExpression(ParserTool& parserTool);
 
-  static Expression* readCall(ParserTool& parserTool, Expression* target);
+  static std::shared_ptr<Expression> readCall(ParserTool& parserTool, std::shared_ptr<Expression> target);
+  static std::shared_ptr<Expression> readAssignment(ParserTool& parserTool, std::string identifier, std::function<std::shared_ptr<Expression> (std::shared_ptr<Expression> value)> value);
+  static std::shared_ptr<Expression> readIdentifier(ParserTool& parserTool, std::string identifier);
 };
 
 }

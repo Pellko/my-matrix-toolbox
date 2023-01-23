@@ -45,9 +45,8 @@ void Compiler::compileModule(std::string name, CompilerOutput& compilerOutput) {
   moduleScope->name = "<module_" + name + ">";
 
   while(!moduleTool.empty()) {
-    Statement* statement = Statement::parse(moduleTool);
+    std::shared_ptr<Statement> statement = Statement::parse(moduleTool);
     statement->emitBytecode(moduleScope->chunk);
-    delete statement;
   }
 
   moduleScope->chunk.emitByte(OP_RETURN);
@@ -71,9 +70,8 @@ void Compiler::compileModule(std::string name, CompilerOutput& compilerOutput) {
 }
 
 void Compiler::statement() {
-  Statement* statement = Statement::parse(parserTool);
+  std::shared_ptr<Statement> statement = Statement::parse(parserTool);
   statement->emitBytecode(rootScope->chunk);
-  delete statement;
 }
 
 std::string Compiler::readFile(std::string fileName) {

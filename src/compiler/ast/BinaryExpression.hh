@@ -20,18 +20,15 @@ enum class BinaryOperation {
 
 class BinaryExpression : public Expression {
  public:
-  BinaryExpression(BinaryOperation op, Expression* left, Expression* right) : op(op), left(left), right(right) {}
-  ~BinaryExpression() {
-    delete left;
-    delete right;
-  }
+  BinaryExpression(BinaryOperation op, std::shared_ptr<Expression> left, std::shared_ptr<Expression> right) : op(op), left(left), right(right) {}
+  ~BinaryExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
   BinaryOperation op;
-  Expression* left;
-  Expression* right;
+  std::shared_ptr<Expression> left;
+  std::shared_ptr<Expression> right;
 };
 
 }

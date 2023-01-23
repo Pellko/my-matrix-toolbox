@@ -258,7 +258,7 @@ int ParserTool::addUpvalue(CompilerScopeTree* scope, int index, bool isLocal) {
   return upvalueCount;
 }
 
-void ParserTool::storeLocalsInBlockStatement(BlockStatement* statement) {
+void ParserTool::storeLocalsInBlockStatement(std::shared_ptr<BlockStatement> statement) {
   for(int i=0;i<locals.size();i++) {
     if(locals[i].depth >= scopeLevel) {
       statement->addLocal(locals[i]);

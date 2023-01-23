@@ -22,21 +22,17 @@ class MatrixExpression : public Expression {
   MatrixExpression(int width, int height) : width(width), height(height) {
     expressions.resize(width * height);
   }
-  ~MatrixExpression() {
-    for(Expression* expression : expressions) {
-      delete expression;
-    }
-  }
+  ~MatrixExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
-  void addExpression(int x, int y, Expression* expression) {
+  void addExpression(int x, int y, std::shared_ptr<Expression> expression) {
     expressions[x+y*width] = expression;
   }
 
  private:
   int width;
   int height;
-  std::vector<Expression*> expressions;
+  std::vector<std::shared_ptr<Expression>> expressions;
 };
 
 class MapExpression : public Expression {
@@ -45,27 +41,23 @@ class MapExpression : public Expression {
   ~MapExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
-  void addValue(Expression* name, Expression* value) {
+  void addValue(std::shared_ptr<Expression> name, std::shared_ptr<Expression> value) {
     values.push_back(std::make_pair(name, value));
   }
 
  private:
-  std::vector<std::pair<Expression*, Expression*>> values;
+  std::vector<std::pair<std::shared_ptr<Expression>, std::shared_ptr<Expression>>> values;
 };
 
 class GroupExpression : public Expression {
  public:
-  GroupExpression(Expression* expression) : expression(expression) {}
-  ~GroupExpression() {
-    if(expression != nullptr) {
-      delete expression;
-    }
-  }
+  GroupExpression(std::shared_ptr<Expression> expression) : expression(expression) {}
+  ~GroupExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  Expression* expression;
+  std::shared_ptr<Expression> expression;
 };
 
 class LocalExpression : public Expression {
@@ -81,16 +73,14 @@ class LocalExpression : public Expression {
 
 class ReadPropertyExpression : public Expression {
  public:
-  ReadPropertyExpression(std::string propertyName, Expression* target) : propertyName(propertyName), target(target) {}
-  ~ReadPropertyExpression() {
-    if(target != nullptr) delete target;
-  }
+  ReadPropertyExpression(std::string propertyName, std::shared_ptr<Expression> target) : propertyName(propertyName), target(target) {}
+  ~ReadPropertyExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
   std::string propertyName;
-  Expression* target;
+  std::shared_ptr<Expression> target;
 };
 
 }

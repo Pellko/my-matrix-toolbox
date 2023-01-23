@@ -11,18 +11,14 @@ enum class UnaryOperation {
 
 class UnaryExpression : public Expression {
  public:
-  UnaryExpression(UnaryOperation op, Expression* expression) : op(op), expression(expression) {}
-  ~UnaryExpression() {
-    if(expression != nullptr) {
-      delete expression;
-    }
-  }
+  UnaryExpression(UnaryOperation op, std::shared_ptr<Expression> expression) : op(op), expression(expression) {}
+  ~UnaryExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
   UnaryOperation op;
-  Expression* expression;
+  std::shared_ptr<Expression> expression;
 };
 
 }

@@ -7,17 +7,14 @@ namespace mymatrixtoolbox {
 
 class WhileStatement : public Statement {
  public:
-  WhileStatement(Expression* condition, Statement* body) : Statement(StatementType::WHILE), condition(condition), body(body) {}
-  ~WhileStatement() {
-    if(condition != nullptr) delete condition;
-    if(body != nullptr) delete body;
-  }
+  WhileStatement(std::shared_ptr<Expression> condition, std::shared_ptr<Statement> body) : Statement(StatementType::WHILE), condition(condition), body(body) {}
+  ~WhileStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  Expression* condition;
-  Statement* body;
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Statement> body;
 };
 
 }

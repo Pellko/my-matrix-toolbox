@@ -8,36 +8,31 @@ namespace mymatrixtoolbox {
 class ForStatement : public Statement {
  public:
   ForStatement() : Statement(StatementType::FOR) {}
-  ~ForStatement() {
-    if(initializer != nullptr) delete initializer;
-    if(condition != nullptr) delete condition;
-    if(incrementor != nullptr) delete incrementor;
-    if(body != nullptr) delete body; 
-  }
+  ~ForStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
 
-  void setInitializer(Statement* stmt) {
+  void setInitializer(std::shared_ptr<Statement> stmt) {
     initializer = stmt;
   }
 
-  void setCondition(Expression* expression) {
+  void setCondition(std::shared_ptr<Expression> expression) {
     condition = expression;
   }
 
-  void setIncrementor(Expression* expression) {
+  void setIncrementor(std::shared_ptr<Expression> expression) {
     incrementor = expression;
   }
 
-  void setBody(Statement* body) {
+  void setBody(std::shared_ptr<Statement> body) {
     this->body = body;
   }
 
  private:
-  Statement* initializer;
-  Expression* condition;
-  Expression* incrementor;
-  Statement* body;
+  std::shared_ptr<Statement> initializer;
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Expression> incrementor;
+  std::shared_ptr<Statement> body;
 };
 
 }

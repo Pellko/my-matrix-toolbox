@@ -80,7 +80,7 @@ class ParserTool {
   int registerUpvalue(std::string name);
   int registerImport(std::string name);
 
-  void storeLocalsInBlockStatement(BlockStatement* statement);
+  void storeLocalsInBlockStatement(std::shared_ptr<BlockStatement> statement);
 
  private:
   std::vector<Token>& tokens;

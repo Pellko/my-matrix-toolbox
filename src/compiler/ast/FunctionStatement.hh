@@ -8,12 +8,8 @@ namespace mymatrixtoolbox {
 
 class FunctionStatement : public Statement {
  public:
-  FunctionStatement(std::string name, bool isGlobal, Statement* block, CompilerScope* compilerScope) : Statement(StatementType::FUNCTION), name(name), block(block), compilerScope(compilerScope), isGlobal(isGlobal) {}
-  ~FunctionStatement() {
-    if(block != nullptr) {
-      delete block;
-    }
-  }
+  FunctionStatement(std::string name, bool isGlobal, std::shared_ptr<Statement> block, CompilerScope* compilerScope) : Statement(StatementType::FUNCTION), name(name), block(block), compilerScope(compilerScope), isGlobal(isGlobal) {}
+  ~FunctionStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
 
@@ -45,7 +41,7 @@ class FunctionStatement : public Statement {
 
  private:
   std::string name;
-  Statement* block;
+  std::shared_ptr<Statement> block;
   CompilerScope* compilerScope; // This pointer is not managed by this class
   CompilerScope* parentScope; // This pointer is not managed by this class
   int functionIndex;

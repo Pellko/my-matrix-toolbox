@@ -7,18 +7,15 @@ namespace mymatrixtoolbox {
 
 class AssignPropertyExpression : public Expression {
  public:
-  AssignPropertyExpression(std::string propertyName, Expression* target, Expression* value) : propertyName(propertyName), target(target), value(value) {}
-  ~AssignPropertyExpression() {
-    if(value != nullptr) delete value;
-    if(target != nullptr) delete target;
-  }
+  AssignPropertyExpression(std::string propertyName, std::shared_ptr<Expression> target, std::shared_ptr<Expression> value) : propertyName(propertyName), target(target), value(value) {}
+  ~AssignPropertyExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
   std::string propertyName;
-  Expression* target;
-  Expression* value;
+  std::shared_ptr<Expression> target;
+  std::shared_ptr<Expression> value;
 };
 
 }

@@ -8,10 +8,8 @@ namespace mymatrixtoolbox {
 
 class LambdaExpression : public Expression {
  public:
-  LambdaExpression(Statement* block, CompilerScope* compilerScope) : block(block), compilerScope(compilerScope) {}
-  ~LambdaExpression() {
-    if(block != nullptr) delete block;
-  }
+  LambdaExpression(std::shared_ptr<Statement> block, CompilerScope* compilerScope) : block(block), compilerScope(compilerScope) {}
+  ~LambdaExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
   
@@ -32,7 +30,7 @@ class LambdaExpression : public Expression {
   }
 
  private:
-  Statement* block;
+  std::shared_ptr<Statement> block;
   CompilerScope* compilerScope;
   CompilerScope* parentScope;
   int functionIndex;

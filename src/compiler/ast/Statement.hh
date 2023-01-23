@@ -28,7 +28,7 @@ class Statement {
   Statement(StatementType type) : type(type) {}
   virtual ~Statement() {}
 
-  static Statement* parse(ParserTool& parserTool);
+  static std::shared_ptr<Statement> parse(ParserTool& parserTool);
   virtual void emitBytecode(Chunk& chunk) = 0;
 
   StatementType getType() {
@@ -37,7 +37,7 @@ class Statement {
 
  private:
   StatementType type;
-  static std::vector<Statement*> readBlock(ParserTool& parserTool);
+  static std::vector<std::shared_ptr<Statement>> readBlock(ParserTool& parserTool);
 };
 
 }

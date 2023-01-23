@@ -8,16 +8,12 @@ namespace mymatrixtoolbox {
 
 class PrintStatement : public Statement {
  public:
-  PrintStatement(Expression* expression) : Statement(StatementType::PRINT), expression(expression) {}
-  ~PrintStatement() {
-    if(expression != nullptr) {
-      delete expression;
-    }
-  }
+  PrintStatement(std::shared_ptr<Expression> expression) : Statement(StatementType::PRINT), expression(expression) {}
+  ~PrintStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
  private:
-  Expression* expression;
+  std::shared_ptr<Expression> expression;
 };
 
 }

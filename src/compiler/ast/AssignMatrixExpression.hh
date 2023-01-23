@@ -7,19 +7,16 @@ namespace mymatrixtoolbox {
 
 class AssignMatrixExpression : public Expression {
  public:
-  AssignMatrixExpression(Expression* target, Expression* value, Expression* row, Expression* col) : target(target), value(value), row(row), col(col) {}
-  ~AssignMatrixExpression() {
-    if(target != nullptr) delete target;
-    if(value != nullptr) delete value;
-  }
+  AssignMatrixExpression(std::shared_ptr<Expression> target, std::shared_ptr<Expression> value, std::shared_ptr<Expression> row, std::shared_ptr<Expression> col) : target(target), value(value), row(row), col(col) {}
+  ~AssignMatrixExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  Expression* target;
-  Expression* value;
-  Expression* row;
-  Expression* col;
+  std::shared_ptr<Expression> target;
+  std::shared_ptr<Expression> value;
+  std::shared_ptr<Expression> row;
+  std::shared_ptr<Expression> col;
 };
 
 }

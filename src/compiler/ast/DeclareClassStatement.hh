@@ -11,17 +11,13 @@ struct ClassMethod {
   CompilerScope* compilerScope; // This pointer is not managed by this struct
   std::vector<Upvalue> upvalues;
   std::vector<Argument> arguments;
-  Statement* block;
+  std::shared_ptr<Statement> block;
 };
 
 class DeclareClassStatement : public Statement {
  public:
   DeclareClassStatement(int classIndex, bool isGlobal) : Statement(StatementType::DECLARE_CLASS), isGlobal(isGlobal), classIndex(classIndex) {}
-  ~DeclareClassStatement() {
-    for(ClassMethod& m : methods) {
-      delete m.block;
-    }
-  }
+  ~DeclareClassStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
 

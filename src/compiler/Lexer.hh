@@ -56,6 +56,8 @@ class Token {
     DOT,
     IMPORT,
     AS,
+    PLUS_EQUALS,
+    MINUS_EQUALS,
   };
 
   Kind type;
@@ -103,8 +105,8 @@ class Lexer {
   void readStringLiteral(std::vector<Token>& tokens);
   void readLtOrLeq(std::vector<Token>& tokens);
   void readGtOrGeq(std::vector<Token>& tokens);
-  void readPlusOrDoublePlus(std::vector<Token>& tokens);
-  void readMinusOrDoubleMinus(std::vector<Token>& tokens);
+  void readPlusOrDoublePlusOrPlusEquals(std::vector<Token>& tokens);
+  void readMinusOrDoubleMinusOrMinusEquals(std::vector<Token>& tokens);
   void readBackslashOrDoubleBackslash(std::vector<Token>& tokens);
 };
 

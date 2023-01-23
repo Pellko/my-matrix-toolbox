@@ -7,38 +7,27 @@ namespace mymatrixtoolbox {
 
 class CallExpression : public Expression {
  public:
-  CallExpression(Expression* target, std::vector<Expression*> arguments) : target(target), arguments(arguments) {}
-  ~CallExpression() {
-    if(target != nullptr) {
-      delete target;
-    }
-    for(Expression* arg : arguments) {
-      delete arg;
-    }
-  }
+  CallExpression(std::shared_ptr<Expression> target, std::vector<std::shared_ptr<Expression>> arguments) : target(target), arguments(arguments) {}
+  ~CallExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  Expression* target;
-  std::vector<Expression*> arguments;
+  std::shared_ptr<Expression> target;
+  std::vector<std::shared_ptr<Expression>> arguments;
 };
 
 class MatrixAccessExpression : public Expression {
  public:
-  MatrixAccessExpression(Expression* target, Expression* row, Expression* col) : target(target), row(row), col(col) {}
-  ~MatrixAccessExpression() {
-    if(target != nullptr) delete target;
-    if(row != nullptr) delete row;
-    if(col != nullptr) delete col;
-  }
+  MatrixAccessExpression(std::shared_ptr<Expression> target, std::shared_ptr<Expression> row, std::shared_ptr<Expression> col) : target(target), row(row), col(col) {}
+  ~MatrixAccessExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  Expression* target;
-  Expression* row;
-  Expression* col;
+  std::shared_ptr<Expression> target;
+  std::shared_ptr<Expression> row;
+  std::shared_ptr<Expression> col;
 };
 
 }

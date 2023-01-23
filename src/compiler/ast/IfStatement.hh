@@ -7,34 +7,24 @@ namespace mymatrixtoolbox {
 
 class IfStatement : public Statement {
  public:
-  IfStatement(Expression* condition, Statement* trueStatement) : Statement(StatementType::IF), condition(condition), trueStatement(trueStatement) {}
-  ~IfStatement() {
-    delete condition;
-    delete trueStatement;
-    for(auto stmt : elifStatements) {
-      delete stmt.first;
-      delete stmt.second;
-    }
-    if(elseStatement != nullptr) {
-      delete elseStatement;
-    }
-  }
+  IfStatement(std::shared_ptr<Expression> condition, std::shared_ptr<Statement> trueStatement) : Statement(StatementType::IF), condition(condition), trueStatement(trueStatement) {}
+  ~IfStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
 
-  void addElifStatement(Expression* condition, Statement* statement) {
+  void addElifStatement(std::shared_ptr<Expression> condition, std::shared_ptr<Statement> statement) {
     elifStatements.push_back(std::make_pair(condition, statement));
   }
 
-  void setElseStatement(Statement* statement) {
+  void setElseStatement(std::shared_ptr<Statement> statement) {
     elseStatement = statement;
   }
 
  private:
-  Expression* condition;
-  Statement* trueStatement;
-  Statement* elseStatement;
-  std::vector<std::pair<Expression*, Statement*>> elifStatements;
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<Statement> trueStatement;
+  std::shared_ptr<Statement> elseStatement;
+  std::vector<std::pair<std::shared_ptr<Expression>, std::shared_ptr<Statement>>> elifStatements;
 };
 
 }

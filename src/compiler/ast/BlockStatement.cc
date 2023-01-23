@@ -6,11 +6,11 @@
 namespace mymatrixtoolbox {
 
 void BlockStatement::emitBytecode(Chunk& chunk) {
-  ReturnStatement* returnStatement = nullptr;
+  std::shared_ptr<ReturnStatement> returnStatement;
 
-  for(Statement* statement : statements) {
+  for(std::shared_ptr<Statement> statement : statements) {
     if(statement->getType() == StatementType::RETURN) {
-      returnStatement = static_cast<ReturnStatement*>(statement);
+      returnStatement = std::static_pointer_cast<ReturnStatement>(statement);
       break;
     } else {
       statement->emitBytecode(chunk);

@@ -12,12 +12,8 @@ enum class DeclareVariableType {
 
 class DeclareVariableStatement : public Statement {
  public:
-  DeclareVariableStatement(DeclareVariableType variableType, int index, Expression* value) : Statement(StatementType::DECLARE_VARIABLE), variableType(variableType), index(index), value(value) {}
-  ~DeclareVariableStatement() {
-    if(value != nullptr) {
-      delete value;
-    }
-  }
+  DeclareVariableStatement(DeclareVariableType variableType, int index, std::shared_ptr<Expression> value) : Statement(StatementType::DECLARE_VARIABLE), variableType(variableType), index(index), value(value) {}
+  ~DeclareVariableStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
 
@@ -28,7 +24,7 @@ class DeclareVariableStatement : public Statement {
  private:
   DeclareVariableType variableType;
   int index;
-  Expression* value;
+  std::shared_ptr<Expression> value;
 };
 
 }

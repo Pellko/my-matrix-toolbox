@@ -9,19 +9,15 @@ namespace mymatrixtoolbox {
 class ReturnStatement : public Statement {
  public:
   ReturnStatement() : Statement(StatementType::RETURN) {}
-  ~ReturnStatement() {
-    if(expression != nullptr) {
-      delete expression;
-    }
-  }
+  ~ReturnStatement() {}
 
   void emitBytecode(Chunk& chunk) override;
-  void setExpression(Expression* expression) {
+  void setExpression(std::shared_ptr<Expression> expression) {
     this->expression = expression;
   }
 
  private:
-  Expression* expression = nullptr;
+  std::shared_ptr<Expression> expression = nullptr;
 };
 
 }

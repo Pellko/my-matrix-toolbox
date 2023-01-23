@@ -8,12 +8,8 @@ namespace mymatrixtoolbox {
 
 class AssignVariableExpression : public Expression {
  public:
-  AssignVariableExpression(DeclareVariableType type, int index, bool isUpvalue, Expression* value) : type(type), index(index), isUpvalue(isUpvalue), value(value) {}
-  ~AssignVariableExpression() {
-    if(value != nullptr) {
-      delete value;
-    }
-  }
+  AssignVariableExpression(DeclareVariableType type, int index, bool isUpvalue, std::shared_ptr<Expression> value) : type(type), index(index), isUpvalue(isUpvalue), value(value) {}
+  ~AssignVariableExpression() {}
 
   void emitBytecode(Chunk& chunk) override;
 
@@ -21,7 +17,7 @@ class AssignVariableExpression : public Expression {
   DeclareVariableType type;
   int index;
   bool isUpvalue;
-  Expression* value;
+  std::shared_ptr<Expression> value;
 };
 
 }

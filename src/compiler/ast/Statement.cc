@@ -17,15 +17,15 @@
 
 namespace mymatrixtoolbox {
 
-Statement* Statement::parse(ParserTool& parserTool) {
+std::shared_ptr<Statement> Statement::parse(ParserTool& parserTool) {
   Token* next = parserTool.peek();
 
   // Block
   if(next->type == Token::Kind::LBRACE) {
     parserTool.beginScope();
-    std::vector<Statement*> statements = readBlock(parserTool);
-    BlockStatement* node = new BlockStatement();
-    for(Statement* stmt : statements) {
+    std::vector<std::shared_ptr<Statement>> statements = readBlock(parserTool);
+    std::shared_ptr<BlockStatement> node = std::make_shared<BlockStatement>();
+    for(std::shared_ptr<Statement>& stmt : statements) {
       node->addStatement(stmt);
     }
     parserTool.storeLocalsInBlockStatement(node);
@@ -71,13 +71,13 @@ Statement* Statement::parse(ParserTool& parserTool) {
       globalIndex = parserTool.registerGlobal(name->text);
     }
 
-    std::vector<Statement*> statements = readBlock(parserTool);
-    BlockStatement* block = new BlockStatement();
-    for(Statement* stmt : statements) {
+    std::vector<std::shared_ptr<Statement>> statements = readBlock(parserTool);
+    std::shared_ptr<BlockStatement> block = std::make_shared<BlockStatement>();
+    for(std::shared_ptr<Statement>& stmt : statements) {
       block->addStatement(stmt);
     }
 
-    FunctionStatement* fn = new FunctionStatement(name->text, isGlobal, block, parserTool.currentScope());
+    std::shared_ptr<FunctionStatement> fn = std::make_shared<FunctionStatement>(name->text, isGlobal, block, parserTool.currentScope());
     parserTool.storeLocalsInBlockStatement(block);
     parserTool.endScope();
     parserTool.endFunction();
@@ -145,7 +145,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     parserTool.beginScope();
 
     // Method declarations
-    DeclareClassStatement* node = new DeclareClassStatement(classIndex, isGlobal);
+    std::shared_ptr<DeclareClassStatement> node = std::make_shared<DeclareClassStatement>(classIndex, isGlobal);
 
     while(true) {
       if(parserTool.empty()) {
@@ -191,9 +191,9 @@ Statement* Statement::parse(ParserTool& parserTool) {
 
       // Read method body
       CompilerScope* methodScope = parserTool.currentScope();
-      std::vector<Statement*> statements = readBlock(parserTool);
-      BlockStatement* block = new BlockStatement();
-      for(Statement* stmt : statements) {
+      std::vector<std::shared_ptr<Statement>> statements = readBlock(parserTool);
+      std::shared_ptr<BlockStatement> block = std::make_shared<BlockStatement>();
+      for(std::shared_ptr<Statement>& stmt : statements) {
         block->addStatement(stmt);
       }
       parserTool.storeLocalsInBlockStatement(block);
@@ -226,9 +226,9 @@ Statement* Statement::parse(ParserTool& parserTool) {
     parserTool.get();
 
     parserTool.beginScope();
-    Statement* initializer = nullptr;
-    Expression* condition = nullptr;
-    Expression* incrementor = nullptr;
+    std::shared_ptr<Statement> initializer;
+    std::shared_ptr<Expression> condition = nullptr;
+    std::shared_ptr<Expression> incrementor = nullptr;
 
     // (1) Read initializer clause
     if(parserTool.peek()->type == Token::Kind::SEMICOLON) {
@@ -236,7 +236,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
     } else if(parserTool.peek()->type == Token::Kind::LET) {
       initializer = parse(parserTool);
     } else {
-      initializer = new ExpressionStatement(Expression::parse(parserTool));
+      initializer = std::make_shared<ExpressionStatement>(Expression::parse(parserTool));
       if(parserTool.empty() || parserTool.peek()->type != Token::Kind::SEMICOLON) {
         throw new SyntaxException("Expected semicolon");
       }
@@ -270,8 +270,8 @@ Statement* Statement::parse(ParserTool& parserTool) {
       throw new SyntaxException("Expected body");
     }
 
-    Statement* body = Statement::parse(parserTool);
-    ForStatement* node = new ForStatement();
+    std::shared_ptr<Statement> body = Statement::parse(parserTool);
+    std::shared_ptr<ForStatement> node = std::make_shared<ForStatement>();
     node->setInitializer(initializer);
     node->setCondition(condition);
     node->setIncrementor(incrementor);
@@ -288,13 +288,13 @@ Statement* Statement::parse(ParserTool& parserTool) {
       throw new SyntaxException("Expected ( after while statement");
     }
     parserTool.get();
-    Expression* condition = Expression::parse(parserTool);
+    std::shared_ptr<Expression> condition = Expression::parse(parserTool);
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
       throw new SyntaxException("Expected ) after while statement");
     }
     parserTool.get();
-    Statement* body = Statement::parse(parserTool);
-    WhileStatement* node = new WhileStatement(condition, body);
+    std::shared_ptr<Statement> body = Statement::parse(parserTool);
+    std::shared_ptr<WhileStatement> node = std::make_shared<WhileStatement>(condition, body);
     return node;
   }
 
@@ -305,16 +305,16 @@ Statement* Statement::parse(ParserTool& parserTool) {
       throw new SyntaxException("Expected ( after if statement");
     }
     parserTool.get();
-    Expression* condition = Expression::parse(parserTool);
+    std::shared_ptr<Expression> condition = Expression::parse(parserTool);
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
       throw new SyntaxException("Expected ) after if statement");
     }
     parserTool.get();
-    Statement* trueStatement = Statement::parse(parserTool);
-    IfStatement* node = new IfStatement(condition, trueStatement);
+    std::shared_ptr<Statement> trueStatement = Statement::parse(parserTool);
+    std::shared_ptr<IfStatement> node = std::make_shared<IfStatement>(condition, trueStatement);
 
     // Read else if statements
-    std::vector<std::pair<Expression*, Statement*>> elifStatements;
+    std::vector<std::pair<std::shared_ptr<Expression>, std::shared_ptr<Statement>>> elifStatements;
     while(true) {
       if(parserTool.empty() || parserTool.peek()->type != Token::Kind::ELIF) {
         break;
@@ -325,14 +325,14 @@ Statement* Statement::parse(ParserTool& parserTool) {
         throw new SyntaxException("Expected ( after elif statement");
       }
       parserTool.get();
-      Expression* condition = Expression::parse(parserTool);
+      std::shared_ptr<Expression> condition = Expression::parse(parserTool);
 
       if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
         throw new SyntaxException("Expected ) after elif condition");
       }
       parserTool.get();
 
-      Statement* statement = Statement::parse(parserTool);
+      std::shared_ptr<Statement> statement = Statement::parse(parserTool);
       node->addElifStatement(condition, statement);
     }
 
@@ -360,10 +360,10 @@ Statement* Statement::parse(ParserTool& parserTool) {
     }
 
     // Read variable value
-    Expression* value;
+    std::shared_ptr<Expression> value;
     if(parserTool.peek()->type == Token::Kind::SEMICOLON) {
       parserTool.get();
-      value = new ConstantExpression(Literal::nil());
+      value = std::make_shared<ConstantExpression>(Literal::nil());
     } else if(parserTool.peek()->type == Token::Kind::EQ) {
       parserTool.get();
       value = Expression::parse(parserTool);
@@ -383,7 +383,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
       }
   
       int newIndex = parserTool.registerGlobal(name->text);
-      DeclareVariableStatement* node = new DeclareVariableStatement(DeclareVariableType::GLOBAL, newIndex, value);
+      std::shared_ptr<DeclareVariableStatement> node = std::make_shared<DeclareVariableStatement>(DeclareVariableType::GLOBAL, newIndex, value);
       return node;
     } else {
       // Check that variable name hasnt been declared already in this scope
@@ -395,7 +395,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
 
       // Register local
       int newIndex = parserTool.registerLocal(name->text);
-      DeclareVariableStatement* node = new DeclareVariableStatement(DeclareVariableType::LOCAL, newIndex, value);
+      std::shared_ptr<DeclareVariableStatement> node = std::make_shared<DeclareVariableStatement>(DeclareVariableType::LOCAL, newIndex, value);
       return node;
     }
   }
@@ -409,15 +409,15 @@ Statement* Statement::parse(ParserTool& parserTool) {
 
     if(parserTool.peek()->type == Token::Kind::SEMICOLON) {
       parserTool.get();
-      ReturnStatement* node = new ReturnStatement();
+      std::shared_ptr<ReturnStatement> node = std::make_shared<ReturnStatement>();
       return node;
     }
-    Expression* expression = Expression::parse(parserTool);
+    std::shared_ptr<Expression> expression = Expression::parse(parserTool);
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::SEMICOLON) {
       throw new SyntaxException("Expected ; to end statement");
     }
     parserTool.get();
-    ReturnStatement* node = new ReturnStatement();
+    std::shared_ptr<ReturnStatement> node = std::make_shared<ReturnStatement>();
     node->setExpression(expression);
     return node;
   }
@@ -430,13 +430,13 @@ Statement* Statement::parse(ParserTool& parserTool) {
     }
     parserTool.get();
 
-    Expression* expression = Expression::parse(parserTool);
+    std::shared_ptr<Expression> expression = Expression::parse(parserTool);
 
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
       throw new SyntaxException("Expected closing parenthesis");
     }
     parserTool.get();
-    PrintStatement* node = new PrintStatement(expression);
+    std::shared_ptr<PrintStatement> node = std::make_shared<PrintStatement>(expression);
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::SEMICOLON) {
       throw new SyntaxException("Expected semicolon");
     }
@@ -472,7 +472,7 @@ Statement* Statement::parse(ParserTool& parserTool) {
       }
 
       int newIndex = parserTool.registerGlobal(importAlias);
-      ImportModuleStatement* node = new ImportModuleStatement(DeclareVariableType::GLOBAL, newIndex, moduleId);
+      std::shared_ptr<ImportModuleStatement> node = std::make_shared<ImportModuleStatement>(DeclareVariableType::GLOBAL, newIndex, moduleId);
       return node;
     } else {
       // Check that variable name hasnt been declared already in this scope
@@ -484,15 +484,15 @@ Statement* Statement::parse(ParserTool& parserTool) {
 
       // Register local
       int newIndex = parserTool.registerLocal(importAlias);
-      ImportModuleStatement* node = new ImportModuleStatement(DeclareVariableType::LOCAL, newIndex, moduleId);
+      std::shared_ptr<ImportModuleStatement> node = std::make_shared<ImportModuleStatement>(DeclareVariableType::LOCAL, newIndex, moduleId);
       return node;
     }
   }
 
   // Expression
   if(parserTool.expressionNext()) {
-    Expression* expression = Expression::parse(parserTool);
-    ExpressionStatement* node = new ExpressionStatement(expression);
+    std::shared_ptr<Expression> expression = Expression::parse(parserTool);
+    std::shared_ptr<ExpressionStatement> node = std::make_shared<ExpressionStatement>(expression);
     
     if(parserTool.peek()->type != Token::Kind::SEMICOLON) {
       throw new SyntaxException("Expected ; to end statement");
@@ -505,13 +505,13 @@ Statement* Statement::parse(ParserTool& parserTool) {
   throw new SyntaxException("Invalid token");
 }
 
-std::vector<Statement*> Statement::readBlock(ParserTool& parserTool) {
+std::vector<std::shared_ptr<Statement>> Statement::readBlock(ParserTool& parserTool) {
   if(parserTool.peek()->type != Token::Kind::LBRACE) {
     throw new SyntaxException("Expected { to open block");
   }
   parserTool.get();
 
-  std::vector<Statement*> statements;
+  std::vector<std::shared_ptr<Statement>> statements;
 
   while(true) {
     if(parserTool.empty()) {

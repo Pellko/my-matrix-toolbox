@@ -42,9 +42,9 @@ void Lexer::lex(std::vector<Token>& tokens) {
     } else if(currChar == ')') {
       pushTrivialToken(Token::Kind::RPAREN, tokens);
     } else if(currChar == '+') {
-      readPlusOrDoublePlus(tokens);
+      readPlusOrDoublePlusOrPlusEquals(tokens);
     } else if(currChar == '-') {
-      readMinusOrDoubleMinus(tokens); 
+      readMinusOrDoubleMinusOrMinusEquals(tokens); 
     } else if(currChar == '*') {
       pushTrivialToken(Token::Kind::MULT, tokens);
     } else if(currChar == '/') {
@@ -277,7 +277,7 @@ void Lexer::readGtOrGeq(std::vector<Token>& tokens) {
   }
 }
 
-void Lexer::readPlusOrDoublePlus(std::vector<Token>& tokens) {
+void Lexer::readPlusOrDoublePlusOrPlusEquals(std::vector<Token>& tokens) {
   if(remaining() >= 2 && peek(1) == '+') {
     int startOffset = position;
     get();
@@ -289,18 +289,40 @@ void Lexer::readPlusOrDoublePlus(std::vector<Token>& tokens) {
       .endOffset = position,
       .lineNumber = lineNumber
     });
+  } else if(remaining() >= 2 && peek(1) == '=') { 
+    int startOffset = position;
+    get();
+    get();
+    tokens.push_back(Token{
+      .type = Token::Kind::PLUS_EQUALS,
+      .text = substr(code, startOffset, position),
+      .startOffset = startOffset,
+      .endOffset = position,
+      .lineNumber = lineNumber
+    });
   } else {
     pushTrivialToken(Token::Kind::PLUS, tokens);
   }
 }
 
-void Lexer::readMinusOrDoubleMinus(std::vector<Token>& tokens) {
+void Lexer::readMinusOrDoubleMinusOrMinusEquals(std::vector<Token>& tokens) {
   if(remaining() >= 2 && peek(1) == '-') {
     int startOffset = position;
     get();
     get();
     tokens.push_back(Token{
       .type = Token::Kind::MINUSMINUS,
+      .text = substr(code, startOffset, position),
+      .startOffset = startOffset,
+      .endOffset = position,
+      .lineNumber = lineNumber
+    });
+  } else if(remaining() >= 2 && peek(1) == '=') {
+    int startOffset = position;
+    get();
+    get();
+    tokens.push_back(Token{
+      .type = Token::Kind::MINUS_EQUALS,
       .text = substr(code, startOffset, position),
       .startOffset = startOffset,
       .endOffset = position,

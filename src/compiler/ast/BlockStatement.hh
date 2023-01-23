@@ -9,13 +9,9 @@ namespace mymatrixtoolbox {
 class BlockStatement : public Statement {
  public:
   BlockStatement() : Statement(StatementType::BLOCK) {}
-  ~BlockStatement() {
-    for(Statement* stmt : statements) {
-      delete stmt;
-    } 
-  }
+  ~BlockStatement() {}
 
-  void addStatement(Statement* statement) {
+  void addStatement(std::shared_ptr<Statement> statement) {
     statements.push_back(statement);
   }
 
@@ -26,7 +22,7 @@ class BlockStatement : public Statement {
   void emitBytecode(Chunk& chunk) override;
 
  private:
-  std::vector<Statement*> statements;
+  std::vector<std::shared_ptr<Statement>> statements;
   std::vector<Local> locals;
 };
 

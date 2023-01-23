@@ -27,7 +27,7 @@ void MapExpression::emitBytecode(Chunk& chunk) {
 }
 
 void MatrixExpression::emitBytecode(Chunk& chunk) {
-  for(Expression* expression : expressions) {
+  for(std::shared_ptr<Expression> expression : expressions) {
     expression->emitBytecode(chunk);
   }
   chunk.emitByte(OP_MATRIX);

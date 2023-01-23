@@ -5,7 +5,7 @@ namespace mymatrixtoolbox {
 
 void CallExpression::emitBytecode(Chunk& chunk) {
   target->emitBytecode(chunk);
-  for(Expression* arg : arguments) {
+  for(std::shared_ptr<Expression> arg : arguments) {
     arg->emitBytecode(chunk);
   }
   chunk.emitByte(OP_CALL);
