@@ -27,24 +27,6 @@ std::shared_ptr<Expression> Expression::parse(ParserTool& parserTool) {
     return readAssignment(parserTool, name->text, [&](std::shared_ptr<Expression> currentValue) {
       return value;
     });
-    // // Find identifier
-    // auto [type, index] = parserTool.findIdentifier(name->text);
-
-    // switch(type) {
-    //   case VarRefType::GLOBAL: {
-    //     AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::GLOBAL, index, false, value);
-    //     return node;
-    //   }
-    //   case VarRefType::LOCAL: {
-    //     AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, index, false, value);
-    //     return node;
-    //   }
-    //   case VarRefType::UPVALUE: {
-    //     int upvalueIndex = parserTool.registerUpvalue(name->text);
-    //     AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, upvalueIndex, true, value);
-    //     return node;
-    //   }
-    // }
   }
 
   // Incrementor
@@ -60,29 +42,6 @@ std::shared_ptr<Expression> Expression::parse(ParserTool& parserTool) {
       std::shared_ptr<IncrementExpression> increment = std::make_shared<IncrementExpression>(op->type == Token::Kind::PLUSPLUS, currentValue);
       return increment;
     });
-
-    // auto [type, index] = parserTool.findIdentifier(name->text);
-    // switch(type) {
-    //   case VarRefType::GLOBAL: {
-    //     LocalExpression* value = new LocalExpression(VarRefType::GLOBAL, index);
-    //     IncrementExpression* increment = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, value);
-    //     AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::GLOBAL, index, false, increment);
-    //     return node;
-    //   }
-    //   case VarRefType::LOCAL: {
-    //     LocalExpression* value = new LocalExpression(VarRefType::LOCAL, index);
-    //     IncrementExpression* increment = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, value);
-    //     AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, index, false, increment);
-    //     return node;
-    //   }
-    //   case VarRefType::UPVALUE: {
-    //     int upvalueIndex = parserTool.registerUpvalue(name->text);
-    //     LocalExpression* value = new LocalExpression(VarRefType::LOCAL, index);
-    //     IncrementExpression* increment = new IncrementExpression(op->type == Token::Kind::PLUSPLUS, value);
-    //     AssignVariableExpression* node = new AssignVariableExpression(DeclareVariableType::LOCAL, upvalueIndex, true, increment);
-    //     return node;
-    //   }
-    // }
   }
 
   // Increment by expression
