@@ -7,6 +7,7 @@
 #include "src/compiler/ast/BinaryExpression.hh"
 #include "src/compiler/ast/DeclareVariableStatement.hh"
 #include "src/compiler/ast/LambdaExpression.hh"
+#include "src/compiler/ast/MatchExpression.hh"
 #include "src/compiler/ast/PrimaryExpression.hh"
 #include "src/compiler/ast/UnaryExpression.hh"
 #include "src/compiler/ast/IncrementExpression.hh"
@@ -115,6 +116,78 @@ std::shared_ptr<Expression> Expression::parse(ParserTool& parserTool) {
     }
 
     node->setArguments(argList);
+
+    return node;
+  }
+
+  // Match expression
+  if(parserTool.require(1) && parserTool.peek()->type == Token::Kind::MATCH) {
+    parserTool.get();
+
+    // Read comparsion value
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LPAREN) {
+      throw new SyntaxException("Expected ( after match expression");
+    }
+    parserTool.get();
+
+    std::shared_ptr<Expression> value = Expression::parse(parserTool);
+
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RPAREN) {
+      throw new SyntaxException("Expected ) after match expression value");
+    }
+    parserTool.get();
+
+    // Read body
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::LBRACE) {
+      throw new SyntaxException("Expected { to open match expression body");
+    }
+    parserTool.get();
+    parserTool.beginScope();
+
+    std::shared_ptr<MatchExpression> node = std::make_shared<MatchExpression>(value);
+
+    while(true) {
+      if(parserTool.empty() || parserTool.peek()->type == Token::Kind::RBRACE) {
+        break;
+      }
+
+      // Read targets
+      std::vector<std::shared_ptr<Expression>> targets;
+      while(true) {
+        targets.push_back(Expression::parse(parserTool));
+
+        // Pop off comma to read multiple targets for the same value
+        if(parserTool.empty() || parserTool.peek()->type != Token::Kind::COMMA) {
+          break;
+        }
+        parserTool.get();
+      }
+
+      // Check for double arrow after target list
+      if(parserTool.empty() || parserTool.peek()->type != Token::Kind::DOUBLE_ARROW) {
+        throw new SyntaxException("Expected => after match expression target list");
+      }
+      parserTool.get();
+
+      // Read resulting expression
+      std::shared_ptr<Expression> result = Expression::parse(parserTool);
+      node->addResult(targets, result);
+
+      if(!parserTool.empty() && parserTool.peek()->type != Token::Kind::COMMA && parserTool.peek()->type != Token::Kind::RBRACE) {
+        throw new SyntaxException("Unexpected token in match expression");
+      }
+
+      // Pop off trailing comma
+      if(parserTool.peek()->type == Token::Kind::COMMA) {
+        parserTool.get();
+      }
+    }
+
+    if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RBRACE) {
+      throw new SyntaxException("Expected } to close match expression body");
+    }
+    parserTool.get();
+    parserTool.endScope();
 
     return node;
   }
@@ -420,10 +493,22 @@ std::shared_ptr<Expression> Expression::readPrimary(ParserTool& parserTool) {
       if(parserTool.empty()) {
         break;
       }
-      if(parserTool.peek()->type != Token::Kind::IDENTIFIER && parserTool.peek()->type != Token::Kind::STRING_LITERAL) {
+      if(parserTool.peek()->type != Token::Kind::IDENTIFIER && parserTool.peek()->type != Token::Kind::STRING_LITERAL && parserTool.peek()->type != Token::Kind::LBRACKET) {
         break;
       }
-      Token* name = parserTool.get();
+
+      std::shared_ptr<Expression> nameExpression;
+      if(parserTool.peek()->type == Token::Kind::LBRACKET) {
+        parserTool.get();
+        nameExpression = Expression::parse(parserTool);
+        if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RBRACKET) {
+          throw new SyntaxException("Expected ] after dynamic property name");
+        }
+        parserTool.get();
+      } else {
+        Token* name = parserTool.get();
+        nameExpression = std::make_shared<ConstantExpression>(Literal::fromString(name->text));
+      }
       
       if(parserTool.empty() || parserTool.peek()->type != Token::Kind::COLON) {
         throw new SyntaxException("Expected : after property name");
@@ -439,7 +524,6 @@ std::shared_ptr<Expression> Expression::readPrimary(ParserTool& parserTool) {
         }
       }
 
-      std::shared_ptr<Expression> nameExpression = std::make_shared<ConstantExpression>(Literal::fromString(name->text));    
       node->addValue(nameExpression, value);  
     }
     if(parserTool.empty() || parserTool.peek()->type != Token::Kind::RBRACE) {

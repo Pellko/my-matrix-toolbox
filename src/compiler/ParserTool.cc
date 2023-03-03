@@ -39,6 +39,10 @@ bool ParserTool::expressionNext() {
     return true;
   }
 
+  if(type == Token::Kind::AT || type == Token::Kind::MATCH) {
+    return true;
+  }
+
   return false;
 }
 

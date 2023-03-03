@@ -58,6 +58,7 @@ class Token {
     AS,
     PLUS_EQUALS,
     MINUS_EQUALS,
+    MATCH,
   };
 
   Kind type;

@@ -8,7 +8,7 @@ namespace mymatrixtoolbox {
 
 class ImportModuleStatement : public Statement {
  public:
-  ImportModuleStatement(DeclareVariableType type, int index ,int moduleId) : Statement(StatementType::IMPORT_MODULE), variableType(type), index(index), moduleId(moduleId) {}
+  ImportModuleStatement(DeclareVariableType type, int index, int moduleId) : Statement(StatementType::IMPORT_MODULE), variableType(type), index(index), moduleId(moduleId) {}
   ~ImportModuleStatement() {}
 
   void emitBytecode(Chunk& chunk) override;

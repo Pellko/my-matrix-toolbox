@@ -1,18 +1,29 @@
-fn create_plot() {
-  let x = zeros(1, 100);
-  let y = zeros(1, 100);
+/*
+class PlotGenerator {
+  create_plot() {
+    let x = zeros(1, 100);
+    let y = zeros(1, 100);
 
-  let xc = 0;
+    let xc = 0;
 
-  for(let i=0;i<100;i++) {
-    x[i] = xc;
-    y[i] = sin(x[i]);
-    xc += 0.1;
+    for(let i=0;i<100;i++) {
+      x[i] = xc;
+      y[i] = sin(x[i]);
+      xc += 0.1;
+    }
+
+    plot(x, y);
+
+    return 0;
   }
-
-  plot(x, y);
-
-  return 0;
 }
 
-create_plot();
+let pg = PlotGenerator();
+pg.create_plot();
+*/
+
+print(match(123) {
+  100 => "100 is the word",
+  200 => "200 is the word",
+  123 => "123 is the word"
+});

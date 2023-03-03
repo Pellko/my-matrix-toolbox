@@ -16,13 +16,13 @@ class ObjectMap : public Object {
 
   std::string toString() override {
     std::stringstream ss;
-    ss << "{" << std::endl;
+    ss << "{";
 
     for(auto value : values) {
-      ss << "  " << value.first << ": " << value.second.toString() << "," << std::endl;
+      ss << std::endl << "  " << value.first << ": " << value.second.toString() << ",";
     }
 
-    ss << std::endl << "}" << std::endl;
+    ss << std::endl << "}";
 
     return ss.str();
   }

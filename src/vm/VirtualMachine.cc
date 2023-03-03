@@ -107,6 +107,25 @@ void VirtualMachine::execute(CompilerOutput& output) {
 
         break;
       }
+      case OP_LOGICAL_OR:
+      case OP_LOGICAL_AND: {
+        position++;
+        Value v1 = valueStack.back();
+        valueStack.pop_back();
+        Value v2 = valueStack.back();
+        valueStack.pop_back();
+
+        if(v1.type != ValueType::BOOL || v2.type != ValueType::BOOL) {
+          throw new RuntimeException("This operation only supports booleans");
+        }
+
+        if(instruction == OP_LOGICAL_OR) {
+          valueStack.push_back(Value::fromBool(v1.as.boolean || v2.as.boolean));
+        } else if(instruction == OP_LOGICAL_AND) {
+          valueStack.push_back(Value::fromBool(v1.as.boolean && v2.as.boolean));
+        }
+        break;
+      }
       case OP_EQUALS: {
         comparisonOp(bytecode, BinaryOperation::EQUALITY);
         position++;

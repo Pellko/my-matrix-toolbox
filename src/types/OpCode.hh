@@ -38,6 +38,8 @@ enum OpCode {
   OP_READ_PROPERTY,
   OP_MAP,
   OP_MODULE,
+  OP_LOGICAL_OR,
+  OP_LOGICAL_AND,
 };
 
 }

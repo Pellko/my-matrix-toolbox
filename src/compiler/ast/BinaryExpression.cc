@@ -40,6 +40,12 @@ void BinaryExpression::emitBytecode(Chunk& chunk) {
       chunk.emitByte(OP_LT);
       chunk.emitByte(OP_NEG);
       break;
+    case BinaryOperation::LOGICAL_AND:
+      chunk.emitByte(OP_LOGICAL_AND);
+      break;
+    case BinaryOperation::LOGICAL_OR:
+      chunk.emitByte(OP_LOGICAL_OR);
+      break;
   }
 }
 

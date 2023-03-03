@@ -82,6 +82,12 @@ void Disassembler::disassembleChunk(Chunk& chunk, CompilerOutput& output) {
       case OP_LEQ:
         offset = simpleInstruction("OP_LEQ", offset);
         break;
+      case OP_LOGICAL_OR:
+        offset = simpleInstruction("OP_LOGICAL_OR", offset);
+        break;
+      case OP_LOGICAL_AND:
+        offset = simpleInstruction("OP_LOGICAL_AND", offset);
+        break;
       case OP_READ_GLOBAL:
         offset = readVariable("OP_READ_GLOBAL", offset, chunk);
         break;

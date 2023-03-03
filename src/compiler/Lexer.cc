@@ -153,6 +153,8 @@ void Lexer::readIdentifierOrKeyword(std::vector<Token>& tokens) {
     type = Token::Kind::IMPORT;
   } else if(id == "as") {
     type = Token::Kind::AS;
+  } else if(id == "match") {
+    type = Token::Kind::MATCH;
   } else {
     type = Token::Kind::IDENTIFIER;
   }

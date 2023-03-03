@@ -16,6 +16,8 @@ enum class BinaryOperation {
   LESS_THAN_EQUALS,
   GREATER_THAN,
   GREATER_THAN_EQUALS,
+  LOGICAL_OR,
+  LOGICAL_AND
 };
 
 class BinaryExpression : public Expression {
